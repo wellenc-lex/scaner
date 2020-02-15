@@ -1,0 +1,142 @@
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  
+  server_name dev.scaner.pw scaner.pw;
+        
+  if ($host = dev.scaner.pw) {
+            return 301 https://$host$request_uri;
+  } # managed by Certbot
+
+
+        if ($host = scaner.pw) {
+            return 301 https://$host$request_uri;
+        } # managed by Certbot
+        
+  location ~ /\. {
+            deny all;
+        }
+  root /var/www/app/frontend/web;
+
+  index index.php;
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+    fastcgi_read_timeout 1500000;
+  }
+
+}
+
+server {
+
+  root /var/www/app/frontend/web;
+
+        location ~ /\. {
+            deny all;
+        }
+      
+  charset utf-8;
+        client_max_body_size 128M;
+  index index.php;
+  server_name scaner.pw; # managed by Certbot
+
+  location / {
+    try_files $uri $uri/ /index.php?$args;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+    fastcgi_read_timeout 1500000;
+  }
+  
+  location /phpmyadmin {
+  root /usr/share/;
+  index index.php;
+  try_files $uri $uri/ =404;
+
+  location ~ ^/phpmyadmin/(doc|sql|setup)/ {
+    deny all;
+  }
+
+  location ~ /phpmyadmin/(.+\.php)$ {
+    fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    include snippets/fastcgi-php.conf;
+  }
+ }
+
+    listen [::]:443 ssl ipv6only=on default_server; # managed by Certbot
+    listen 443 ssl default_server; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/scaner.pw-0001/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/scaner.pw-0001/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+  root /var/www/appdev/frontend/web;
+
+  location ~ /\. {
+    deny all;
+  }
+      
+  charset utf-8;
+  client_max_body_size 128M;
+  index index.php;
+  server_name dev.scaner.pw;
+
+  location / {
+                auth_basic "Private Property";
+                auth_basic_user_file /etc/nginx/.htpasswd;    
+                try_files $uri $uri/ /index.php?$args;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    
+fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+fastcgi_read_timeout 300;
+  }
+  
+  location /phpmyadmin {
+  root /usr/share/;
+  index index.php;
+  try_files $uri $uri/ =404;
+
+  location ~ ^/phpmyadmin/(doc|sql|setup)/ {
+    deny all;
+  }
+
+  location ~ /phpmyadmin/(.+\.php)$ {
+    fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    include snippets/fastcgi-php.conf;
+  }
+ }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/scaner.pw-0001/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/scaner.pw-0001/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+ listen 80;
+ server_name _;
+ return 404;
+}
+
+server {
+ listen 443 ssl;
+ server_name _;
+ return 404;
+}

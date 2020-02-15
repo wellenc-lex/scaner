@@ -1,0 +1,4 @@
+* * * * *  curl http://app/verify/active --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
+0 5,17 * * * curl http://app/verify/passive --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
+*/10 * * * * curl http://app/passive/index --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
+* * * * * curl http://app/verify/queue --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1

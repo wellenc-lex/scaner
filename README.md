@@ -19,6 +19,6 @@ docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1
 
 Done.
 
-Site will be avaliable at http://localhost
-Default credentials are admin@admin.com:admin
+Site will be avaliable at http://localhost default credentials are admin@admin.com:admin
+
 Phpmyadmin located at: http://localhost:8080

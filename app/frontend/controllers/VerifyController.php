@@ -154,11 +154,6 @@ class VerifyController extends Controller
                             $instruments = $instruments . "Dirscan, ";
 
                         }
-                        /*
-                        if ($pos = strpos($result->notify_instrument, "4") != false) {
-
-                            $instruments = $instruments."Vhost scan, ";
-                        }*/
 
                         if ($result->needs_to_notify == 1 && $result->notifications_enabled == 1) {
 
@@ -252,12 +247,13 @@ class VerifyController extends Controller
 
                 if (strpos($results->instrument, "3") !== false) {
 
-                    $countdirscan = "pgrep -c python3";
+                    /*$countdirscan = "pgrep -c python3";
+                    http to https
 
                     exec($countdirscan, $countdirscan_returncode);
 
                     if ($countdirscan_returncode[0] < 40) {
-
+                    */
                         $results->working = 1;
                         $results->todelete = 1;
 
@@ -267,22 +263,22 @@ class VerifyController extends Controller
                         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
 
                         if ($dirscanip != "") {
-                            exec('curl --insecure   -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                         } else {
-                            exec('curl --insecure   -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            exec('curl --insecure   -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                         }
                         $results->save();
-                    }
+                    //}
                 }
 
                 if (strpos($results->instrument, "7") !== false) {
 
-                    $countvhost = "pgrep -c curl --insecure ";
+                    /*$countvhost = "pgrep -c curl --insecure ";
 
                     exec($countvhost, $countvhost_returncode);
 
                     if ($countvhost_returncode[0] < 25) {
-
+                    */
                         $results->working = 1;
                         $results->todelete = 1;
 
@@ -295,18 +291,18 @@ class VerifyController extends Controller
                             if ($results->vhostport != 0 && $results->vhostdomain != 0 && $results->vhostip != 0){
                                 if ( $results->vhostport == 1 ) $ssl = "1"; else $ssl = "0";
 
-                                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid
+                                exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid
                                     . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
-                                    . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                                    . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                            } else exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                            } else exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
                         } else sleep(250);
 
                         $results->save();
 
                     } else return 0;
-                }
+                //}
             }
         } else return Yii::$app->response->statusCode = 403;
     }

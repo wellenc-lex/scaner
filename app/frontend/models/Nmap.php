@@ -45,7 +45,7 @@ class Nmap extends ActiveRecord
 
                 //" . escapeshellarg($url) . " Gives Failed to resolve " $url ". , don't know how to fix, left it as is.
             
-                system("sudo docker run --cpu-shares=2048 --rm -v configs:/root/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -sU -T3 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -oX /dockerresults/scan" .
+                system("sudo docker run --rm -v configs:/root/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -sU -T4 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -oX /dockerresults/scan" .
                     $randomid . ".xml --stylesheet /root/configs/nmap.xsl -R " . $scripts . $url );
 
                 system("sudo /usr/bin/xsltproc -o /dockerresults/nmap/" . $randomid . ".html /root/configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");

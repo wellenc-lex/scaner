@@ -124,7 +124,7 @@ class Amass extends ActiveRecord
 
                 /** Copy the screenshots from the folder to volume root in order to be accessible all the time**/
 
-                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots / && rm -r /screenshots/" . $randomid . "/ ";
+                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 755 /var/www/app/frontend/web/screenshots/ ";
 
                 system($clearthemess);
 

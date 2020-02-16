@@ -28,13 +28,18 @@ class Amass extends ActiveRecord
                 $url = str_replace("https://", "", $url);
                 $url = str_replace("www.", "", $url);
                 $url = str_replace(" ", ",", $url);
-                $url = str_replace(",", ",", $url);
-                $url = str_replace("\r", ",", $url);
-                $url = str_replace("\n", ",", $url);
+                $url = str_replace(",", " ", $url);
+                $url = str_replace("\r", " ", $url);
+                $url = str_replace("\n", " ", $url);
                 $url = str_replace("|", " ", $url);
                 $url = str_replace("&", " ", $url);
                 $url = str_replace("&&", " ", $url);
                 $url = str_replace(">", " ", $url);
+                $url = str_replace("<", " ", $url);
+                $url = str_replace("/", " ", $url);
+                $url = str_replace("'", " ", $url);
+                $url = str_replace("\"", " ", $url);
+                $url = str_replace("\\", " ", $url);
 
                 $url = rtrim($url, '/');
 
@@ -55,7 +60,7 @@ class Amass extends ActiveRecord
 
                 $amassoutput = '[' . $fileamass . ']';
 
-                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i aquatone -http-timeout 20000 -threads 1 -ports small -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 1 -ports small -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
                 system($command, $aquatone_returncode);
 

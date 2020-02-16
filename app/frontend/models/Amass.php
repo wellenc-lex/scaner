@@ -58,9 +58,13 @@ class Amass extends ActiveRecord
                 $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
-                $amassoutput = '[' . $fileamass . ']';
+                $fileamass = str_replace("} {", "},{", $fileamass);
 
-                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 1 -ports small -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+                $amassoutput = '[' . $fileamass . ']';
+                $fileamass = str_replace("}
+{", "},{", $fileamass);
+
+                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
                 system($command, $aquatone_returncode);
 

@@ -1,4 +1,4 @@
 docker-compose.yml
-conf/nginx/site.conf
+conf/nginx/nginxconfig.txt
 conf/configs/amass.ini
 conf/configs/crontab.txt

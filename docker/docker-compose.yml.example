@@ -28,7 +28,7 @@ services:
       - "dev.localhost.soft:127.0.0.1"  
  
   db:
-    image: mysql:latest
+    image: mariadb:latest
     command: mysqld --default-authentication-plugin=mysql_native_password
     restart: always
     networks: 
@@ -36,11 +36,11 @@ services:
     ports:
       - "3336:3306"
     environment:
-      #you need to change it at .env too!
+      #you need to change it at .env too!!
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       MYSQL_DATABASE: scaner
     volumes:
-      - "./database:/var/lib/mysql"
+      - "/database:/var/lib/mysql"
       - "./conf/db-scripts:/docker-entrypoint-initdb.d"
     logging:
       driver: none
@@ -129,6 +129,8 @@ volumes:
       name: configs  
     screenshots:
       name: screenshots  
+    database:
+      name: database   
 
 
 

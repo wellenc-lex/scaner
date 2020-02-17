@@ -28,13 +28,18 @@ class Amass extends ActiveRecord
                 $url = str_replace("https://", "", $url);
                 $url = str_replace("www.", "", $url);
                 $url = str_replace(" ", ",", $url);
-                $url = str_replace(",", ",", $url);
-                $url = str_replace("\r", ",", $url);
-                $url = str_replace("\n", ",", $url);
+                $url = str_replace(",", " ", $url);
+                $url = str_replace("\r", " ", $url);
+                $url = str_replace("\n", " ", $url);
                 $url = str_replace("|", " ", $url);
                 $url = str_replace("&", " ", $url);
                 $url = str_replace("&&", " ", $url);
                 $url = str_replace(">", " ", $url);
+                $url = str_replace("<", " ", $url);
+                $url = str_replace("/", " ", $url);
+                $url = str_replace("'", " ", $url);
+                $url = str_replace("\"", " ", $url);
+                $url = str_replace("\\", " ", $url);
 
                 $url = rtrim($url, '/');
 
@@ -53,9 +58,13 @@ class Amass extends ActiveRecord
                 $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
-                $amassoutput = '[' . $fileamass . ']';
+                $fileamass = str_replace("} {", "},{", $fileamass);
 
-                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i aquatone -http-timeout 20000 -threads 1 -ports small -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+                $amassoutput = '[' . $fileamass . ']';
+                $fileamass = str_replace("}
+{", "},{", $fileamass);
+
+                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
                 system($command, $aquatone_returncode);
 
@@ -115,7 +124,7 @@ class Amass extends ActiveRecord
 
                 /** Copy the screenshots from the folder to volume root in order to be accessible all the time**/
 
-                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots / && rm -r /screenshots/" . $randomid . "/ ";
+                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 755 /var/www/app/frontend/web/screenshots/ ";
 
                 system($clearthemess);
 

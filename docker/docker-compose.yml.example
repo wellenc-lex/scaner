@@ -40,7 +40,7 @@ services:
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       MYSQL_DATABASE: scaner
     volumes:
-      - "database:/var/lib/mysql"
+      - "/database:/var/lib/mysql"
       - "./conf/db-scripts:/docker-entrypoint-initdb.d"
     logging:
       driver: none

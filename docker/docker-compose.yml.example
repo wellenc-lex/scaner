@@ -1,62 +1,56 @@
 version: '3.7'
-
 networks:
   default:
     driver: bridge
-
 services:
   app:
-    #image: 5631/scaner
-    build: 
+    build:
       context: ../
       dockerfile: ./docker/Dockerfile
-    ports: 
-      - "80:80"
-    networks: 
+    ports:
+      - '80:80'
+    networks:
       - default
-    depends_on: 
+    depends_on:
       - db
     volumes:
-      - "../app:/var/www/app"
-      - "./conf/nginx:/etc/nginx/sites-available"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "dockerresults:/dockerresults"
-      - "configs:/root/configs"
-      - "screenshots:/screenshots"
+      - '../app:/var/www/app'
+      - './conf/nginx:/etc/nginx/sites-available'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'dockerresults:/dockerresults'
+      - 'configs:/root/configs'
+      - 'screenshots:/screenshots'
     extra_hosts:
-      - "localhost.soft:127.0.0.1"
-      - "dev.localhost.soft:127.0.0.1"  
- 
+      - 'localhost.soft:127.0.0.1'
+      - 'dev.localhost.soft:127.0.0.1'
   db:
-    image: mariadb:latest
+    image: 'mysql:latest'
     command: mysqld --default-authentication-plugin=mysql_native_password
     restart: always
-    networks: 
+    networks:
       - default
     ports:
-      - "3336:3306"
+      - '3336:3306'
     environment:
       #you need to change it at .env too!!
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       MYSQL_DATABASE: scaner
     volumes:
-      - "/database:/var/lib/mysql"
-      - "./conf/db-scripts:/docker-entrypoint-initdb.d"
+      - './database:/var/lib/mysql'
+      - './conf/db-scripts:/docker-entrypoint-initdb.d'
     logging:
       driver: none
-
   cron:
     image: 5631/cron
     restart: always
-    networks: 
+    networks:
       - default
-    depends_on: 
+    depends_on:
       - app
     logging:
       driver: none
     volumes:
-      - "./conf/configs/crontab.txt:/etc/cron.d/crontab"  
-
+      - './conf/configs/crontab.txt:/etc/cron.d/crontab'
   phpmyadmin:
     depends_on:
       - db
@@ -71,76 +65,55 @@ services:
     networks:
       - default
     logging:
-      driver: none   
-
+      driver: none
   amass:
     image: caffix/amass
-    networks: 
+    networks:
       - default
     volumes:
-      - "dockerresults:/dockerresults" 
-      - "configs:/root/configs"  
+      - 'dockerresults:/dockerresults'
+      - 'configs:/root/configs'
     logging:
       driver: none
-
   aquatone:
     image: 5631/aquatone
-    networks: 
+    networks:
       - default
     volumes:
-      - "screenshots:/screenshots"
+      - 'screenshots:/screenshots'
     logging:
       driver: none
-      
   dirsearch:
     image: 5631/dirsearch
-    networks: 
+    networks:
       - default
     volumes:
-      - "dockerresults:/dockerresults"
-      - "configs:/root/configs"   
+      - 'dockerresults:/dockerresults'
+      - 'configs:/root/configs'
     logging:
       driver: none
-
   linkfinder:
     image: 5631/linkfinder
-    networks: 
+    networks:
       - default
     volumes:
-      - "dockerresults:/dockerresults"
-      - "configs:/root/configs"   
+      - 'dockerresults:/dockerresults'
+      - 'configs:/root/configs'
     logging:
       driver: none
-
   nmap:
     image: instrumentisto/nmap
-    networks: 
+    networks:
       - default
     volumes:
-      - "dockerresults:/dockerresults" 
-      - "configs:/root/configs"
+      - 'dockerresults:/dockerresults'
+      - 'configs:/root/configs'
     logging:
-      driver: none 
-
+      driver: none
 volumes:
-    dockerresults:
-      name: dockerresults  
-    configs:
-      name: configs  
-    screenshots:
-      name: screenshots  
-    database:
-      name: database   
-
-
-
-
-
-
-
-
-
-
-
-
-
+  dockerresults:
+    name: dockerresults
+  configs:
+    name: configs
+  screenshots:
+    name: screenshots

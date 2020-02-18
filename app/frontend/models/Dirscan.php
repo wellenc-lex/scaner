@@ -47,7 +47,7 @@ class Dirscan extends ActiveRecord
                         " -d -o=/var/www/output/jsscan/scan" . $randomid . ".html  >/dev/null";*/
                         ////Turned off because burp's is better.
 
-                    $start_dirscan = "sudo docker run -v dockerresults:/dockerresults --rm 5631/dirsearch -u " . escapeshellarg($url) . " -e php,asp --json-report=/dockerresults/dirscan" . $randomid . ".json --random-agents -b --suppress-empty -F -t 1 -s 3 >/dev/null ";
+                    $start_dirscan = "sudo docker run -v dockerresults:/dockerresults --rm 5631/dirsearch -u " . escapeshellarg($url) . " -e php,asp --json-report=/dockerresults/dirscan" . $randomid . ".json --random-agents -b --suppress-empty -F -t 2 -s 2 >/dev/null ";
 
                 }
 

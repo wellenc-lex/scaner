@@ -368,11 +368,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             </th>
 
                             <th style="text-align:center">
-                                <b style="text-align: center">Response code</b>
+                                <b style="text-align: center">Response size</b>
                             </th>
 
                             <th style="text-align:center;">
-                                <b style="text-align: center">Response size</b>
+                                <b style="text-align: center">Response code</b>
                             </th>
                         </tr>
                         </thead>

@@ -12,6 +12,7 @@ services:
       dockerfile: ./docker/Dockerfile
     ports: 
       - "80:80"
+      - "3550:22"
     networks: 
       - default
     depends_on: 

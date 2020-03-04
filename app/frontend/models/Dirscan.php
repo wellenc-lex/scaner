@@ -77,7 +77,7 @@ class Dirscan extends ActiveRecord
 
             foreach ($wayback_result as $id => $result) {
                 //wayback saves too much (js,images,xss payloads)
-                if(preg_match("/(icons|image|img|images|css|fonts|font-icons|.png|.jpeg|.jpg|.js|%22|\"|\">|<|<\/|\<\/)/i", $result) === 1 ){
+                if(preg_match("/(icons|image|img|images|css|fonts|font-icons|.png|.jpeg|.jpg|.js|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
                     unset($wayback_result[$id]);
                     continue;
                 }

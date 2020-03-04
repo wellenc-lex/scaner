@@ -117,6 +117,22 @@ CREATE TABLE `user` (
   `scan_timeout` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE `tools_amount` (
+  `id` smallint NOT NULL,
+  `amass` smallint NOT NULL DEFAULT '0',
+  `nmap` smallint NOT NULL DEFAULT '0',
+  `vhosts` smallint NOT NULL DEFAULT '0',
+  `dirscan` smallint NOT NULL DEFAULT '0',
+  `googlescan` smallint NOT NULL DEFAULT '0',
+  `gitscan` smallint NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE `tools_amount`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `tools_amount`
+  MODIFY `id` smallint NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `gitscanpassive`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `id` (`id`);
@@ -178,7 +194,14 @@ ALTER TABLE `sent_email`
 ALTER TABLE `tasks`
   ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `user` (`id`);
 
+ALTER TABLE `tasks` CHANGE `dirscan` `dirscan` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+
+ALTER TABLE `tasks` CHANGE `wayback` `wayback` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+
 INSERT INTO `user` (`id`, `auth_key`, `password_hash`, `password_reset_token`, `email`, `status`, `rights`, `created_at`, `updated_at`, `scans_counter`, `scan_timeout`) VALUES (1, 'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A', '$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe', NULL, 'admin@admin.com', '10', '0', '1575122687', '1575122687', '0', '0') 
+
+INSERT INTO `tools_amount` (`id`, `amass`, `nmap`, `vhosts`, `dirscan`, `googlescan`, `gitscan`) VALUES
+(1, 0, 0, 0, 0, 0, 0);
 
 /*default user admin:admin*/;
 

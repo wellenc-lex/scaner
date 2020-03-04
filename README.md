@@ -2,7 +2,15 @@ Project created for automating the scanning process ( Amass+Aquatone+Dirscan+Nma
 
 Screenshots:
 
+![Alt text](/amass.png?raw=true "Amass output example")
 
+![Alt text](/amass2.png?raw=true "Amass output example")
+
+![Alt text](/dirscan1.png?raw=true "Dirscan output example")
+
+![Alt text](/dirscan2.png?raw=true "Dirscan output example")
+
+![Alt text](/vhost.png?raw=true "Vhost output example")
 
 Enjoy.
 

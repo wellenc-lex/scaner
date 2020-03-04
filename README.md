@@ -10,6 +10,8 @@ Screenshots:
 
 ![Alt text](/dirscan2.png?raw=true "Dirscan output example")
 
+![Alt text](/vhost.png?raw=true "Vhost output example")
+
 Enjoy.
 
 How to install:

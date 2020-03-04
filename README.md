@@ -29,7 +29,14 @@ Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compo
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
 Done.
 
-Special thanks to docker_nmap and nmap, aquatone(michael hendricks), ffuf developers,nmap bootstrap,booms and his fuzz.txt and Yii Framework's developers.
+Special thanks to these tools developers:
+https://github.com/OWASP/Amass
+https://github.com/ffuf/ffuf
+https://github.com/instrumentisto/nmap-docker-image/projects
+https://github.com/michenriksen/aquatone
+https://github.com/Bo0oM/ and his fuzz.txt 
+https://github.com/honze-net/nmap-bootstrap-xsl
+Nmap and Yii Framework's developers.
 
 Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin
 

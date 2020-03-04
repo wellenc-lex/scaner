@@ -92,14 +92,14 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                         <div class="done" style="width:55%; float: left;">
 
-                            <h1 style="text-align:center; margin-left: -45%;">Results</h1>
+                            <h1 style="text-align:center; margin-left: -40%;">Results</h1>
 
-                            <table class="table table-bordered" style=" margin-left: -20%; margin-top: 20px; text-align: center">
+                            <table class="table table-bordered" style=" margin-left: -15%; margin-top: 20px; text-align: center">
                                 <thead>
                                 <tr>
                                     <th style="text-align: center; max-width: 10%; min-width: 10%; width: 10%">ID</th>
                                     <th style="text-align: center; max-width: 50%; min-width: 50%; width: 50%">Host</th>
-                                    <th style="text-align: center; max-width: 35%; min-width: 35%; width: 35%">Actions</th>
+                                    <th style="text-align: center; max-width: 25%; min-width: 25%; width: 25%">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -110,13 +110,13 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                             <?= "<b style='vertical-align: middle; '>$scan->taskid</b>" ?>
                                         </td>
 
-                                        <td style="text-align: center; height: 50px; min-height: 50px; max-width: 500px; min-width: 500px; width: 500px;">
+                                        <td style="text-align: center; height: 50px; min-height: 50px; max-width: 450px; min-width: 450px; width: 450px;">
                                             <div style="text-align: center; overflow:auto;  white-space:nowrap; resize: none;   ">
                                                 <?= "<b style='vertical-align: middle; overflow: hidden'>$scan->host</b>" ?>
                                             </div>
                                         </td>
 
-                                        <td style="text-align: center; max-width: 45%; min-width: 45%; width: 45%">
+                                        <td style="text-align: center; min-width: 200px; width: 200px">
                                             <a class="btn btn-success btn-sm"
                                                href="<?= Url::toRoute(['/scan/scanresult', 'id' => $scan->taskid]) ?>">
                                                 Scan results</a>
@@ -140,14 +140,14 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                         </div>
 
                         <div class="running" style="width:35%; float: right;">
-                            <h1 style="text-align:center; margin-left: 0%;">Running tasks</h1>
+                            <h1 style="text-align:center; margin-left: -10%;">Running tasks</h1>
 
-                            <table class="table table-bordered" style=" margin-left: -45%; margin-top: 20px;">
+                            <table class="table table-bordered" style=" margin-left: -25%; margin-top: 20px;">
                                 <thead>
                                 <tr>
                                     <th style="text-align: center">ID</th>
                                     <th style="text-align: center;">Host</th>
-                                    <th style="text-align: center;">Actions</th>
+                                    <th style="text-align: center">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -158,13 +158,13 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                             <?= "<b style='vertical-align: middle;'>$task->taskid</b>" ?>
                                         </td>
 
-                                        <td style="text-align: center; height: 50px; min-height: 50px; max-width: 500px; min-width: 500px; width: 500px;">
+                                        <td style="text-align: center; height: 50px; min-height: 50px; max-width: 400px; min-width: 400px; width: 400px;">
                                             <div style="text-align: center; overflow:auto;  white-space:nowrap; resize: none; ">
                                                 <?= "<b style='vertical-align: middle;'>$task->host</b>" ?>
                                             </div>
                                         </td>
 
-                                        <td style="text-align: center; max-width: 45%; min-width: 45%; width: 45%">
+                                        <td style="text-align: center; min-width: 200px; width: 200px">
                                             <a class="btn btn-success btn-sm"
                                                href="<?= Url::toRoute(['/scan/scanresult', 'id' => $task->taskid]) ?>">
                                                 Scan results</a>

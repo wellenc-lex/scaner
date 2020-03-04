@@ -176,7 +176,7 @@ class Vhost extends ActiveRecord
 
                                     //Asks localhost, dev, etc
 
-                                    $curl_result = shell_exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \" . $domaintoask . ":80:" . $ip["ip"] . "\"");
+                                    $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
                                     $curl_length = strlen(trim($curl_result));
@@ -195,7 +195,7 @@ class Vhost extends ActiveRecord
 
                                     //Asks localhost.domain.com, dev.domain.com, etc
 
-                                    $curl_result = shell_exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
+                                    $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
                                     $curl_length = strlen(trim($curl_result));

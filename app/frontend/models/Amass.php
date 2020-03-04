@@ -157,7 +157,7 @@ class Amass extends ActiveRecord
                 $amass->save(); 
 
                 $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $amass->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $amass->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                 
                 $decrement = ToolsAmount::find()
                     ->where(['id' => 1])

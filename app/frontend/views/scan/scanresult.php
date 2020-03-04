@@ -39,6 +39,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
     <?php if (isset($vhost)) $vhosts = json_decode($vhost, true); else $vhosts = "" ?>
     <?php if (isset($reverseip)) $reverseip = json_decode($reverseip, true); else $reverseip = "" ?>
     <?php if (isset($wayback)) $wayback= json_decode($wayback, true); else $wayback = "" ?>
+    <?php if (isset($subtakeover)) $subtakeover = json_decode($subtakeover, true); else $subtakeover = "" ?>
 
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <link rel="stylesheet" href="https://bootswatch.com/3/darkly/bootstrap.min.css">
@@ -179,6 +180,9 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 Results</a></li> <?php endif; ?>
                     <?php if ($wayback != ""): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#wayback">Wayback
+                                Results</a></li> <?php endif; ?>
+                    <?php if ($subtakeover != ""): ?>
+                        <li style="text-align: center;  float: none; display: inline-block;"><a href="#subtakeover">Subtakeover
                                 Results</a></li> <?php endif; ?>
                 </ul>
             </div>
@@ -351,6 +355,31 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php if ($dirscan != ""): ?>
 
+        <style>
+            .response-headers-container {
+                display: none;
+            }
+
+            table.response-headers td {
+                font-family: Anonymous Pro, Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+            }
+
+            table.response-headers tr.insecure td {
+                color: #E74C3C;
+                font-weight: bold;
+            }
+
+            table.response-headers tr.secure td {
+                color: rgb(0, 188, 140);
+                font-weight: bold;
+            }
+
+            .page {
+                overflow: hidden;
+                box-shadow: unset !important;
+            }
+        </style>
+
         <h3 style="text-align:center" id="dirscan">Dirscan output</h3>
 
         <div class="panel panel-default">
@@ -368,21 +397,23 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             </th>
 
                             <th style="text-align:center">
-                                <b style="text-align: center">Response size</b>
+                                <b style="text-align: center">Size</b>
                             </th>
 
                             <th style="text-align:center;">
-                                <b style="text-align: center">Response code</b>
+                                <b style="text-align: center">Code</b>
                             </th>
+
+                            <th style="text-align:center;">
+                                <b style="text-align: center">Response</b>
+                            </th>
+
                         </tr>
                         </thead>
 
                         <tbody>
-                        <?php foreach ($dirscan as $name => $value) { ?>
-                            <?php $array = array_values($value); ?>
-                            <?php foreach ($array as $arrayvalue) { ?>
-
-                                <?php if ($arrayvalue["status"] != "500" && $arrayvalue["status"] != "403") { ?>
+                        <?php foreach ($dirscan as $scan) { ?>
+                                <?php if ($scan["status"] != "20") { ?>
                                     <tr>
                                         <td style=" width: 350px;">
                                             <ul class="list-group">
@@ -390,7 +421,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <a style="vertical-align: middle;"
-                                                           href="<?php echo $host; ?>/<?php echo $arrayvalue["path"]; ?>" rel="noreferrer"><?php echo $arrayvalue["path"]; ?></a>
+                                                           href="<?php echo $scan["url"];?>" rel="noreferrer"><?php echo $scan["url"]; ?></a>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -399,20 +430,20 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                         <td style=" width: 300px">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px; max-width: 550px; min-width: 550px; width: 550px;">
+                                                    style="height: 40px; min-height: 40px; max-width: 550px; min-width: 300px; width: 300px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $arrayvalue["redirect"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo $scan["redirect"]; ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
                                         </td>
 
-                                        <td style="width: 150px;">
+                                        <td style="width: 100px;">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $arrayvalue["content-length"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo $scan["length"]; ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -423,27 +454,88 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $arrayvalue["status"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo $scan["status"]; ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
                                         </td>
 
+                                        <td align="center" valign="middle" style="text-align: center;"  width="15%">
+                                            <ul class="list-group">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <div class="page card mb-3">
+
+                                                            <div class="card-footer text-muted">
+                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                            </div>
+
+                                                            <div class="response-headers-container">
+                                                                <table class="table table-responsive table-striped table-hover table-sm response-headers">
+                                                                    <thead class="thead-dark">
+                                                                        <tr>
+                                                                            <th scope="col">Response</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>   
+                                                                            <td style="word-wrap: break-word; max-width: 100px;">
+                                                                                <?php echo(nl2br(htmlspecialchars(base64_decode($scan["resultfile"])))); ?>   
+                                                                            </td>
+                                                                        </tr> 
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </ul>
+                                        </td>
                                     </tr>
 
                                 <?php } ?>
                             <?php } ?>
-                        <?php } ?>
+                        
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-        <script>
-            $(document).ready(function () {
-                $('#table-dirscan').DataTable();
-            });
-        </script>
+
+        <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+
+                $(document).ready(function () {
+                    $('#table-dirscan').DataTable();
+                });
+
+                $(document).ready(function () {
+                    $(".page-details-link").on("click", function (e) {
+                        e.preventDefault();
+                        var page = $(this).closest(".page");
+                        var url = page.find("h5.card-title").text();
+                        var headers = page.find(".response-headers-container").html();
+                        $("#details_modal .modal-header h5").text(url);
+                        $("#details_modal .modal-body").html(headers);
+                        $("#details_modal").modal();
+                    });
+                });
+
+            </script>
 
     <?php endif; ?>
 
@@ -533,13 +625,9 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             }
 
             .page {
-                display: inline-block;
-                margin: 10px;
-                width: 470px;
                 overflow: hidden;
                 box-shadow: unset !important;
             }
-
         </style>
 
             <div id="vhostdiv-1">
@@ -561,6 +649,9 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 <th style="text-align:center">
                                     <b>Length</b>
                                 </th>
+                                <th style="text-align:center">
+                                    <b>Body</b>
+                                </th>
                             </tr>
                             </thead>
 
@@ -568,14 +659,41 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 ?>
 
                                 <tr style="text-align: center" valign="middle">
-                                    <td align="center" style="text-align: center" valign="middle" width="35%">
+                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
                                         <b style="vertical-align: middle;"><?php echo($vhost["ip"]); ?> </b>
                                     </td>
-                                    <td align="center" style="text-align: center" valign="middle" width="35%">
+                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
                                         <b style="vertical-align: middle;"><?php echo($vhost["domain"]); ?> </b>
                                     </td>
-                                    <td align="center" style="text-align: center" valign="middle" width="35%">
+                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
                                         <b style="vertical-align: middle;"><?php echo($vhost["length"]); ?> </b>
+                                    </td>
+                                    <td align="center" style="text-align: center;" valign="middle" width="15%">
+                                        <div class="page card mb-3" style="width: 80%;">
+
+                                            <div class="card-footer text-muted">
+                                                <a href="#" class="card-link page-details-link">Response</a>
+                                            </div>
+
+                                            <div class="response-headers-container">
+                                                <table class="table table-responsive table-striped table-hover table-sm response-headers">
+                                                    <thead class="thead-dark">
+                                                        <tr>
+                                                            <th scope="col">Response</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                            
+                                                            <tr>   
+                                                                <td style="word-wrap: break-word; max-width: 100px;">
+                                                                    <?php echo(nl2br(htmlspecialchars(base64_decode($vhost["body"])))); ?>   
+                                                                </td>
+                                                            </tr>
+                                                            
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
 
@@ -584,6 +702,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             ?>
 
                         </table>
+                        
                     </div>
                     </div>
                 </div>
@@ -593,7 +712,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"></h5>
+                            
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
@@ -642,6 +761,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
         </script>
 
+    <?php endif; ?>
+
+    <?php if ($subtakeover != ""): ?>
+        <h3 style="text-align:center; color: rgb(68, 68, 68);" id="subtakeover">Subtakeover output</h3>
+        <?php echo $subtakeover ?>
     <?php endif; ?>
 
     <?php if ($reverseip != ""): ?>
@@ -701,34 +825,16 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
                         <?php foreach ($wayback as $link) {
                             ?>
+                                <?php  {
 
-                                        <?php if (strpos($link["url"], 'icons') == false) {
+                                    echo '<tr style="text-align: left" valign="middle" width="100%">
+                                            <td align="left" style="text-align: left" valign="middle">';
 
-                                                if (strpos($link["url"], 'image') == false) {
+                                    echo ("<a style='vertical-align: middle;' href=" . $link . " rel='noreferrer'>" . $link . "</a>");
 
-                                                    if (strpos($link["url"], 'img') == false) {
-
-                                                        if (strpos($link["url"], 'images') == false) {
-
-                                                            if (strpos($link["url"], 'css') == false) {
-
-                                                                if (strpos($link["url"], 'fonts') == false) {
-
-                                                                    if (strpos($link["url"], 'font-icons/') == false) {
-
-                                                                        echo '<tr style="text-align: center" valign="middle">
-                                                                                <td align="center" style="text-align: center" valign="middle" width="100%">';
-
-                                                                        echo "<p style='vertical-align: middle;'>" . $link["url"] . "</p";
-
-                                                                        echo "</td></tr>";
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                        } ?>
+                                    echo "</td></tr>";
+                                            
+                                } ?>
                             <?php
                         }
                         ?>

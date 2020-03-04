@@ -7,6 +7,7 @@ use frontend\models\PassiveScan;
 use frontend\models\Queue;
 use frontend\models\SentEmail;
 use frontend\models\Tasks;
+use frontend\models\ToolsAmount;
 use Yii;
 use yii\web\Controller;
 

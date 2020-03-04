@@ -13,99 +13,141 @@ class Dirscan extends ActiveRecord
 
     public static function dirscan($input)
     {
+        
+        function is_valid_domain_name($domain_name){
+        return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domain_name) //valid chars check
+                && preg_match("/^.{1,253}$/", $domain_name) //overall length check
+                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domain_name)   ); //length of each label
+        }
 
-                $url = $input["url"];
+        $url = $input["url"];
 
-                $url = rtrim($url, '/');
-                $url = rtrim($url, '/');
+        $url = rtrim($url, '/');
+        $url = rtrim($url, '/');
 
-                $url = ltrim($url, ' ');
-                $url = rtrim($url, ' ');
+        $url = ltrim($url, ' ');
+        $url = rtrim($url, ' ');
 
-                $url = str_replace(",", " ", $url);
-                $url = str_replace("\r", " ", $url);
-                $url = str_replace("\n", " ", $url);
-                $url = str_replace("|", " ", $url);
-                $url = str_replace("&", " ", $url);
-                $url = str_replace("&&", " ", $url);
-                $url = str_replace(">", " ", $url);
-                $url = str_replace("<", " ", $url);
-                
-                $url = str_replace("'", " ", $url);
-                $url = str_replace("\"", " ", $url);
-                $url = str_replace("\\", " ", $url);
+        $url = str_replace(",", " ", $url);
+        $url = str_replace("\r", " ", $url);
+        $url = str_replace("\n", " ", $url);
+        $url = str_replace("|", " ", $url);
+        $url = str_replace("&", " ", $url);
+        $url = str_replace("&&", " ", $url);
+        $url = str_replace(">", " ", $url);
+        $url = str_replace("<", " ", $url);
+        $url = str_replace("'", " ", $url);
+        $url = str_replace("\"", " ", $url);
+        $url = str_replace("\\", " ", $url);
 
-                $url = strtolower($url);
+        $url = strtolower($url);
 
-                $taskid = $input["taskid"];
+        $taskid = $input["taskid"];
 
-                $randomid = rand(1, 1000000);
+        $randomid = rand(1, 1000000);
 
-                if (!isset($input["ip"])) {
+        if (strpos($url, 'https://') !== false) {
+                $scheme = "https://";
+                $url = str_replace("https://", "", $url);
+            } else {
+                $scheme = "http://";
+                $url = str_replace("http://", "", $url);
+        }
 
-                    /*$start_jsscan = "/usr/bin/python /var/www/soft/linkfinder/linkfinder.py -i " . escapeshellarg($url) .
-                        " -d -o=/var/www/output/jsscan/scan" . $randomid . ".html  >/dev/null";*/
-                        ////Turned off because burp's is better.
+        if (!isset($input["ip"])) {
+            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url) . "/FUZZ -t 8 -p 0.5-1.5 -mc all -w /configs/dict.txt -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -r -ac -D -e log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
+        }
 
-                    $start_dirscan = "sudo docker run -v dockerresults:/dockerresults --rm 5631/dirsearch -u " . escapeshellarg($url) . " -e php,asp --json-report=/dockerresults/dirscan" . $randomid . ".json --random-agents -b --suppress-empty -F -t 2 -s 2 >/dev/null ";
+        if (isset($input["ip"])) {
 
+            $ip = $input["ip"];
+            $ip = ltrim($ip, ' ');
+            $ip = rtrim($ip, ' ');
+
+            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip."/FUZZ") . " -t 2 -s -p 0.5-1.5 -H " . escapeshellarg('Host: ' . $url) . " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -mc all -w /configs/dict.txt -r -ac -D -e log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json ";
+        }
+
+        system($start_dirscan);
+
+        if (is_valid_domain_name($url)){
+            $wayback_result = array();
+            $string = array();
+            
+            exec("curl \"http://web.archive.org/cdx/search/cdx?url=". "*.".$url."/*" . "&output=list&fl=original&collapse=urlkey\"", $wayback_result);
+
+            foreach ($wayback_result as $id => $result) {
+                //wayback saves too much (js,images,xss payloads)
+                if(preg_match("/(icons|image|img|images|css|fonts|font-icons|.png|.jpeg|.jpg|.js|%22|\"|\">|<|<\/|\<\/)/i", $result) === 1 ){
+                    unset($wayback_result[$id]);
+                    continue;
                 }
+            }
 
-                if (isset($input["ip"])) {
+            $wayback_result = array_map('htmlentities',$wayback_result);
+            $wayback_result = json_encode($wayback_result, JSON_UNESCAPED_UNICODE);
 
-                    /*$start_jsscan = "/usr/bin/python /var/www/soft/linkfinder/linkfinder.py -i " . escapeshellarg($url) .
-                        " -d -o=/var/www/output/jsscan/scan" . $randomid . ".html  >/dev/null";*/
+        } else $wayback_result = "Wrong domain.";
+        
+        //Get dirscan results file
+        if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
+            $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
+            $output = json_decode($output, true);
 
-                        //Turned off because burp's is better.
+            $outputarray = array();
+            $id=0;
 
-                    $start_dirscan = "sudo docker run -v dockerresults:/dockerresults --rm 5631/dirsearch -u " . escapeshellarg($url) . " -e php,asp --json-report=/dockerresults/dirscan" . $randomid . ".json --random-agents --suppress-empty -F -t 1 -s 3 --ip=" . escapeshellarg($input["ip"]) . " >/dev/null ";
+            foreach ($output["results"] as $results) {
+            
+            if ($results["length"] >= 0){
+                $id++;
+                $outputarray[$id]["url"] = $results["url"];
+                $outputarray[$id]["length"] = $results["length"];
+                $outputarray[$id]["status"] = $results["status"];
+                $outputarray[$id]["redirect"] = $results["redirectlocation"];
 
+                if ($results["length"] < 150000 ){
+                    exec("sudo chmod -R 755 /ffuf");
+
+                    $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" 
+                . $results["resultfile"] . ""));
+                    }
                 }
+            }
+            $outputarray = json_encode($outputarray);
+        } else $outputarray = "No file.";
 
-                $start_wayback = "python2 /var/www/soft/wayback/wayback.py pull --host " . escapeshellarg($url) .
-                    " | python2 /var/www/soft/wayback/wayback.py check --outputfile /var/www/output/wayback/" . $randomid . ".json >/dev/null";
+        $date_end = date("Y-m-d H-i-s");
 
-                //system($start_jsscan);
-                system($start_dirscan);
-                //system($start_wayback);
+        $dirscan = Tasks::find()
+            ->where(['taskid' => $taskid])
+            ->limit(1)
+            ->one();
 
-                /*if (file_exists("/var/www/output/jsscan/scan" . $randomid . ".html")) {
-                    $outputjs = file_get_contents("/var/www/output/jsscan/scan" . $randomid . ".html");
-                } else */
-                $outputjs = "None.";
+        $dirscan->dirscan_status = "Done.";
+        $dirscan->dirscan = $outputarray;
+        $dirscan->wayback = $wayback_result;
+        $dirscan->date = $date_end;
 
-                if (file_exists("/dockerresults/dirscan" . $randomid . ".json")) {
-                    $output = file_get_contents("/dockerresults/dirscan" . $randomid . ".json");
-                } else $output = "None.";
+        $dirscan->save();
 
-                if (file_exists("/var/www/output/wayback/" . $randomid . ".json")) {
-                    $output_wayback = file_get_contents("/var/www/output/wayback/" . $randomid . ".json");
-                    $output_wayback = str_replace("}{", "},{", $output_wayback);
-                    $output_wayback = '[' . $output_wayback . ']';
-                } else $output_wayback = "None.";
+        //Scaner's work is done -> decrement scaner's amount in DB
+        $decrement = ToolsAmount::find()
+            ->where(['id' => 1])
+            ->one();
 
-                $date_end = date("Y-m-d H-i-s");
+        $value = $decrement->dirscan;
+        
+        if ($value <= 1) {
+            $value=0;
+        } else $value = $value-1;
 
-                $dirscan = Tasks::find()
-                    ->where(['taskid' => $taskid])
-                    ->limit(1)
-                    ->one();
+        $decrement->dirscan=$value;
+        $decrement->save();
 
-                $dirscan->dirscan_status = "Done.";
-                $dirscan->dirscan = $output;
-                $dirscan->wayback = $output_wayback;
-                $dirscan->date = $date_end;
-                $dirscan->js = $outputjs;
-                //system("sudo /usr/bin/find /var/www/output/jsscan -name 'scan$randomid.html' -delete");
-
-                $a = "Done";
-                $dirscan->save();
-
-                system("rm /dockerresults/dirscan" . $randomid . ".json");
-                return 1;
+        exec("sudo rm -r /ffuf/" . $randomid . "/");
+        return 1;
 
     }
 
 }
-
 

@@ -27,7 +27,8 @@ CD into the docker directory and run:
 Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chown -R nginx:nginx /configs && docker exec docker_app_1 ln -s /screenshots/ /var/www/app/frontend/web/
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
-Done.
+
+Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: http://localhost:8080
 
 Special thanks to these tools developers:
 https://github.com/OWASP/Amass
@@ -38,6 +39,4 @@ https://github.com/Bo0oM/ and his fuzz.txt
 https://github.com/honze-net/nmap-bootstrap-xsl
 Nmap and Yii Framework's developers.
 
-Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin
 
-Phpmyadmin located at: http://localhost:8080

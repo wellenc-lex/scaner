@@ -1,4 +1,4 @@
-Project created for automating the scanning process ( Amass+Aquatone+Dirscan+Nmap ) in easy to view and use mode.
+Project created for automating the scanning process ( Amass+Aquatone+FFUF+Nmap ) in easy to view and use mode.
 
 Screenshots:
 

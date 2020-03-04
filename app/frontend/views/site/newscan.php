@@ -318,97 +318,6 @@ $this->registerJs($script, View::POS_READY);
                             </div>
 
                         </div>
-                        <div class="passivescanclass">
-                            <div class="col-xs-4">
-
-                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
-                                    IP's</a>
-
-                                <div id="findipsModal" class="modal fade" role="dialog">
-                                    <div class="modal-dialog">
-
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal">&times;
-                                                </button>
-                                                <h4 class="modal-title">What is Find IP'S?</h4>
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <p>Find IP's is a tool created for searching all possible IP addresses
-                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
-                                                <p>If IP will be found, any 1 could connect to your server with IP and
-                                                    bypass all Cloud protection mechanisms.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                    </div>
-
-                    <div class="col-lg-12">
-
-                        <div class="col-xs-2"></div>
-                        <div class="col-xs-6">
-                            <label class="switch" style="margin-left:0.8%;" id="dirscan">
-                                <input type="checkbox" id="dirscanbox">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-
-                        <div class="passivescanclass">
-                            <div class="col-xs-4">
-                                <label class="switch" style="margin-left:5.5%;" id="findips">
-                                    <input type="checkbox" id="findipsbox">
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-12">
-
-                        <div class="col-xs-2"></div>
-
-                        <div class="col-xs-6">
-                            <div class="passivescanclass">
-                                <a data-toggle="modal" data-target="#gitscanModal" href="#" style="margin-left:7%;">Gitscan</a>
-
-                                <div id="gitscanModal" class="modal fade" role="dialog">
-                                    <div class="modal-dialog">
-
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal">&times;
-                                                </button>
-                                                <h4 class="modal-title">What is Gitscan?</h4>
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <p>Gitscan is tool created for scanning your git repositories for
-                                                    valuable information like Passwords/AWS Keys/etc.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="passivescanclass">
                             <div class="col-xs-4">
@@ -443,8 +352,102 @@ $this->registerJs($script, View::POS_READY);
                             </div>
                         </div>
                     </div>
+                        
+                        
 
                     <div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
+                        <div class="col-xs-6">
+                            <label class="switch" style="margin-left:0.8%;" id="dirscan">
+                                <input type="checkbox" id="dirscanbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="col-xs-4">
+                                <label class="switch" style="margin-left:5.5%;" id="vhostscan">
+                                    <input type="checkbox" id="vhostscanbox">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        
+
+                    </div>
+
+                    <!-- <div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
+
+                        <div class="col-xs-6">
+                            <div class="passivescanclass">
+                                <a data-toggle="modal" data-target="#gitscanModal" href="#" style="margin-left:7%;">Gitscan</a>
+
+                                <div id="gitscanModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Gitscan?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Gitscan is tool created for scanning your git repositories for
+                                                    valuable information like Passwords/AWS Keys/etc.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> -->
+
+                        <!--
+                        <div class="passivescanclass">
+                            <div class="col-xs-4">
+
+                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
+                                    IP's</a>
+
+                                <div id="findipsModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Find IP'S?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Find IP's is a tool created for searching all possible IP addresses
+                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
+                                                <p>If IP will be found, any 1 could connect to your server with IP and
+                                                    bypass all Cloud protection mechanisms.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> -->
+
+                        
+
+                    <!--<div class="col-lg-12">
 
                         <div class="col-xs-2"></div>
 
@@ -456,17 +459,19 @@ $this->registerJs($script, View::POS_READY);
                                 </label>
                             </div>
 
-                            <div class="col-xs-4">
-                                <label class="switch" style="margin-left:5.5%;" id="vhostscan">
-                                    <input type="checkbox" id="vhostscanbox">
-                                    <span class="slider round"></span>
-                                </label>
+                            <div class="passivescanclass">
+                                <div class="col-xs-4">
+                                    <label class="switch" style="margin-left:5.5%;" id="findips">
+                                        <input type="checkbox" id="findipsbox">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                    </div>
+                    </div> -->
 
-                    <div class="col-lg-12">
+                    <!--<div class="col-lg-12">
 
                         <div class="passivescanclass">
                             <div class="col-xs-2"></div>
@@ -553,7 +558,7 @@ $this->registerJs($script, View::POS_READY);
                             </div>
 
                         </div>
-                    </div>
+                    </div> -->
 
                     <!--<div class="col-lg-12">
                         <div class="passivescanclass">

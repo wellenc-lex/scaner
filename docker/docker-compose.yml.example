@@ -2,7 +2,6 @@ version: '3.7'
 networks:
   default:
     driver: bridge
-    external: true
 
 services:
   app:
@@ -11,7 +10,8 @@ services:
       dockerfile: ./docker/Dockerfile
     ports:
       - '80:80'
-      - "3550:22"
+      - '443:443'
+      - "3550:22" #In order to scan with nmap from :22 port - bypases some WAFs
     networks:
       - default
     depends_on:
@@ -22,11 +22,17 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - 'dockerresults:/dockerresults'
       - 'ffuf:/ffuf'
-      - 'configs:/root/configs'
+      - 'configs:/configs'
       - 'screenshots:/screenshots'
     extra_hosts:
       - 'localhost.soft:127.0.0.1'
       - 'dev.localhost.soft:127.0.0.1'
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 40M  
+    restart: always      
   
   db:
     image: 'mysql:latest'
@@ -37,15 +43,16 @@ services:
     ports:
       - '3336:3306'
     environment:
-      #you need to change it at .env too!!
+      #you need to change it at env.example too!!
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       MYSQL_DATABASE: scaner
     volumes:
       - './database:/var/lib/mysql'
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
+    restart: always  
     logging:
       driver: none
-  
+
   cron:
     image: 5631/cron
     restart: always
@@ -53,10 +60,11 @@ services:
       - default
     depends_on:
       - app
-    logging:
-      driver: none
     volumes:
       - './conf/configs/crontab.txt:/etc/cron.d/crontab'
+    restart: always  
+    logging:
+      driver: none  
   
   phpmyadmin:
     depends_on:
@@ -69,8 +77,10 @@ services:
       PMA_HOST: db
       MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
+      PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
     networks:
       - default
+    restart: always  
     logging:
       driver: none
   
@@ -80,9 +90,9 @@ services:
       - default
     volumes:
       - 'dockerresults:/dockerresults'
-      - 'configs:/root/configs'
+      - 'configs:/configs'
     logging:
-      driver: none
+      driver: none  
   
   aquatone:
     image: 5631/aquatone
@@ -93,13 +103,12 @@ services:
     logging:
       driver: none
   
-  dirsearch:
-    image: 5631/dirsearch
+  wayback:
+    image: 5631/wayback
     networks:
       - default
     volumes:
-      - 'dockerresults:/dockerresults'
-      - 'configs:/root/configs'
+      - 'ffuf:/ffuf'
     logging:
       driver: none
   
@@ -109,7 +118,7 @@ services:
       - default
     volumes:
       - 'dockerresults:/dockerresults'
-      - 'configs:/root/configs'
+      - 'configs:/configs'
     logging:
       driver: none
 
@@ -119,8 +128,9 @@ services:
       - default
     volumes:
       - 'dockerresults:/dockerresults'
-      - 'configs:/root/configs'
-      - 'ffuf:/ffuf'   
+      - 'configs:/configs'
+      - 'ffuf:/ffuf'
+  
 
 volumes:
   dockerresults:
@@ -131,3 +141,12 @@ volumes:
     name: screenshots
   ffuf:
     name: ffuf
+
+
+
+
+
+
+
+
+

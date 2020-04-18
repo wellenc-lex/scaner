@@ -140,14 +140,14 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                         </div>
 
                         <div class="running" style="width:35%; float: right;">
-                            <h1 style="text-align:center; margin-left: -10%;">Running tasks</h1>
+                            <h1 style="text-align:center; margin-left: -20%;">Running tasks</h1>
 
                             <table class="table table-bordered" style=" margin-left: -25%; margin-top: 20px;">
                                 <thead>
                                 <tr>
-                                    <th style="text-align: center">ID</th>
-                                    <th style="text-align: center;">Host</th>
-                                    <th style="text-align: center">Actions</th>
+                                    <th style="text-align: center; max-width: 20%; min-width: 20%; width: 20%">ID</th>
+                                    <th style="text-align: center; max-width: 50%; min-width: 50%; width: 50%">Host</th>
+                                    <th style="text-align: center; max-width: 25%; min-width: 25%; width: 25%">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -191,7 +191,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                     </div>
 
-                    <div style="margin-left: 3%; margin-top: 26%; position: fixed"><?= LinkPager::widget(['pagination' => $runningpages]) ?></div>
+                    <div style="margin-left: 7%; margin-top: 22%; position: fixed"><?= LinkPager::widget(['pagination' => $runningpages]) ?></div>
 
                 </div>
 
@@ -207,8 +207,8 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                         <div class="tab-content">
                             <div id="passive" class="tab-pane fade in active" style="margin-top: -6.5%">
-                                <h2 style="text-align: center">Passive scan results</h2>
-                                <table class="table table-bordered">
+                                
+                                <table class="table table-bordered" style="margin-top: 3%">
                                     <thead>
                                     <tr style="text-align: center">
                                         <th>ID</th>
@@ -359,9 +359,9 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                             </tbody>
                         </table>
 
-                    </div>
+                        <div style="margin-left: 24%; margin-top: 5%; position: fixed"><?= LinkPager::widget(['pagination' => $hiddenpages]) ?></div>
 
-                    <div style="margin-left: 24%; margin-top: 26%; position: fixed"><?= LinkPager::widget(['pagination' => $hiddenpages]) ?></div>
+                    </div>
 
                 </div>
 

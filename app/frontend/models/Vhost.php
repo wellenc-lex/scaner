@@ -50,9 +50,42 @@ class Vhost extends ActiveRecord
                 $scheme = "https";
             } else $scheme = "http";
 
+            //Asks Host:localhost /domain.com/
+            $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/ --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
+            sleep(1);
+
+            $curl_length = strlen(trim($curl_result));
+
+            if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                $newdata = array(
+                    'ip' => $ip["ip"],
+                    'length' => $curl_length,
+                    'domain' => $maindomain,
+                    'body' => base64_encode($curl_result),
+                );
+                $outputdomain[] = $newdata;
+            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+            //Asks Host:localhost /domain.com/index.php
+            $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/index.php --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
+            sleep(1);
+
+            $curl_length = strlen(trim($curl_result));
+
+            if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                $newdata = array(
+                    'ip' => $ip["ip"],
+                    'length' => $curl_length,
+                    'domain' => $maindomain,
+                    'body' => base64_encode($curl_result),
+                );
+                $outputdomain[] = $newdata;
+            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+
             foreach ($domainlist as $domaintoask) {
 
-                $curl_result = shell_exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . ":" . $port . " --resolve \"" . $domaintoask . ":" . $port . ":" . $ip . "\" | wc -c ");
+                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . ":" . $port . " --resolve \"" . $domaintoask . ":" . $port . ":" . $ip . "\"");
                 sleep(1);
 
                 $curl_length = strlen(trim($curl_result));
@@ -66,10 +99,10 @@ class Vhost extends ActiveRecord
                         'body' => base64_encode($curl_result),
                     );
                     $outputdomain[] = $newdata;
-                }
-                if (!in_array($curl_length,$length)) $length[] = $curl_length;
+                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                $curl = shell_exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . "." . $maindomain . ":" . $port . " --resolve \"" . $domaintoask . "." . $maindomain . ":" . $port . ":" . $ip . "\" | wc -c");
+                
+                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . "." . $maindomain . ":" . $port . " --resolve \"" . $domaintoask . "." . $maindomain . ":" . $port . ":" . $ip . "\"");
                 sleep(1);
 
                 if ($curl_length > 0 && !in_array($curl_length,$length)) {
@@ -80,9 +113,7 @@ class Vhost extends ActiveRecord
                         'domain' => $domaintoask . "." . $maindomain,
                     );
                     $outputdomain[] = $newdata;
-                }
-                
-                if (!in_array($curl_length,$length)) $length[] = $curl_length;
+                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
             }
 
             $date_end = date("Y-m-d H-i-s");
@@ -113,7 +144,7 @@ class Vhost extends ActiveRecord
 
         if ((isset($input["taskid"]) && $input["taskid"] != "") && (!isset($input["domain"]))) {
 
-            //Cloudflare ip ranges + private networks - no need to scan
+            //Cloudflare ip ranges + private networks - no need to curl
             $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "108.162.192.0/18", "131.0.72.0/22",
                 "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22",
                 "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8");
@@ -131,13 +162,11 @@ class Vhost extends ActiveRecord
             $outputdomain = array();
             $length = array();
 
-            //$domainlist = explode("\n", file_get_contents("/var/www/soft/vhostwordlist.txt"));
             $domainlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
 
             $maindomain = $amassoutput[0]["domain"];
 
             foreach ($amassoutput as $json) {
-
                 if (!in_array($json["name"], $domainlist)) {
                     array_push($domainlist, $json["name"]);
                 }
@@ -162,9 +191,9 @@ class Vhost extends ActiveRecord
 
                             $stop = 0;
 
-                            for ($n = 0; $n < count($masks); $n++) { // if isnt in blocked mask
+                            for ($n = 0; $n < count($masks); $n++) { 
 
-                                if (((ipCheck($ip["ip"], $masks[$n])) == 1)) {
+                                if (((ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask
                                     $stop = 1;
                                     break;
                                 } else $stop = 0;
@@ -172,10 +201,42 @@ class Vhost extends ActiveRecord
 
                             if ($stop == 0) {
 
+                                //Asks Host:localhost /domain.com/
+                                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                sleep(1);
+
+                                $curl_length = strlen(trim($curl_result));
+
+                                if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                    $newdata = array(
+                                        'ip' => $ip["ip"],
+                                        'length' => $curl_length,
+                                        'domain' => $maindomain,
+                                        'body' => base64_encode($curl_result),
+                                    );
+                                    $outputdomain[] = $newdata;
+                                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+                                //Asks Host:localhost /domain.com/index.php
+                                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/index.php --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                sleep(1);
+
+                                $curl_length = strlen(trim($curl_result));
+
+                                if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                    $newdata = array(
+                                        'ip' => $ip["ip"],
+                                        'length' => $curl_length,
+                                        'domain' => $maindomain,
+                                        'body' => base64_encode($curl_result),
+                                    );
+                                    $outputdomain[] = $newdata;
+                                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+
                                 foreach ($domainlist as $domaintoask) {
 
-                                    //Asks localhost, dev, etc
-
+                                    //Asks Host:localhost, dev, etc
                                     $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
@@ -189,12 +250,10 @@ class Vhost extends ActiveRecord
                                             'body' => base64_encode($curl_result),
                                         );
                                         $outputdomain[] = $newdata;
-                                    }
+                                    } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                                    if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                                    //Asks localhost.domain.com, dev.domain.com, etc
-
+                                    //Asks Host:localhost.domain.com, dev.domain.com, etc
                                     $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
@@ -208,10 +267,9 @@ class Vhost extends ActiveRecord
                                             'body' => base64_encode($curl_result),
                                         );
                                         $outputdomain[] = $newdata;
-                                    }
-                                    if (!in_array($curl_length,$length)) $length[] = $curl_length;
-                                }
-                                $checkedips[] = $ip["ip"];
+                                    } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+                                } $checkedips[] = $ip["ip"]; //Mark IP as checked out
                             }
                         }
                     }

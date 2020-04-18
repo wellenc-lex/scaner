@@ -318,97 +318,6 @@ $this->registerJs($script, View::POS_READY);
                             </div>
 
                         </div>
-                        <div class="passivescanclass">
-                            <div class="col-xs-4">
-
-                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
-                                    IP's</a>
-
-                                <div id="findipsModal" class="modal fade" role="dialog">
-                                    <div class="modal-dialog">
-
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal">&times;
-                                                </button>
-                                                <h4 class="modal-title">What is Find IP'S?</h4>
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <p>Find IP's is a tool created for searching all possible IP addresses
-                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
-                                                <p>If IP will be found, any 1 could connect to your server with IP and
-                                                    bypass all Cloud protection mechanisms.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                    </div>
-
-                    <div class="col-lg-12">
-
-                        <div class="col-xs-2"></div>
-                        <div class="col-xs-6">
-                            <label class="switch" style="margin-left:0.8%;" id="dirscan">
-                                <input type="checkbox" id="dirscanbox">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-
-                        <div class="passivescanclass">
-                            <div class="col-xs-4">
-                                <label class="switch" style="margin-left:5.5%;" id="findips">
-                                    <input type="checkbox" id="findipsbox">
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-12">
-
-                        <div class="col-xs-2"></div>
-
-                        <div class="col-xs-6">
-                            <div class="passivescanclass">
-                                <a data-toggle="modal" data-target="#gitscanModal" href="#" style="margin-left:7%;">Gitscan</a>
-
-                                <div id="gitscanModal" class="modal fade" role="dialog">
-                                    <div class="modal-dialog">
-
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal">&times;
-                                                </button>
-                                                <h4 class="modal-title">What is Gitscan?</h4>
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <p>Gitscan is tool created for scanning your git repositories for
-                                                    valuable information like Passwords/AWS Keys/etc.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="passivescanclass">
                             <div class="col-xs-4">
@@ -447,6 +356,185 @@ $this->registerJs($script, View::POS_READY);
                     <div class="col-lg-12">
 
                         <div class="col-xs-2"></div>
+                        <div class="col-xs-6">
+                            <label class="switch" style="margin-left:0.8%;" id="dirscan">
+                                <input type="checkbox" id="dirscanbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="col-xs-4">
+                                <label class="switch" style="margin-left:5.5%;" id="vhostscan">
+                                    <input type="checkbox" id="vhostscanbox">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                    </div>
+
+                    <div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
+
+                        <div class="col-xs-6">
+                            <div class="passivescanclass">
+                                <a data-toggle="modal" data-target="#googlescanModal" href="#" style="margin-left:4.5%;">Googlescan</a>
+
+                                <div id="googlescanModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Googlescan?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Googlescan is tool created for searching
+                                                    valuable information like Passwords/Pages/Files on the domain with google dorks.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="passivescanclass">
+                            <div class="col-xs-4">
+
+                                <a data-toggle="modal" data-target="#awsscanModal" href="#" style="margin-left:13%;">AWS scan</a>
+
+                                <div id="awsscanModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Awsscan?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Awsscan is a tool created for searching the buckets that belong to the company by bruteforcing bucket names.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>     
+
+                    <div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
+
+                        <div class="passivescanclass">
+                            <div class="col-xs-6">
+                                <label class="switch" style="margin-left:0.8%;" id="googlescan">
+                                    <input type="checkbox" id="googlescanbox">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="passivescanclass">
+                                <div class="col-xs-4">
+                                    <label class="switch" style="margin-left:5.5%;" id="awsscan">
+                                        <input type="checkbox" id="awsscanbox">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>     
+
+                    <!-- <div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
+
+                        <div class="col-xs-6">
+                            <div class="passivescanclass">
+                                <a data-toggle="modal" data-target="#gitscanModal" href="#" style="margin-left:7%;">Gitscan</a>
+
+                                <div id="gitscanModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Gitscan?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Gitscan is tool created for scanning your git repositories for
+                                                    valuable information like Passwords/AWS Keys/etc.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> -->
+
+                        <!--
+                        <div class="passivescanclass">
+                            <div class="col-xs-4">
+
+                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
+                                    IP's</a>
+
+                                <div id="findipsModal" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">What is Find IP'S?</h4>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p>Find IP's is a tool created for searching all possible IP addresses
+                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
+                                                <p>If IP will be found, any 1 could connect to your server with IP and
+                                                    bypass all Cloud protection mechanisms.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> -->
+
+                        
+
+                    <!--<div class="col-lg-12">
+
+                        <div class="col-xs-2"></div>
 
                         <div class="passivescanclass">
                             <div class="col-xs-6">
@@ -456,17 +544,19 @@ $this->registerJs($script, View::POS_READY);
                                 </label>
                             </div>
 
-                            <div class="col-xs-4">
-                                <label class="switch" style="margin-left:5.5%;" id="vhostscan">
-                                    <input type="checkbox" id="vhostscanbox">
-                                    <span class="slider round"></span>
-                                </label>
+                            <div class="passivescanclass">
+                                <div class="col-xs-4">
+                                    <label class="switch" style="margin-left:5.5%;" id="findips">
+                                        <input type="checkbox" id="findipsbox">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                    </div>
+                    </div> -->
 
-                    <div class="col-lg-12">
+                    <!--<div class="col-lg-12">
 
                         <div class="passivescanclass">
                             <div class="col-xs-2"></div>
@@ -553,7 +643,7 @@ $this->registerJs($script, View::POS_READY);
                             </div>
 
                         </div>
-                    </div>
+                    </div> -->
 
                     <!--<div class="col-lg-12">
                         <div class="passivescanclass">
@@ -765,6 +855,40 @@ $this->registerJs($script, View::POS_READY);
                 </div>
             </div>
 
+            <div class="googlescanclass" style="display: none; margin-top= 2em;">
+                <div class="col-lg-12">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="findips">
+
+                            <p align="center">Enter URL for googling dorks:</p>
+
+                            <?= $form->field($model, 'ips', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                </div>
+            </div>
+
+            <div class="awsscanclass" style="display: none; margin-top= 2em;">
+                <div class="col-lg-12">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="findips">
+
+                            <p align="center">Enter Domain name for searching its AWS buckets:</p>
+
+                            <?= $form->field($model, 'ips', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                </div>
+            </div>
+
             <div class="col-lg-12">
                 <?= $form->field($model, 'verifyCode')->widget(Captcha::className(), [
                     'template' => '<div class="row"><div class="col-lg-2">{image}</div><div class="col-lg-2">{input}</div></div>',
@@ -772,8 +896,8 @@ $this->registerJs($script, View::POS_READY);
             </div>
 
             <div class="col-lg-6">
-                <?= $form->field($model, 'agreed')->checkbox(['class' => 'agree', 'checked' => false, 'required' => true])->label('Agreed with TOS') ?>
-                <?= $form->field($model, 'notify')->checkbox(['class' => 'agree', 'checked' => true, 'value' => 0])->label('Notify with email when scan ends') ?>
+                <?= $form->field($model, 'agreed')->checkbox(['class' => 'agree', 'checked' => true, 'required' => true])->label('Agreed with TOS') ?>
+                <?= $form->field($model, 'notify')->checkbox(['class' => 'agree', 'checked' => false, 'value' => 0])->label('Notify with email when scan ends') ?>
             </div>
 
             <div class="submitbutton">

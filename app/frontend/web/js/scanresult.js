@@ -96,15 +96,6 @@ function sendvhost(host) {
 
 
 function sendtoscan() {
-    //цикл, pop on send for dirscan
-    //onclick change class = checkbox-active
-
-    //or get each .page and check its checboxes
-
-    //var page    = $(this).closest(".page"); // нужно опросить все в кластере, а не только 1
-    //var nmap     = page.find("h5.card-title").text();
-    //var dirscan     = page.find("h5.card-title").text();
-
     var nmaplist = [];
     var dirscanlist = [];
 
@@ -193,10 +184,6 @@ function sendtoscan() {
                 }
             });
         }
-
-
     }
-
     return false;
-
 }

@@ -149,13 +149,13 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                     <?php if ($nmap != ""): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#scannedhosts">Nmap
                                 Results</a></li> <?php endif; ?>
-                    <?php if ($amass != ""): ?>
+                    <?php if ($amass != "[]" && $amass != ""): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#amass">Amass
                                 Results</a></li> <?php endif; ?>
                     <?php if ($aquatone != ""): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#aquatone">Aquatone
                                 Results</a></li> <?php endif; ?>
-                    <?php if ($dirscan != ""): ?>
+                    <?php if ($dirscan != "" && $dirscan != "No file."): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#dirscan">Dirscan
                                 Results</a></li> <?php endif; ?>
                     <?php if ($gitscan != ""): ?>
@@ -193,7 +193,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
         <?php echo $nmap ?>
     <?php endif; ?>
 
-    <?php if ($amass != ""): ?>
+    <?php if ($amass != "[]" && $amass != ""): ?>
 
         <h3 style="text-align:center; color: rgb(68, 68, 68);" id="amass">Amass output</h3>
 
@@ -263,6 +263,50 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                 </div>
             </div>
         </div>
+
+        <h3 style="text-align:center; color: rgb(68, 68, 68);"> Google </h3>
+
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/" rel="noreferrer">https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/</a>
+        </div>
+              
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://sites.google.com/a/<?php echo $amass[0]["domain"]; ?>/sites/system/app/pages/meta/dashboard/categories" rel="noreferrer"> https://sites.google.com/a/<?php echo $amass[0]["domain"]; ?>/sites/system/app/pages/meta/dashboard/categories </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://github.com/search?p=1&q=<?php echo $amass[0]["domain"]; ?>&type=Code" rel="noreferrer"> https://github.com/search?p=1&q=<?php echo $amass[0]["domain"]; ?>&type=Code </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://bitbucket.org/<?php echo $amass[0]["domain"]; ?>/profile/projects" rel="noreferrer"> https://bitbucket.org/<?php echo $amass[0]["domain"]; ?>/profile/projects </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=ext%3Axml+%7C+ext%3Aconf+%7C+ext%3Acnf+%7C+ext%3Areg+%7C+ext%3Ainf+%7C+ext%3Ardp+%7C+ext%3Acfg+%7C+ext%3Atxt+%7C+ext%3Aora+%7C+ext%3Aini+%7C+ext%3Aphp+%7C+ext%3Aasp&oq=ext%3Axml+%7C+ext%3Aconf+%7C+ext%3Acnf+%7C+ext%3Areg+%7C+ext%3Ainf+%7C+ext%3Ardp+%7C+ext%3Acfg+%7C+ext%3Atxt+%7C+ext%3Aora+%7C+ext%3Aini+%7C+ext%3Aphp+%7C+ext%3Aasp+site:<?php echo $amass[0]["domain"]; ?>" rel="noreferrer"> Google extensions </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=site:<?php echo $amass[0]["domain"]; ?>+intitle:index.of" rel="noreferrer"> Index Of </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> Google IDE </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://<?php echo $amass[0]["domain"]; ?>.atlassian.net/servicedesk/customer/user/login" rel="noreferrer"> https://<?php echo $amass[0]["domain"]; ?>.atlassian.net/servicedesk/customer/user/login </a>  
+        </div>
+
         <script>
 
             $(document).ready(function () {
@@ -354,6 +398,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
 
     <?php if ($dirscan != ""): ?>
+        <?php if ($dirscan != "No file."): ?>
 
         <style>
             .response-headers-container {
@@ -523,7 +568,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                     $('#table-dirscan').DataTable();
                 });
 
-                $(document).ready(function () {
+                $( window ).on( "load", function() {
                     $(".page-details-link").on("click", function (e) {
                         e.preventDefault();
                         var page = $(this).closest(".page");
@@ -536,7 +581,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                 });
 
             </script>
-
+        <?php endif; ?>
     <?php endif; ?>
 
     <?php if ($ipscan != ""): ?>

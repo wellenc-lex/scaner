@@ -127,6 +127,7 @@ class SiteController extends Controller
      */
     public function actionContact()
     {
+
         $model = new ContactForm();
 
             if ($model->load(Yii::$app->request->post()) && $model->validate()) {
@@ -152,6 +153,7 @@ class SiteController extends Controller
     {
 
         if (!Yii::$app->user->isGuest) {
+            
             $model = new Profile();
 
             $done = Tasks::find()
@@ -207,8 +209,8 @@ class SiteController extends Controller
             ]);
 
             $hiddenresult = $hidden->orderBy('taskid')
-                ->offset($passivepages->offset)
-                ->limit($passivepages->limit)
+                ->offset($hiddenpages->offset)
+                ->limit($hiddenpages->limit)
                 ->all();
 
             /*$GitscanPassive = GitscanPassive::find()
@@ -314,6 +316,7 @@ class SiteController extends Controller
                     $tasks->userid = Yii::$app->user->id;
                     $tasks->save();
 
+                    $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
                     //checks if at least 1 instrument exists
 
                     if (isset($url["notify"]) and $url["notify"] == 1)
@@ -378,7 +381,7 @@ class SiteController extends Controller
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
-                        exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
                     }
 
                     if (isset($url["reverseip"]) and $url["reverseip"] != "") {
@@ -386,7 +389,7 @@ class SiteController extends Controller
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
                         $reverseip = 1;
-                        exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
+                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
                     }
 
                     if (isset($url["ips"]) and $url["ips"] != "") {
@@ -394,7 +397,7 @@ class SiteController extends Controller
                         $tasks->ips_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "6";
                         $ips = 1;
-                        exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
+                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
                     }
 
                     if ((isset($url["vhostDomain"]) and $url["vhostDomain"] != "") && (isset($url["vhostIp"]) and $url["vhostIp"] != "")) {
@@ -406,17 +409,17 @@ class SiteController extends Controller
                         if ((isset($url["vhostPort"]) and $url["vhostPort"] != "")) {
 
                             if (isset($url["vhostSsl"]) and $url["vhostSsl"] === 1) {
-                                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& ssl=1& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& ssl=1& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             } else {
-                                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             }
                         } else {
-                            exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                            exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                         }
 
                     }
 
-                    if (isset($url["raceUrl"]) and $url["raceUrl"] != "") {
+                    /*if (isset($url["raceUrl"]) and $url["raceUrl"] != "") {
                         $race = 1;
 
                         $cookies = $url["raceCookies"];
@@ -456,7 +459,7 @@ class SiteController extends Controller
                             $tasks->delete();
                             return $this->redirect(['/site/profile']);
                         }
-                    }
+                    }*/
 
                     if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0) {
                         $tasks->delete();
@@ -475,7 +478,7 @@ class SiteController extends Controller
 
                     Yii::$app->session->setFlash('success', 'Your scan should start shortly, you can check its result at profile tab.');
 
-                    return $this->redirect(['/site/profile']);
+                    return $this->redirect(['/site/newscan']);
 
                 } elseif ($url["passivescan"] == 1) {
 
@@ -526,7 +529,7 @@ class SiteController extends Controller
 
                         Yii::$app->session->setFlash('success', 'Your scan should start shortly, you can check its result at profile tab.');
 
-                        return $this->redirect(['/site/profile']);
+                        return $this->redirect(['/site/newscan']);
                     } else
                         Yii::$app->session->setFlash('failure', 'You\'re allowed to create only 3 passive scans. Please remove unneeded in profile');
                     return $this->redirect(['/site/profile']);

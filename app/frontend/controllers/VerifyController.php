@@ -33,6 +33,7 @@ class VerifyController extends Controller
     {
 
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
 
         $secretIN = Yii::$app->request->post('secret');
 
@@ -40,6 +41,7 @@ class VerifyController extends Controller
 
             $results = Tasks::find()
                 ->where(['!=', 'status', 'Done.'])
+                ->limit(5)
                 ->all();
 
             if ($results != NULL) {
@@ -188,125 +190,110 @@ class VerifyController extends Controller
         //1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips,7=vhost
 
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
 
         $secretIN = Yii::$app->request->post('secret');
 
         if ($secret === $secretIN) {
 
-            $results = Queue::find()
-                ->limit(1)
+            $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->one();
+                ->limit(50)
+                ->all();
 
-            if ($results != NULL) {
+            $tools_amount = ToolsAmount::find()
+                ->where(['id' => 1])
+                ->one();    
 
-                if (strpos($results->instrument, "1") !== false) {
+            array_unique($allresults);    
 
-                    //$countnmap = "pgrep -c nmap";
+            foreach ($allresults as $results) {
 
-                    //exec($countnmap, $countnmap_returncode);
+                if ($results != NULL) {
 
-                    //if ($countnmap_returncode[0] < 8) {
+                    if (strpos($results->instrument, "1") !== false) {
 
-//change to https+variable increment decrement in db
-                        $results->working = 1;
-                        $results->todelete = 1;
+                        if ($tools_amount->nmap < 10) {
 
-                        $nmapurl = $results->nmap;
+                            $results->working = 1;
+                            $results->todelete = 1;
 
-                        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+                            $nmapurl = $results->nmap;
 
-                        exec('curl --insecure  --data "url= ' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
+                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
 
-                        $results->save();
-                    //}
-                }
+                            $results->save();
 
-                if (strpos($results->instrument, "2") !== false) {
-
-                    //$countamass = "pgrep -c amass";
-
-                    //exec($countamass, $countamass_returncode);
-
-                    //if ($countamass_returncode[0] < 2) {
-
-                    //change to https+variable increment decrement in db
-
-                        $results->working = 1;
-                        $results->todelete =1;
-
-                        $url = $results->amassdomain;
-
-                        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-
-                        exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $url . ' &taskid=' . $results->taskid . '&secret=' . $secret . '" http://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
-
-                        $results->save();;
-                    //}
-                }
-
-                if (strpos($results->instrument, "3") !== false) {
-
-                    /*$countdirscan = "pgrep -c python3";
-                    http to https
-
-                    exec($countdirscan, $countdirscan_returncode);
-
-                    if ($countdirscan_returncode[0] < 40) {
-                    */
-                        $results->working = 1;
-                        $results->todelete = 1;
-
-                        $dirscanurl = $results->dirscanUrl;
-                        $dirscanip = $results->dirscanIP;
-
-                        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-
-                        if ($dirscanip != "") {
-                            exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
-                        } else {
-                            exec('curl --insecure   -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            $tools_amount->nmap = $tools_amount->nmap+1;
                         }
-                        $results->save();
-                    //}
-                }
+                    }
 
-                if (strpos($results->instrument, "7") !== false) {
+                    if (strpos($results->instrument, "2") !== false) {
 
-                    /*$countvhost = "pgrep -c curl --insecure ";
+                        if ($tools_amount->amass < 2) {
 
-                    exec($countvhost, $countvhost_returncode);
+                            $results->working  = 1;
+                            $results->todelete = 1;
 
-                    if ($countvhost_returncode[0] < 25) {
-                    */
-                        $results->working = 1;
-                        $results->todelete = 1;
+                            $url = $results->amassdomain;
 
-                        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
 
-                        exec($countvhost, $countvhost_returncode);
+                            $results->save();
 
-                        if ($countvhost_returncode[0] < 25) {
+                            $tools_amount->amass = $tools_amount->amass+1;
+                        }
+                    }
+
+                    if (strpos($results->instrument, "3") !== false) {
+
+                        if ($tools_amount->dirscan < 20) {
+
+                            $results->working = 1;
+                            $results->todelete = 1;
+
+                            $dirscanurl = $results->dirscanUrl;
+                            $dirscanip = $results->dirscanIP;
+
+                            if ($dirscanip != "") {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            } else {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            }
+                            $results->save();
+
+                            $tools_amount->dirscan = $tools_amount->dirscan+1;
+                        }
+                    }
+
+                    if (strpos($results->instrument, "7") !== false) {
+
+                        if ($tools_amount->vhosts < 10) {
+
+                            $results->working = 1;
+                            $results->todelete = 1;
 
                             if ($results->vhostport != 0 && $results->vhostdomain != 0 && $results->vhostip != 0){
                                 if ( $results->vhostport == 1 ) $ssl = "1"; else $ssl = "0";
 
-                                exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid
-                                    . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
-                                    . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid
+                                        . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
+                                        . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                            } else exec('curl --insecure -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                            } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                        } else sleep(250);
+                            $results->save();
+                            $tools_amount->vhosts = $tools_amount->vhosts+1;                   
+                        }
 
-                        $results->save();
-
-                    } else return 0;
-                //}
-            }
+                    } 
+                }
+                sleep(10);
+            } $tools_amount->save(); return 1;    
         } else return Yii::$app->response->statusCode = 403;
     }
+
 
     private function sendpassiveemail($instrument, $scanid, $email, $userid)
     {

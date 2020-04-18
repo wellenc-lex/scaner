@@ -40,13 +40,13 @@ class Newscan extends Model
         return [
 
             [['nmapDomain'], 'string', 'length' => [5, 5555]],
-            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, , \.\-\/\:]+)$/'],
+            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\:]+)$/'],
 
             [['amassDomain'], 'string', 'length' => [5, 255]],
-            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, .\-\/\:]+)$/'],
+            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\:]+)$/'],
 
             [['dirscanUrl'], 'string', 'length' => [5, 255]],
-            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9.\-\/\:]+)$/'],
+            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\.\-\/\:]+)$/'],
 
             [['dirscanIp'], 'string', 'length' => [5, 255]],
             [['dirscanIp'], 'ip'],
@@ -58,7 +58,7 @@ class Newscan extends Model
             [['gitCompany'], 'match', 'pattern' => '/^(https:\/\/github\.com\/)+([a-zA-Z0-9]+)$/'],
 
             [['raceUrl'], 'string', 'length' => [5, 255]],
-            [['raceUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9 .\-\/\:]+)$/'],
+            [['raceUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9 \.\-\/\:]+)$/'],
 
             [['raceCookies'], 'string', 'length' => [3, 20000]],
             [['raceCookies'], 'match', 'pattern' => '/^([a-zA-Z0-9=,_ %\.\-\/\:;]+)$/'],
@@ -70,7 +70,7 @@ class Newscan extends Model
             [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9,=  %&\.\-\/\:;]+)$/'],
 
             [['vhostDomain'], 'string', 'length' => [5, 2550]],
-            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9.,\-\/\:]+)$/'],
+            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.,\-\/\:]+)$/'],
 
             [['vhostIp'], 'string', 'length' => [5, 255]],
             [['vhostIp'], 'ip'],
@@ -80,7 +80,7 @@ class Newscan extends Model
             [['vhostSsl'], 'boolean'],
 
             [['ips'], 'string', 'length' => [5, 255]],
-            [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9.\-\/\:]+)$/'],
+            [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\.\-\/\:]+)$/'],
 
             [['reverseip'], 'ip'],
 

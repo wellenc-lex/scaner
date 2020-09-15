@@ -141,8 +141,6 @@ class Amass extends ActiveRecord
 
                 else */$subtakeover = 0;
 
-                $date_end = date("Y-m-d H-i-s");
-
                 $amass = Tasks::find()
                     ->where(['taskid' => $taskid])
                     ->limit(1)
@@ -152,7 +150,7 @@ class Amass extends ActiveRecord
                 $amass->amass = $amassoutput;
                 $amass->aquatone = $aquatoneoutput;
                 $amass->subtakeover = $subtakeover;
-                $amass->date = $date_end;
+                $amass->date = date("Y-m-d H-i-s");
 
                 $amass->save(); 
 

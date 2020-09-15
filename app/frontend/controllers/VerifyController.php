@@ -41,7 +41,7 @@ class VerifyController extends Controller
 
             $results = Tasks::find()
                 ->where(['!=', 'status', 'Done.'])
-                ->limit(5)
+                ->limit(1000)
                 ->all();
 
             if ($results != NULL) {
@@ -199,14 +199,12 @@ class VerifyController extends Controller
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->limit(50)
+                ->limit(500)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
-                ->one();    
-
-            array_unique($allresults);    
+                ->one();     
 
             foreach ($allresults as $results) {
 
@@ -248,7 +246,7 @@ class VerifyController extends Controller
 
                     if (strpos($results->instrument, "3") !== false) {
 
-                        if ($tools_amount->dirscan < 20) {
+                        if ($tools_amount->dirscan < 65) {
 
                             $results->working = 1;
                             $results->todelete = 1;
@@ -269,7 +267,7 @@ class VerifyController extends Controller
 
                     if (strpos($results->instrument, "7") !== false) {
 
-                        if ($tools_amount->vhosts < 10) {
+                        if ($tools_amount->vhosts < 25) {
 
                             $results->working = 1;
                             $results->todelete = 1;
@@ -289,7 +287,7 @@ class VerifyController extends Controller
 
                     } 
                 }
-                sleep(10);
+                sleep(3);
             } $tools_amount->save(); return 1;    
         } else return Yii::$app->response->statusCode = 403;
     }

@@ -3,12 +3,27 @@
 namespace frontend\models;
 
 use yii\db\ActiveRecord;
+use Yii;
+set_time_limit(0);
 
 class Vhost extends ActiveRecord
 {
     public static function tableName()
     {
         return 'tasks';
+    }
+
+    public function ParseHostname($url)
+    {
+        $url = strtolower($url);
+
+        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
+
+        foreach ($domains[2] as $domain) {
+            if ($domain != "") $hostname = $hostname." ".$domain;
+        }
+        
+        return $hostname;
     }
 
     public static function vhostscan($input)
@@ -30,16 +45,11 @@ class Vhost extends ActiveRecord
         if ((isset($input["taskid"]) && $input["taskid"] != "") && (isset($input["domain"]) && $input["domain"] != "")
             && (isset($input["port"]) && $input["port"] != "") && (isset($input["ip"]) && $input["ip"] != "")) {
 
-            $port = escapeshellarg($input["port"]);
-            $maindomain = escapeshellarg($input["domain"]);
+            $port = escapeshellarg((int) $input["port"]);
+            $maindomain = vhost::ParseHostname($input["domain"]);
             $ip = escapeshellarg($input["ip"]);
 
-            $taskid = $input["taskid"];
-
-            $task = Tasks::find()
-                ->where(['taskid' => $taskid])
-                ->limit(1)
-                ->one();
+            $taskid = (int) $input["taskid"];
 
             $outputdomain = array();
             $length = array();
@@ -67,7 +77,7 @@ class Vhost extends ActiveRecord
             } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
             //Asks Host:localhost /domain.com/index.php
-            $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/index.php --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
+            $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/ --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
             sleep(1);
 
             $curl_length = strlen(trim($curl_result));
@@ -81,7 +91,6 @@ class Vhost extends ActiveRecord
                 );
                 $outputdomain[] = $newdata;
             } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
 
             foreach ($domainlist as $domaintoask) {
 
@@ -101,7 +110,6 @@ class Vhost extends ActiveRecord
                     $outputdomain[] = $newdata;
                 } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                
                 $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . "." . $maindomain . ":" . $port . " --resolve \"" . $domaintoask . "." . $maindomain . ":" . $port . ":" . $ip . "\"");
                 sleep(1);
 
@@ -114,9 +122,15 @@ class Vhost extends ActiveRecord
                     );
                     $outputdomain[] = $newdata;
                 } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
             }
 
             $date_end = date("Y-m-d H-i-s");
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
 
             $task->vhost_status = "Done.";
             $task->vhost = json_encode($outputdomain);
@@ -147,16 +161,18 @@ class Vhost extends ActiveRecord
             //Cloudflare ip ranges + private networks - no need to curl
             $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "108.162.192.0/18", "131.0.72.0/22",
                 "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22",
-                "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8");
+                "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8");
 
-            $taskid = $input["taskid"];
+            $taskid = (int) $input["taskid"];
 
-            $task = Tasks::find()
+            $taskfirst = Tasks::find()
                 ->where(['taskid' => $taskid])
                 ->limit(1)
                 ->one();
 
-            $amassoutput = json_decode($task->amass, true);
+            Yii::$app->db->close();  
+
+            $amassoutput = json_decode($taskfirst->amass, true);
 
             $checkedips = array();
             $outputdomain = array();
@@ -168,7 +184,7 @@ class Vhost extends ActiveRecord
 
             foreach ($amassoutput as $json) {
                 if (!in_array($json["name"], $domainlist)) {
-                    array_push($domainlist, $json["name"]);
+                    array_push($domainlist, $json["name"]); //if domain found by amass isnt already in toscan list
                 }
             }
 
@@ -185,7 +201,7 @@ class Vhost extends ActiveRecord
 
                 foreach ($json["addresses"] as $ip) {
 
-                    if (strpos($ip["ip"], '::') === false) {
+                    if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
 
                         if (!in_array($ip["ip"], $checkedips)) { //if ip wasnt called earlier - then call it
 
@@ -203,6 +219,7 @@ class Vhost extends ActiveRecord
 
                                 //Asks Host:localhost /domain.com/
                                 $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                
                                 sleep(1);
 
                                 $curl_length = strlen(trim($curl_result));
@@ -217,8 +234,8 @@ class Vhost extends ActiveRecord
                                     $outputdomain[] = $newdata;
                                 } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                                //Asks Host:localhost /domain.com/index.php
-                                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/index.php --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                //Asks Host:localhost /domain.com/
+                                $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
                                 sleep(1);
 
                                 $curl_length = strlen(trim($curl_result));
@@ -232,7 +249,6 @@ class Vhost extends ActiveRecord
                                     );
                                     $outputdomain[] = $newdata;
                                 } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
 
                                 foreach ($domainlist as $domaintoask) {
 
@@ -251,7 +267,6 @@ class Vhost extends ActiveRecord
                                         );
                                         $outputdomain[] = $newdata;
                                     } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
 
                                     //Asks Host:localhost.domain.com, dev.domain.com, etc
                                     $curl_result = exec("curl --insecure -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
@@ -277,6 +292,13 @@ class Vhost extends ActiveRecord
             }
 
             $date_end = date("Y-m-d H-i-s");
+
+            Yii::$app->db->open();
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
 
             $task->vhost_status = "Done.";
             $task->vhost = json_encode($outputdomain);

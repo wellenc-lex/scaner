@@ -10,11 +10,13 @@
         }
     ],
     "require": {
-        "php": "^7.2 || ^8.0",
+        "php": "^7.1",
         "phpdocumentor/reflection-common": "^2.0"
     },
     "require-dev": {
-        "ext-tokenizer": "*"
+        "mockery/mockery": "~1",
+        "ext-tokenizer": "^7.1",
+        "phpunit/phpunit": "^7.0"
     },
     "autoload": {
         "psr-4": {
@@ -23,12 +25,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "phpDocumentor\\Reflection\\": ["tests/unit", "tests/benchmark"]
+            "phpDocumentor\\Reflection\\": "tests/unit"
         }
     },
     "extra": {
         "branch-alias": {
-            "dev-1.x": "1.x-dev"
+            "dev-master": "1.x-dev"
         }
     }
 }

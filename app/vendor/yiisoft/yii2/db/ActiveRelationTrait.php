@@ -242,7 +242,7 @@ trait ActiveRelationTrait
                 $viaQuery->asArray($this->asArray);
             }
             $viaQuery->primaryModel = null;
-            $viaModels = array_filter($viaQuery->populateRelation($viaName, $primaryModels));
+            $viaModels = $viaQuery->populateRelation($viaName, $primaryModels);
             $this->filterByModels($viaModels);
         } else {
             $this->filterByModels($primaryModels);

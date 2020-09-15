@@ -512,9 +512,7 @@ final class Mbstring
             $offset = 0;
         } elseif ($offset = (int) $offset) {
             if ($offset < 0) {
-                if (0 > $offset += self::mb_strlen($needle)) {
-                    $haystack = self::mb_substr($haystack, 0, $offset, $encoding);
-                }
+                $haystack = self::mb_substr($haystack, 0, $offset, $encoding);
                 $offset = 0;
             } else {
                 $haystack = self::mb_substr($haystack, $offset, 2147483647, $encoding);
@@ -534,7 +532,7 @@ final class Mbstring
             return null;
         }
 
-        if (1 > $split_length = (int) $split_length) {
+        if ($split_length < 1) {
             trigger_error('The length of each segment must be greater than zero', E_USER_WARNING);
 
             return false;
@@ -542,17 +540,6 @@ final class Mbstring
 
         if (null === $encoding) {
             $encoding = mb_internal_encoding();
-        }
-
-        if ('UTF-8' === $encoding = self::getEncoding($encoding)) {
-            $rx = '/(';
-            while (65535 < $split_length) {
-                $rx .= '.{65535}';
-                $split_length -= 65535;
-            }
-            $rx .= '.{'.$split_length.'})/us';
-
-            return preg_split($rx, $string, null, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         }
 
         $result = array();
@@ -828,16 +815,11 @@ final class Mbstring
             return self::$internalEncoding;
         }
 
-        if ('UTF-8' === $encoding) {
-            return 'UTF-8';
-        }
-
         $encoding = strtoupper($encoding);
 
         if ('8BIT' === $encoding || 'BINARY' === $encoding) {
             return 'CP850';
         }
-
         if ('UTF8' === $encoding) {
             return 'UTF-8';
         }

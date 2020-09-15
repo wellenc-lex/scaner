@@ -56,16 +56,6 @@ use yii\validators\Validator;
 class DynamicModel extends Model
 {
     private $_attributes = [];
-    /**
-     * Array of the dynamic attribute labels.
-     * Used to as form field labels and in validation errors.
-     *
-     * @see attributeLabels()
-     * @see setAttributeLabels()
-     * @see setAttributeLabel()
-     * @since 2.0.35
-     */
-    private $_attributeLabels = [];
 
 
     /**
@@ -184,26 +174,15 @@ class DynamicModel extends Model
      * You can also directly manipulate [[validators]] to add or remove validation rules.
      * This method provides a shortcut.
      * @param string|array $attributes the attribute(s) to be validated by the rule
-     * @param string|Validator|\Closure $validator the validator. This can be either:
-     *  * a built-in validator name listed in [[builtInValidators]];
-     *  * a method name of the model class;
-     *  * an anonymous function;
-     *  * a validator class name.
-     *  * a Validator.
+     * @param mixed $validator the validator for the rule.This can be a built-in validator name,
+     * a method name of the model class, an anonymous function, or a validator class name.
      * @param array $options the options (name-value pairs) to be applied to the validator
      * @return $this the model itself
      */
     public function addRule($attributes, $validator, $options = [])
     {
         $validators = $this->getValidators();
-
-        if ($validator instanceof Validator) {
-            $validator->attributes = (array)$attributes;
-        } else {
-            $validator = Validator::createValidator($validator, $this, (array)$attributes, $options);
-        }
-
-        $validators->append($validator);
+        $validators->append(Validator::createValidator($validator, $this, (array)$attributes, $options));
 
         return $this;
     }
@@ -246,48 +225,5 @@ class DynamicModel extends Model
     public function attributes()
     {
         return array_keys($this->_attributes);
-    }
-
-    /**
-     * Sets the attribute labels in a massive way.
-     *
-     * @see attributeLabels()
-     * @see $_attributeLabels
-     * @since 2.0.35
-     *
-     * @param array $labels Array of attribute labels
-     * @return $this
-     */
-    public function setAttributeLabels(array $labels = [])
-    {
-        $this->_attributeLabels = $labels;
-
-        return $this;
-    }
-
-    /**
-     * Sets a label for an attribute.
-     *
-     * @see attributeLabels()
-     * @see $_attributeLabels
-     * @since 2.0.35
-     *
-     * @param string $attribute Attribute name
-     * @param string $label Attribute label value
-     * @return $this
-     */
-    public function setAttributeLabel($attribute, $label)
-    {
-        $this->_attributeLabels[$attribute] = $label;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function attributeLabels()
-    {
-        return array_merge(parent::attributeLabels(), $this->_attributeLabels);
     }
 }

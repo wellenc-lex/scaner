@@ -50,7 +50,9 @@ abstract class Client
     private $isMainRequest = true;
 
     /**
-     * @param array $server The server parameters (equivalent of $_SERVER)
+     * @param array     $server    The server parameters (equivalent of $_SERVER)
+     * @param History   $history   A History instance to store the browser history
+     * @param CookieJar $cookieJar A CookieJar instance to store the cookies
      */
     public function __construct(array $server = [], History $history = null, CookieJar $cookieJar = null)
     {
@@ -199,7 +201,7 @@ abstract class Client
     public function getCrawler()
     {
         if (null === $this->crawler) {
-            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
             // throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
         }
 
@@ -214,7 +216,7 @@ abstract class Client
     public function getInternalResponse()
     {
         if (null === $this->internalResponse) {
-            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
             // throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
         }
 
@@ -234,7 +236,7 @@ abstract class Client
     public function getResponse()
     {
         if (null === $this->response) {
-            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
             // throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
         }
 
@@ -249,7 +251,7 @@ abstract class Client
     public function getInternalRequest()
     {
         if (null === $this->internalRequest) {
-            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
             // throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
         }
 
@@ -269,7 +271,7 @@ abstract class Client
     public function getRequest()
     {
         if (null === $this->request) {
-            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s()" method before the "request()" one is deprecated since Symfony 4.1 and will throw an exception in 5.0.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
             // throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
         }
 
@@ -307,6 +309,7 @@ abstract class Client
     /**
      * Submits a form.
      *
+     * @param Form  $form             A Form instance
      * @param array $values           An array of form field values
      * @param array $serverParameters An array of server parameters
      *
@@ -314,8 +317,8 @@ abstract class Client
      */
     public function submit(Form $form, array $values = []/*, array $serverParameters = []*/)
     {
-        if (\func_num_args() < 3 && __CLASS__ !== static::class && __CLASS__ !== (new \ReflectionMethod($this, __FUNCTION__))->getDeclaringClass()->getName() && !$this instanceof \PHPUnit\Framework\MockObject\MockObject && !$this instanceof \Prophecy\Prophecy\ProphecySubjectInterface) {
-            @trigger_error(sprintf('The "%s()" method will have a new "array $serverParameters = []" argument in version 5.0, not defining it is deprecated since Symfony 4.2.', static::class.'::'.__FUNCTION__), E_USER_DEPRECATED);
+        if (\func_num_args() < 3 && __CLASS__ !== \get_class($this) && __CLASS__ !== (new \ReflectionMethod($this, __FUNCTION__))->getDeclaringClass()->getName() && !$this instanceof \PHPUnit\Framework\MockObject\MockObject && !$this instanceof \Prophecy\Prophecy\ProphecySubjectInterface) {
+            @trigger_error(sprintf('The "%s()" method will have a new "array $serverParameters = []" argument in version 5.0, not defining it is deprecated since Symfony 4.2.', \get_class($this).'::'.__FUNCTION__), E_USER_DEPRECATED);
         }
 
         $form->setValues($values);
@@ -380,7 +383,7 @@ abstract class Client
             $uri = preg_replace('{^'.parse_url($uri, PHP_URL_SCHEME).'}', $server['HTTPS'] ? 'https' : 'http', $uri);
         }
 
-        if (!isset($server['HTTP_REFERER']) && !$this->history->isEmpty()) {
+        if (!$this->history->isEmpty()) {
             $server['HTTP_REFERER'] = $this->history->current()->getUri();
         }
 
@@ -465,7 +468,7 @@ abstract class Client
         }
 
         if (!$process->isSuccessful() || !preg_match('/^O\:\d+\:/', $process->getOutput())) {
-            throw new \RuntimeException(sprintf('OUTPUT: %s ERROR OUTPUT: %s.', $process->getOutput(), $process->getErrorOutput()));
+            throw new \RuntimeException(sprintf('OUTPUT: %s ERROR OUTPUT: %s', $process->getOutput(), $process->getErrorOutput()));
         }
 
         return unserialize($process->getOutput());
@@ -494,6 +497,8 @@ abstract class Client
 
     /**
      * Filters the BrowserKit request to the origin one.
+     *
+     * @param Request $request The BrowserKit Request to filter
      *
      * @return object An origin request instance
      */
@@ -701,7 +706,8 @@ abstract class Client
     /**
      * Makes a request from a Request object directly.
      *
-     * @param bool $changeHistory Whether to update the history or not (only used internally for back(), forward(), and reload())
+     * @param Request $request       A Request instance
+     * @param bool    $changeHistory Whether to update the history or not (only used internally for back(), forward(), and reload())
      *
      * @return Crawler
      */
@@ -710,7 +716,7 @@ abstract class Client
         return $this->request($request->getMethod(), $request->getUri(), $request->getParameters(), $request->getFiles(), $request->getServer(), $request->getContent(), $changeHistory);
     }
 
-    private function updateServerFromUri(array $server, string $uri): array
+    private function updateServerFromUri($server, $uri)
     {
         $server['HTTP_HOST'] = $this->extractHost($uri);
         $scheme = parse_url($uri, PHP_URL_SCHEME);
@@ -720,7 +726,7 @@ abstract class Client
         return $server;
     }
 
-    private function extractHost(string $uri): ?string
+    private function extractHost($uri)
     {
         $host = parse_url($uri, PHP_URL_HOST);
 

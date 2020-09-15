@@ -33,7 +33,7 @@ class InConditionBuilder implements ExpressionBuilderInterface
      */
     public function build(ExpressionInterface $expression, array &$params = [])
     {
-        $operator = strtoupper($expression->getOperator());
+        $operator = $expression->getOperator();
         $column = $expression->getColumn();
         $values = $expression->getValues();
 
@@ -68,36 +68,21 @@ class InConditionBuilder implements ExpressionBuilderInterface
             }
         }
 
-        if (is_array($values)) {
-            $rawValues = $values;
-        } elseif ($values instanceof \Traversable) {
-            $rawValues = $this->getRawValuesFromTraversableObject($values);
-        }
-
-        if (isset($rawValues) && in_array(null, $rawValues, true)) {
-            $nullCondition = $this->getNullCondition($operator, $column);
-            $nullConditionOperator = $operator === 'IN' ? 'OR' : 'AND';
-        }
-
         $sqlValues = $this->buildValues($expression, $values, $params);
         if (empty($sqlValues)) {
-            if (!isset($nullCondition)) {
-                return $operator === 'IN' ? '0=1' : '';
-            }
-            return $nullCondition;
+            return $operator === 'IN' ? '0=1' : '';
         }
 
         if (strpos($column, '(') === false) {
             $column = $this->queryBuilder->db->quoteColumnName($column);
         }
         if (count($sqlValues) > 1) {
-            $sql = "$column $operator (" . implode(', ', $sqlValues) . ')';
-        } else {
-            $operator = $operator === 'IN' ? '=' : '<>';
-            $sql = $column . $operator . reset($sqlValues);
+            return "$column $operator (" . implode(', ', $sqlValues) . ')';
         }
 
-        return isset($nullCondition) ? sprintf('%s %s %s', $sql, $nullConditionOperator, $nullCondition) : $sql;
+        $operator = $operator === 'IN' ? '=' : '<>';
+
+        return $column . $operator . reset($sqlValues);
     }
 
     /**
@@ -127,7 +112,7 @@ class InConditionBuilder implements ExpressionBuilderInterface
                 $value = isset($value[$column]) ? $value[$column] : null;
             }
             if ($value === null) {
-                continue;
+                $sqlValues[$i] = 'NULL';
             } elseif ($value instanceof ExpressionInterface) {
                 $sqlValues[$i] = $this->queryBuilder->buildExpression($value, $params);
             } else {
@@ -202,40 +187,5 @@ class InConditionBuilder implements ExpressionBuilderInterface
         }
 
         return '(' . implode(', ', $sqlColumns) . ") $operator (" . implode(', ', $vss) . ')';
-    }
-
-    /**
-     * Builds is null/is not null condition for column based on operator
-     *
-     * @param string $operator
-     * @param string $column
-     * @return string is null or is not null condition
-     * @since 2.0.31
-     */
-    protected function getNullCondition($operator, $column) {
-        $column = $this->queryBuilder->db->quoteColumnName($column);
-        if ($operator === 'IN') {
-            return sprintf('%s IS NULL', $column);
-        }
-        return sprintf('%s IS NOT NULL', $column);
-    }
-
-    /**
-     * @param \Traversable $traversableObject
-     * @return array raw values
-     * @since 2.0.31
-     */
-    protected function getRawValuesFromTraversableObject(\Traversable $traversableObject)
-    {
-        $rawValues = [];
-        foreach ($traversableObject as $value) {
-            if (is_array($value)) {
-                $values = array_values($value);
-                $rawValues = array_merge($rawValues, $values);
-            } else {
-                $rawValues[] = $value;
-            }
-        }
-        return $rawValues;
     }
 }

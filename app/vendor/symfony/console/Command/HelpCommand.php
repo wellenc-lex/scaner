@@ -77,7 +77,5 @@ EOF
         ]);
 
         $this->command = null;
-
-        return 0;
     }
 }

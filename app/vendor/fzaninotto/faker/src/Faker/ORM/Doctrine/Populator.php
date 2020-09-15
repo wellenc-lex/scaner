@@ -3,7 +3,6 @@
 namespace Faker\ORM\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Faker\Generator;
 
 /**
  * Service class for populating a database using the Doctrine ORM or ODM.
@@ -11,35 +10,20 @@ use Faker\Generator;
  */
 class Populator
 {
-    /** @var int  */
-    protected $batchSize;
-
-    /** @var Generator  */
     protected $generator;
-
-    /** @var ObjectManager|null  */
     protected $manager;
-
-    /** @var array  */
     protected $entities = array();
-
-    /** @var array  */
     protected $quantities = array();
-
-    /** @var array  */
     protected $generateId = array();
 
     /**
-     * Populator constructor.
-     * @param Generator $generator
+     * @param \Faker\Generator $generator
      * @param ObjectManager|null $manager
-     * @param int $batchSize
      */
-    public function __construct(Generator $generator, ObjectManager $manager = null, $batchSize = 1000)
+    public function __construct(\Faker\Generator $generator, ObjectManager $manager = null)
     {
         $this->generator = $generator;
         $this->manager = $manager;
-        $this->batchSize = $batchSize;
     }
 
     /**
@@ -71,9 +55,6 @@ class Populator
     /**
      * Populate the database using all the Entity classes previously added.
      *
-     * Please note that large amounts of data will result in more memory usage since the the Populator will return
-     * all newly created primary keys after executing.
-     *
      * @param null|EntityManager $entityManager A Doctrine connection object
      *
      * @return array A list of the inserted PKs
@@ -91,18 +72,9 @@ class Populator
         foreach ($this->quantities as $class => $number) {
             $generateId = $this->generateId[$class];
             for ($i=0; $i < $number; $i++) {
-                $insertedEntities[$class][]= $this->entities[$class]->execute(
-                    $entityManager,
-                    $insertedEntities,
-                    $generateId
-                );
-                if (count($insertedEntities) % $this->batchSize === 0) {
-                    $entityManager->flush();
-                    $entityManager->clear($class);
-                }
+                $insertedEntities[$class][]= $this->entities[$class]->execute($entityManager, $insertedEntities, $generateId);
             }
             $entityManager->flush();
-            $entityManager->clear($class);
         }
 
         return $insertedEntities;

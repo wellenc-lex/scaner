@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /**
@@ -8,6 +7,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
+ * @copyright 2010-2018 Mike van Riel<mike@phpdoc.org>
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT
  * @link      http://phpdoc.org
  */
 
@@ -21,15 +22,15 @@ interface File
     /**
      * Returns the content of the file as a string.
      */
-    public function getContents() : string;
+    public function getContents(): string;
 
     /**
      * Returns md5 hash of the file.
      */
-    public function md5() : string;
+    public function md5(): string;
 
     /**
      * Returns an relative path to the file.
      */
-    public function path() : string;
+    public function path(): string;
 }

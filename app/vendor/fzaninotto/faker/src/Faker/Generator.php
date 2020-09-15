@@ -21,10 +21,8 @@ namespace Faker;
  * @property string $city
  * @property string $streetName
  * @property string $streetAddress
- * @property string $secondaryAddress
  * @property string $postcode
  * @property string $address
- * @property string $state
  * @property string $country
  * @property float  $latitude
  * @property float  $longitude
@@ -35,7 +33,6 @@ namespace Faker;
  * @property string $isbn10
  *
  * @property string $phoneNumber
- * @property string $e164PhoneNumber
  *
  * @property string $company
  * @property string $companySuffix
@@ -55,7 +52,6 @@ namespace Faker;
  * @property string $word
  * @property string|array $words
  * @method string|array words($nb = 3, $asText = false)
- * @method string word()
  * @property string $sentence
  * @method string sentence($nbWords = 6, $variableNbWords = true)
  * @property string|array $sentences
@@ -117,7 +113,7 @@ namespace Faker;
  * @method string year($max = 'now')
  * @method \DateTime dateTime($max = 'now', $timezone = null)
  * @method \DateTime dateTimeAd($max = 'now', $timezone = null)
- * @method \DateTime dateTimeBetween($startDate = '-30 years', $endDate = 'now', $timezone = null)
+ * @method \DateTime dateTimeBetween($startDate = '-30 years', $endDate = 'now')
  * @method \DateTime dateTimeInInterval($date = '-30 years', $interval = '+5 days', $timezone = null)
  * @method \DateTime dateTimeThisCentury($max = 'now', $timezone = null)
  * @method \DateTime dateTimeThisDecade($max = 'now', $timezone = null)
@@ -136,7 +132,6 @@ namespace Faker;
  * @method boolean boolean($chanceOfGettingTrue = 50)
  *
  * @property int    $randomDigit
- * @property int    $randomDigitNot
  * @property int    $randomDigitNotNull
  * @property string $randomLetter
  * @property string $randomAscii
@@ -159,7 +154,6 @@ namespace Faker;
  * @method Generator optional($weight = 0.5, $default = null)
  * @method Generator unique($reset = false, $maxRetries = 10000)
  * @method Generator valid($validator = null, $maxRetries = 10000)
- * @method mixed passthrough($passthrough)
  *
  * @method integer biasedNumberBetween($min = 0, $max = 100, $function = 'sqrt')
  *
@@ -283,10 +277,5 @@ class Generator
     public function __call($method, $attributes)
     {
         return $this->format($method, $attributes);
-    }
-
-    public function __destruct()
-    {
-        $this->seed();
     }
 }

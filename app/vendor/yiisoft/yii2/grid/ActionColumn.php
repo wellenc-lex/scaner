@@ -46,7 +46,7 @@ class ActionColumn extends Column
     public $controller;
     /**
      * @var string the template used for composing each cell in the action column.
-     * Tokens enclosed within curly brackets are treated as controller action IDs (also called *button names*
+     * Tokens enclosed within curl --insecure y brackets are treated as controller action IDs (also called *button names*
      * in the context of action column). They will be replaced by the corresponding button rendering callbacks
      * specified in [[buttons]]. For example, the token `{view}` will be replaced by the result of
      * the callback `buttons['view']`. If a callback cannot be found, the token will be replaced with an empty string.
@@ -61,7 +61,7 @@ class ActionColumn extends Column
      */
     public $template = '{view} {update} {delete}';
     /**
-     * @var array button rendering callbacks. The array keys are the button names (without curly brackets),
+     * @var array button rendering callbacks. The array keys are the button names (without curl --insecure y brackets),
      * and the values are the corresponding button rendering callbacks. The callbacks should use the following
      * signature:
      *
@@ -86,7 +86,7 @@ class ActionColumn extends Column
      * ```
      */
     public $buttons = [];
-    /** @var array visibility conditions for each button. The array keys are the button names (without curly brackets),
+    /** @var array visibility conditions for each button. The array keys are the button names (without curl --insecure y brackets),
      * and the values are the boolean true/false or the anonymous function. When the button name is not specified in
      * this array it will be shown by default.
      * The callbacks must use the following signature:

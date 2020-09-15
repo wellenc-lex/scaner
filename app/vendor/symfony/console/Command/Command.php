@@ -55,7 +55,7 @@ class Command
      */
     public static function getDefaultName()
     {
-        $class = static::class;
+        $class = \get_called_class();
         $r = new \ReflectionProperty($class, 'defaultName');
 
         return $class === $r->class ? static::$defaultName : null;
@@ -150,7 +150,7 @@ class Command
      * execute() method, you set the code to execute by passing
      * a Closure to the setCode() method.
      *
-     * @return int 0 if everything went fine, or an exit code
+     * @return int|null null or 0 if everything went fine, or an error code
      *
      * @throws LogicException When this abstract method is not implemented
      *
@@ -253,10 +253,6 @@ class Command
             $statusCode = ($this->code)($input, $output);
         } else {
             $statusCode = $this->execute($input, $output);
-
-            if (!\is_int($statusCode)) {
-                @trigger_error(sprintf('Return value of "%s::execute()" should always be of the type int since Symfony 4.4, %s returned.', static::class, \gettype($statusCode)), E_USER_DEPRECATED);
-            }
         }
 
         return is_numeric($statusCode) ? (int) $statusCode : 0;
@@ -344,7 +340,7 @@ class Command
     public function getDefinition()
     {
         if (null === $this->definition) {
-            throw new LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', static::class));
+            throw new LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', \get_class($this)));
         }
 
         return $this->definition;
@@ -432,6 +428,8 @@ class Command
      *
      * This feature should be used only when creating a long process command,
      * like a daemon.
+     *
+     * PHP 5.5+ or the proctitle PECL library is required
      *
      * @param string $title The process title
      *
@@ -557,7 +555,7 @@ class Command
     public function setAliases($aliases)
     {
         if (!\is_array($aliases) && !$aliases instanceof \Traversable) {
-            throw new InvalidArgumentException('$aliases must be an array or an instance of \Traversable.');
+            throw new InvalidArgumentException('$aliases must be an array or an instance of \Traversable');
         }
 
         foreach ($aliases as $alias) {

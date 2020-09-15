@@ -141,6 +141,7 @@ class EntityPopulator
         foreach ($relations as $relation) {
             // We don't need any other relation here.
             if ($relation instanceof BelongsTo) {
+
                 $fieldName = $relation->localKey();
                 $entityName = $relation->entityName();
                 $field = $fields[$fieldName];
@@ -161,12 +162,14 @@ class EntityPopulator
                         if (empty($records)) {
                             return null;
                         }
+                        $id = $records[mt_rand(0, count($records) - 1)]['id'];
 
-                        return $records[mt_rand(0, count($records) - 1)]['id'];
+                        return $id;
                     }
 
                     return null;
                 };
+
             }
         }
 

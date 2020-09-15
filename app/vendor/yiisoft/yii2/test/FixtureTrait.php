@@ -165,11 +165,12 @@ trait FixtureTrait
 
     /**
      * Creates the specified fixture instances.
-     * All dependent fixtures will also be created. Duplicate fixtures and circular dependencies will only be created once.
+     * All dependent fixtures will also be created.
      * @param array $fixtures the fixtures to be created. You may provide fixture names or fixture configurations.
      * If this parameter is not provided, the fixtures specified in [[globalFixtures()]] and [[fixtures()]] will be created.
      * @return Fixture[] the created fixture instances
-     * @throws InvalidConfigException if fixtures are not properly configured
+     * @throws InvalidConfigException if fixtures are not properly configured or if a circular dependency among
+     * the fixtures is detected.
      */
     protected function createFixtures(array $fixtures)
     {
@@ -209,8 +210,9 @@ trait FixtureTrait
                         // need to use the configuration provided in test case
                         $stack[] = isset($config[$dep]) ? $config[$dep] : ['class' => $dep];
                     }
+                } elseif ($instances[$name] === false) {
+                    throw new InvalidConfigException("A circular dependency is detected for fixture '$class'.");
                 }
-                // if the fixture is already loaded (ie. a circular dependency or if two fixtures depend on the same fixture) just skip it.
             }
         }
 

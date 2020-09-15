@@ -151,17 +151,9 @@ class BaseJson
                 $expressions['"' . $token . '"'] = $data->expression;
 
                 return $token;
-            }
-
-            if ($data instanceof \JsonSerializable) {
+            } elseif ($data instanceof \JsonSerializable) {
                 return static::processData($data->jsonSerialize(), $expressions, $expPrefix);
-            }
-
-            if ($data instanceof \DateTimeInterface) {
-                return static::processData((array)$data, $expressions, $expPrefix);
-            }
-
-            if ($data instanceof Arrayable) {
+            } elseif ($data instanceof Arrayable) {
                 $data = $data->toArray();
             } elseif ($data instanceof \SimpleXMLElement) {
                 $data = (array) $data;

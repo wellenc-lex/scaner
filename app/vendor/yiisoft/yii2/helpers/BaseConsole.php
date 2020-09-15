@@ -7,7 +7,6 @@
 
 namespace yii\helpers;
 
-use Yii;
 use yii\console\Markdown as ConsoleMarkdown;
 use yii\base\Model;
 
@@ -342,17 +341,6 @@ class BaseConsole
     public static function ansiStrlen($string)
     {
         return mb_strlen(static::stripAnsiFormat($string));
-    }
-
-    /**
-     * Returns the width of the string without ANSI color codes.
-     * @param string $string the string to measure
-     * @return int the width of the string not counting ANSI format characters
-     * @since 2.0.36
-     */
-    public static function ansiStrwidth($string)
-    {
-        return mb_strwidth(static::stripAnsiFormat($string), Yii::$app->charset);
     }
 
     /**

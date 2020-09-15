@@ -17,8 +17,6 @@ use phpDocumentor\Reflection\Type;
 
 /**
  * Value Object representing a nullable type. The real type is wrapped.
- *
- * @psalm-immutable
  */
 final class Nullable implements Type
 {

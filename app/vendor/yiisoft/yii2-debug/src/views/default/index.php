@@ -175,7 +175,7 @@ $this->title = 'Yii Debugger';
     </div>
 </div>
 <script type="text/javascript">
-    if (window.top == window) {
+    if (!window.frameElement) {
         document.querySelector('#yii-debug-toolbar').style.display = 'block';
     }
 </script>

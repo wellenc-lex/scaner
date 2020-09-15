@@ -22,7 +22,7 @@ class Person extends \Faker\Provider\Person
         'M' => 21,
         'N' => 22,
         'O' => 35,
-        'P' => 23,
+        'p' => 23,
         'Q' => 24,
         'T' => 27,
         'U' => 28,

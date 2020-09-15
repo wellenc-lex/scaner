@@ -45,7 +45,7 @@ final class CrawlerSelectorTextSame extends Constraint
             return false;
         }
 
-        return $this->expectedText === trim($crawler->text(null, true));
+        return $this->expectedText === trim($crawler->text());
     }
 
     /**

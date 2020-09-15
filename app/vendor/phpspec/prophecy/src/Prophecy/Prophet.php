@@ -11,7 +11,6 @@
 
 namespace Prophecy;
 
-use Prophecy\Doubler\CachedDoubler;
 use Prophecy\Doubler\Doubler;
 use Prophecy\Doubler\LazyDouble;
 use Prophecy\Doubler\ClassPatch;
@@ -46,13 +45,11 @@ class Prophet
      * @param null|RevealerInterface $revealer
      * @param null|StringUtil        $util
      */
-    public function __construct(
-        Doubler $doubler = null,
-        RevealerInterface $revealer = null,
-        StringUtil $util = null
-    ) {
+    public function __construct(Doubler $doubler = null, RevealerInterface $revealer = null,
+                                StringUtil $util = null)
+    {
         if (null === $doubler) {
-            $doubler = new CachedDoubler();
+            $doubler = new Doubler;
             $doubler->registerClassPatch(new ClassPatch\SplFileInfoPatch);
             $doubler->registerClassPatch(new ClassPatch\TraversablePatch);
             $doubler->registerClassPatch(new ClassPatch\ThrowablePatch);

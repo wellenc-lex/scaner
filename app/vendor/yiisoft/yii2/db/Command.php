@@ -90,10 +90,8 @@ class Command extends Component
 
     /**
      * @var array pending parameters to be bound to the current PDO statement.
-     * @since 2.0.33
      */
-    protected $pendingParams = [];
-
+    private $_pendingParams = [];
     /**
      * @var string the SQL statement that this command represents
      */
@@ -207,13 +205,13 @@ class Command extends Component
             if (is_string($name) && strncmp(':', $name, 1)) {
                 $name = ':' . $name;
             }
-            if (is_string($value) || $value instanceof Expression) {
-                $params[$name] = $this->db->quoteValue((string)$value);
+            if (is_string($value)) {
+                $params[$name] = $this->db->quoteValue($value);
             } elseif (is_bool($value)) {
                 $params[$name] = ($value ? 'TRUE' : 'FALSE');
             } elseif ($value === null) {
                 $params[$name] = 'NULL';
-            } elseif (!is_object($value) && !is_resource($value)) {
+            } elseif ((!is_object($value) && !is_resource($value)) || $value instanceof Expression) {
                 $params[$name] = $value;
             }
         }
@@ -314,10 +312,10 @@ class Command extends Component
      */
     protected function bindPendingParams()
     {
-        foreach ($this->pendingParams as $name => $value) {
+        foreach ($this->_pendingParams as $name => $value) {
             $this->pdoStatement->bindValue($name, $value[0], $value[1]);
         }
-        $this->pendingParams = [];
+        $this->_pendingParams = [];
     }
 
     /**
@@ -336,7 +334,7 @@ class Command extends Component
         if ($dataType === null) {
             $dataType = $this->db->getSchema()->getPdoType($value);
         }
-        $this->pendingParams[$name] = [$value, $dataType];
+        $this->_pendingParams[$name] = [$value, $dataType];
         $this->params[$name] = $value;
 
         return $this;
@@ -362,14 +360,14 @@ class Command extends Component
         $schema = $this->db->getSchema();
         foreach ($values as $name => $value) {
             if (is_array($value)) { // TODO: Drop in Yii 2.1
-                $this->pendingParams[$name] = $value;
+                $this->_pendingParams[$name] = $value;
                 $this->params[$name] = $value[0];
             } elseif ($value instanceof PdoValue) {
-                $this->pendingParams[$name] = [$value->getValue(), $value->getType()];
+                $this->_pendingParams[$name] = [$value->getValue(), $value->getType()];
                 $this->params[$name] = $value->getValue();
             } else {
                 $type = $schema->getPdoType($value);
-                $this->pendingParams[$name] = [$value, $type];
+                $this->_pendingParams[$name] = [$value, $type];
                 $this->params[$name] = $value;
             }
         }
@@ -1142,7 +1140,8 @@ class Command extends Component
             if (is_array($info)) {
                 /* @var $cache \yii\caching\CacheInterface */
                 $cache = $info[0];
-                $cacheKey = $this->getCacheKey($method, $fetchMode, '');
+                $rawSql = $rawSql ?: $this->getRawSql();
+                $cacheKey = $this->getCacheKey($method, $fetchMode, $rawSql);
                 $result = $cache->get($cacheKey);
                 if (is_array($result) && isset($result[0])) {
                     Yii::debug('Query result served from cache', 'yii\db\Command::query');
@@ -1188,21 +1187,19 @@ class Command extends Component
      * @param string $method method of PDOStatement to be called
      * @param int $fetchMode the result fetch mode. Please refer to [PHP manual](https://secure.php.net/manual/en/function.PDOStatement-setFetchMode.php)
      * for valid fetch modes.
+     * @param string $rawSql the raw SQL with parameter values inserted into the corresponding placeholders
      * @return array the cache key
      * @since 2.0.16
      */
     protected function getCacheKey($method, $fetchMode, $rawSql)
     {
-        $params = $this->params;
-        ksort($params);
         return [
             __CLASS__,
             $method,
             $fetchMode,
             $this->db->dsn,
             $this->db->username,
-            $this->getSql(),
-            json_encode($params),
+            $rawSql,
         ];
     }
 
@@ -1311,7 +1308,7 @@ class Command extends Component
     protected function reset()
     {
         $this->_sql = null;
-        $this->pendingParams = [];
+        $this->_pendingParams = [];
         $this->params = [];
         $this->_refreshTableName = null;
         $this->_isolationLevel = false;

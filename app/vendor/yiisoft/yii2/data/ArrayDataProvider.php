@@ -136,7 +136,7 @@ class ArrayDataProvider extends BaseDataProvider
     {
         $orders = $sort->getOrders();
         if (!empty($orders)) {
-            ArrayHelper::multisort($models, array_keys($orders), array_values($orders), $sort->sortFlags);
+            ArrayHelper::multisort($models, array_keys($orders), array_values($orders));
         }
 
         return $models;

@@ -44,15 +44,7 @@ final class ClassTagRetriever implements MethodTagRetrieverInterface
                 $this->contextFactory->createFromReflector($reflectionClass)
             );
 
-            $methods = array();
-
-            foreach ($phpdoc->getTagsByName('method') as $tag) {
-                if ($tag instanceof Method) {
-                    $methods[] = $tag;
-                }
-            }
-
-            return $methods;
+            return $phpdoc->getTagsByName('method');
         } catch (\InvalidArgumentException $e) {
             return array();
         }

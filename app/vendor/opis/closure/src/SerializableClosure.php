@@ -132,7 +132,7 @@ class SerializableClosure implements Serializable
             if($scope = $reflector->getClosureScopeClass()){
                 $scope = $scope->name;
             }
-        } else {
+        } elseif($reflector->isScopeRequired()) {
             if($scope = $reflector->getClosureScopeClass()){
                 $scope = $scope->name;
             }
@@ -260,7 +260,9 @@ class SerializableClosure implements Serializable
             $this->code['this'] = null;
         }
 
-        $this->closure = $this->closure->bindTo($this->code['this'], $this->code['scope']);
+        if ($this->code['scope'] !== null || $this->code['this'] !== null) {
+            $this->closure = $this->closure->bindTo($this->code['this'], $this->code['scope']);
+        }
 
         if(!empty($this->code['objects'])){
             foreach ($this->code['objects'] as $item){
@@ -419,9 +421,6 @@ class SerializableClosure implements Serializable
                         continue;
                     }
                     $property->setAccessible(true);
-                    if (PHP_VERSION >= 7.4 && !$property->isInitialized($instance)) {
-                        continue;
-                    }
                     $value = $property->getValue($instance);
                     if(is_array($value) || is_object($value)){
                         static::wrapClosures($value, $storage);
@@ -483,9 +482,6 @@ class SerializableClosure implements Serializable
                         continue;
                     }
                     $property->setAccessible(true);
-                    if (PHP_VERSION >= 7.4 && !$property->isInitialized($data)) {
-                        continue;
-                    }
                     $value = $property->getValue($data);
                     if(is_array($value) || is_object($value)){
                         static::unwrapClosures($value, $storage);
@@ -567,9 +563,6 @@ class SerializableClosure implements Serializable
                         continue;
                     }
                     $property->setAccessible(true);
-                    if (PHP_VERSION >= 7.4 && !$property->isInitialized($data)) {
-                        continue;
-                    }
                     $item = $property->getValue($data);
                     if ($item instanceof SerializableClosure || ($item instanceof SelfReference && $item->hash === $this->code['self'])) {
                         $this->code['objects'][] = array(
@@ -662,9 +655,6 @@ class SerializableClosure implements Serializable
                         continue;
                     }
                     $property->setAccessible(true);
-                    if (PHP_VERSION >= 7.4 && !$property->isInitialized($instance)) {
-                        continue;
-                    }
                     $value = $property->getValue($instance);
                     if(is_array($value) || is_object($value)){
                         $this->mapByReference($value);

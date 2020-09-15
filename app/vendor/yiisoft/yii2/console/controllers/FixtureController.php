@@ -450,7 +450,7 @@ class FixtureController extends Controller
         $fullFixturePath = FileHelper::normalizePath($fullFixturePath);
 
         $relativeName = substr($fullFixturePath, strlen($fixturesPath) + 1);
-        $relativeDir = dirname($relativeName) === '.' ? '' : dirname($relativeName) . '/';
+        $relativeDir = dirname($relativeName) === '.' ? '' : dirname($relativeName) . DIRECTORY_SEPARATOR;
 
         return $relativeDir . basename($fullFixturePath, 'Fixture.php');
     }

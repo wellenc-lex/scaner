@@ -11,7 +11,6 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidValueException;
-use yii\di\Instance;
 use yii\rbac\CheckAccessInterface;
 
 /**
@@ -106,8 +105,7 @@ class User extends Component
      */
     public $authTimeout;
     /**
-     * @var CheckAccessInterface|string|array The access checker object to use for checking access or the application
-     * component ID of the access checker.
+     * @var CheckAccessInterface The access checker to use for checking access.
      * If not set the application auth manager will be used.
      * @since 2.0.9
      */
@@ -167,8 +165,8 @@ class User extends Component
         if ($this->enableAutoLogin && !isset($this->identityCookie['name'])) {
             throw new InvalidConfigException('User::identityCookie must contain the "name" element.');
         }
-        if ($this->accessChecker !== null) {
-            $this->accessChecker = Instance::ensure($this->accessChecker, '\yii\rbac\CheckAccessInterface');
+        if (!empty($this->accessChecker) && is_string($this->accessChecker)) {
+            $this->accessChecker = Yii::createObject($this->accessChecker);
         }
     }
 

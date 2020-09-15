@@ -3,7 +3,6 @@
 namespace Dotenv;
 
 use Dotenv\Exception\InvalidFileException;
-use Dotenv\Regex\Regex;
 
 class Parser
 {
@@ -88,7 +87,7 @@ class Parser
      */
     private static function isValidName($name)
     {
-        return Regex::match('~\A[a-zA-Z0-9_.]+\z~', $name)->success()->getOrElse(0) === 1;
+        return preg_match('~\A[a-zA-Z0-9_.]+\z~', $name) === 1;
     }
 
     /**
@@ -136,7 +135,7 @@ class Parser
                     if ($char === $value[0] || $char === '\\') {
                         return [$data[0].$char, self::QUOTED_STATE];
                     } elseif (in_array($char, ['f', 'n', 'r', 't', 'v'], true)) {
-                        return [$data[0].stripcslashes('\\'.$char), self::QUOTED_STATE];
+                        return [$data[0].stripcslashes('\\' . $char), self::QUOTED_STATE];
                     } else {
                         throw new InvalidFileException(
                             self::getErrorMessage('an unexpected escape sequence', $value)

@@ -100,11 +100,6 @@ class DbManager extends BaseManager
      * @var array auth item parent-child relationships (childName => list of parents)
      */
     protected $parents;
-    /**
-     * @var array user assignments (user id => Assignment[])
-     * @since `protected` since 2.0.38
-     */
-    protected $checkAccessAssignments = [];
 
 
     /**
@@ -120,16 +115,18 @@ class DbManager extends BaseManager
         }
     }
 
+    private $_checkAccessAssignments = [];
+
     /**
      * {@inheritdoc}
      */
     public function checkAccess($userId, $permissionName, $params = [])
     {
-        if (isset($this->checkAccessAssignments[(string) $userId])) {
-            $assignments = $this->checkAccessAssignments[(string) $userId];
+        if (isset($this->_checkAccessAssignments[(string) $userId])) {
+            $assignments = $this->_checkAccessAssignments[(string) $userId];
         } else {
             $assignments = $this->getAssignments($userId);
-            $this->checkAccessAssignments[(string) $userId] = $assignments;
+            $this->_checkAccessAssignments[(string) $userId] = $assignments;
         }
 
         if ($this->hasNoAssignments($assignments)) {
@@ -297,7 +294,7 @@ class DbManager extends BaseManager
     {
         if (!$this->supportsCascadeUpdate()) {
             $this->db->createCommand()
-                ->delete($this->itemChildTable, ['or', '[[parent]]=:parent', '[[child]]=:child'], [':parent' => $item->name, ':child' => $item->name])
+                ->delete($this->itemChildTable, ['or', '[[parent]]=:name', '[[child]]=:name'], [':name' => $item->name])
                 ->execute();
             $this->db->createCommand()
                 ->delete($this->assignmentTable, ['item_name' => $item->name])
@@ -860,7 +857,7 @@ class DbManager extends BaseManager
                 'created_at' => $assignment->createdAt,
             ])->execute();
 
-        unset($this->checkAccessAssignments[(string) $userId]);
+        unset($this->_checkAccessAssignments[(string) $userId]);
         return $assignment;
     }
 
@@ -873,7 +870,7 @@ class DbManager extends BaseManager
             return false;
         }
 
-        unset($this->checkAccessAssignments[(string) $userId]);
+        unset($this->_checkAccessAssignments[(string) $userId]);
         return $this->db->createCommand()
             ->delete($this->assignmentTable, ['user_id' => (string) $userId, 'item_name' => $role->name])
             ->execute() > 0;
@@ -888,7 +885,7 @@ class DbManager extends BaseManager
             return false;
         }
 
-        unset($this->checkAccessAssignments[(string) $userId]);
+        unset($this->_checkAccessAssignments[(string) $userId]);
         return $this->db->createCommand()
             ->delete($this->assignmentTable, ['user_id' => (string) $userId])
             ->execute() > 0;
@@ -973,7 +970,7 @@ class DbManager extends BaseManager
      */
     public function removeAllAssignments()
     {
-        $this->checkAccessAssignments = [];
+        $this->_checkAccessAssignments = [];
         $this->db->createCommand()->delete($this->assignmentTable)->execute();
     }
 
@@ -985,7 +982,7 @@ class DbManager extends BaseManager
             $this->rules = null;
             $this->parents = null;
         }
-        $this->checkAccessAssignments = [];
+        $this->_checkAccessAssignments = [];
     }
 
     public function loadFromCache()

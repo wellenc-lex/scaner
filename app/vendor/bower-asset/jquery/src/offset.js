@@ -1,6 +1,7 @@
 define( [
 	"./core",
 	"./core/access",
+	"./var/document",
 	"./var/documentElement",
 	"./var/isFunction",
 	"./css/var/rnumnonpx",
@@ -11,14 +12,14 @@ define( [
 	"./core/init",
 	"./css",
 	"./selector" // contains
-], function( jQuery, access, documentElement, isFunction, rnumnonpx,
-	curCSS, addGetHookIf, support, isWindow ) {
+], function( jQuery, access, document, documentElement, isFunction, rnumnonpx,
+             curCSS, addGetHookIf, support, isWindow ) {
 
 "use strict";
 
 jQuery.offset = {
 	setOffset: function( elem, options, i ) {
-		var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+		var curPosition, curleft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
 			position = jQuery.css( elem, "position" ),
 			curElem = jQuery( elem ),
 			props = {};
@@ -39,11 +40,11 @@ jQuery.offset = {
 		if ( calculatePosition ) {
 			curPosition = curElem.position();
 			curTop = curPosition.top;
-			curLeft = curPosition.left;
+			curleft = curPosition.left;
 
 		} else {
 			curTop = parseFloat( curCSSTop ) || 0;
-			curLeft = parseFloat( curCSSLeft ) || 0;
+			curleft = parseFloat( curCSSLeft ) || 0;
 		}
 
 		if ( isFunction( options ) ) {
@@ -56,19 +57,13 @@ jQuery.offset = {
 			props.top = ( options.top - curOffset.top ) + curTop;
 		}
 		if ( options.left != null ) {
-			props.left = ( options.left - curOffset.left ) + curLeft;
+			props.left = ( options.left - curOffset.left ) + curleft;
 		}
 
 		if ( "using" in options ) {
 			options.using.call( elem, props );
 
 		} else {
-			if ( typeof props.top === "number" ) {
-				props.top += "px";
-			}
-			if ( typeof props.left === "number" ) {
-				props.left += "px";
-			}
 			curElem.css( props );
 		}
 	}
@@ -219,7 +214,7 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 // Blink bug: https://bugs.chromium.org/p/chromium/issues/detail?id=589347
 // getComputedStyle returns percent when specified for top/left/bottom/right;
 // rather than make the css module depend on the offset module, just check for it here
-jQuery.each( [ "top", "left" ], function( _i, prop ) {
+jQuery.each( [ "top", "left" ], function( i, prop ) {
 	jQuery.cssHooks[ prop ] = addGetHookIf( support.pixelPosition,
 		function( elem, computed ) {
 			if ( computed ) {

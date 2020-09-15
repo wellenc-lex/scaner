@@ -24,8 +24,6 @@ use function strpos;
  * An object can be either typed or untyped. When an object is typed it means that it has an identifier, the FQSEN,
  * pointing to an element in PHP. Object types that are untyped do not refer to a specific class but represent objects
  * in general.
- *
- * @psalm-immutable
  */
 final class Object_ implements Type
 {

@@ -28,20 +28,17 @@ class ProcessHelper extends Helper
     /**
      * Runs an external process.
      *
-     * @param array|Process $cmd       An instance of Process or an array of the command and arguments
-     * @param string|null   $error     An error message that must be displayed if something went wrong
-     * @param callable|null $callback  A PHP callback to run whenever there is some
-     *                                 output available on STDOUT or STDERR
-     * @param int           $verbosity The threshold for verbosity
+     * @param OutputInterface $output    An OutputInterface instance
+     * @param array|Process   $cmd       An instance of Process or an array of the command and arguments
+     * @param string|null     $error     An error message that must be displayed if something went wrong
+     * @param callable|null   $callback  A PHP callback to run whenever there is some
+     *                                   output available on STDOUT or STDERR
+     * @param int             $verbosity The threshold for verbosity
      *
      * @return Process The process that ran
      */
     public function run(OutputInterface $output, $cmd, $error = null, callable $callback = null, $verbosity = OutputInterface::VERBOSITY_VERY_VERBOSE)
     {
-        if (!class_exists(Process::class)) {
-            throw new \LogicException('The ProcessHelper cannot be run as the Process component is not installed. Try running "compose require symfony/process".');
-        }
-
         if ($output instanceof ConsoleOutputInterface) {
             $output = $output->getErrorOutput();
         }
@@ -95,10 +92,11 @@ class ProcessHelper extends Helper
      * This is identical to run() except that an exception is thrown if the process
      * exits with a non-zero exit code.
      *
-     * @param string|Process $cmd      An instance of Process or a command to run
-     * @param string|null    $error    An error message that must be displayed if something went wrong
-     * @param callable|null  $callback A PHP callback to run whenever there is some
-     *                                 output available on STDOUT or STDERR
+     * @param OutputInterface $output   An OutputInterface instance
+     * @param string|Process  $cmd      An instance of Process or a command to run
+     * @param string|null     $error    An error message that must be displayed if something went wrong
+     * @param callable|null   $callback A PHP callback to run whenever there is some
+     *                                  output available on STDOUT or STDERR
      *
      * @return Process The process that ran
      *
@@ -120,6 +118,10 @@ class ProcessHelper extends Helper
     /**
      * Wraps a Process callback to add debugging output.
      *
+     * @param OutputInterface $output   An OutputInterface interface
+     * @param Process         $process  The Process
+     * @param callable|null   $callback A PHP callable
+     *
      * @return callable
      */
     public function wrapCallback(OutputInterface $output, Process $process, callable $callback = null)
@@ -139,7 +141,7 @@ class ProcessHelper extends Helper
         };
     }
 
-    private function escapeString(string $str): string
+    private function escapeString($str)
     {
         return str_replace('<', '\\<', $str);
     }

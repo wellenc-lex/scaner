@@ -173,7 +173,7 @@ class ActiveRecord extends BaseActiveRecord
     {
         $query = static::find();
 
-        if (!ArrayHelper::isAssociative($condition) && !$condition instanceof ExpressionInterface) {
+        if (!ArrayHelper::isAssociative($condition)) {
             // query by primary key
             $primaryKey = static::primaryKey();
             if (isset($primaryKey[0])) {

@@ -41,12 +41,6 @@ abstract class ErrorHandler extends Component
      * @var \Exception|null the exception that is being handled currently.
      */
     public $exception;
-    /**
-     * @var bool if true - `handleException()` will finish script with `ExitCode::OK`.
-     * false - `ExitCode::UNSPECIFIED_ERROR`.
-     * @since 2.0.36
-     */
-    public $silentExitOnException;
 
     /**
      * @var string Used to reserve memory for fatal error handler.
@@ -56,51 +50,33 @@ abstract class ErrorHandler extends Component
      * @var \Exception from HHVM error that stores backtrace
      */
     private $_hhvmException;
-    /**
-     * @var bool whether this instance has been registered using `register()`
-     */
-    private $_registered = false;
 
-
-    public function init()
-    {
-        $this->silentExitOnException = $this->silentExitOnException !== null ? $this->silentExitOnException : YII_ENV_TEST;
-        parent::init();
-    }
 
     /**
      * Register this error handler.
-     * @since 2.0.32 this will not do anything if the error handler was already registered
      */
     public function register()
     {
-        if (!$this->_registered) {
-            ini_set('display_errors', false);
-            set_exception_handler([$this, 'handleException']);
-            if (defined('HHVM_VERSION')) {
-                set_error_handler([$this, 'handleHhvmError']);
-            } else {
-                set_error_handler([$this, 'handleError']);
-            }
-            if ($this->memoryReserveSize > 0) {
-                $this->_memoryReserve = str_repeat('x', $this->memoryReserveSize);
-            }
-            register_shutdown_function([$this, 'handleFatalError']);
-            $this->_registered = true;
+        ini_set('display_errors', false);
+        set_exception_handler([$this, 'handleException']);
+        if (defined('HHVM_VERSION')) {
+            set_error_handler([$this, 'handleHhvmError']);
+        } else {
+            set_error_handler([$this, 'handleError']);
         }
+        if ($this->memoryReserveSize > 0) {
+            $this->_memoryReserve = str_repeat('x', $this->memoryReserveSize);
+        }
+        register_shutdown_function([$this, 'handleFatalError']);
     }
 
     /**
      * Unregisters this error handler by restoring the PHP error and exception handlers.
-     * @since 2.0.32 this will not do anything if the error handler was not registered
      */
     public function unregister()
     {
-        if ($this->_registered) {
-            restore_error_handler();
-            restore_exception_handler();
-            $this->_registered = false;
-        }
+        restore_error_handler();
+        restore_exception_handler();
     }
 
     /**
@@ -133,7 +109,7 @@ abstract class ErrorHandler extends Component
                 $this->clearOutput();
             }
             $this->renderException($exception);
-            if (!$this->silentExitOnException) {
+            if (!YII_ENV_TEST) {
                 \Yii::getLogger()->flush(true);
                 if (defined('HHVM_VERSION')) {
                     flush();
@@ -236,18 +212,16 @@ abstract class ErrorHandler extends Component
             }
             $exception = new ErrorException($message, $code, $code, $file, $line);
 
-            if (PHP_VERSION_ID < 70400) {
-                // prior to PHP 7.4 we can't throw exceptions inside of __toString() - it will result a fatal error
-                $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                array_shift($trace);
-                foreach ($trace as $frame) {
-                    if ($frame['function'] === '__toString') {
-                        $this->handleException($exception);
-                        if (defined('HHVM_VERSION')) {
-                            flush();
-                        }
-                        exit(1);
+            // in case error appeared in __toString method we can't throw any exception
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            array_shift($trace);
+            foreach ($trace as $frame) {
+                if ($frame['function'] === '__toString') {
+                    $this->handleException($exception);
+                    if (defined('HHVM_VERSION')) {
+                        flush();
                     }
+                    exit(1);
                 }
             }
 

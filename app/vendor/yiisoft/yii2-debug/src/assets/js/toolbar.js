@@ -313,25 +313,14 @@
         requestCounter[0].className = className;
     }
 
-    /**
-     * Should AJAX request to be logged in debug panel
-     *
-     * @param requestUrl
-     * @returns {boolean}
-     */
-    function shouldTrackRequest(requestUrl) {
-        var a = document.createElement('a');
-        a.href = requestUrl;
-
-        return a.host === location.host;
-    }
-
     var proxied = XMLHttpRequest.prototype.open;
 
     XMLHttpRequest.prototype.open = function (method, url, async, user, pass) {
         var self = this;
 
-        if (shouldTrackRequest(url)) {
+        // fix https://github.com/yiisoft/yii2-debug/issues/326
+        /* prevent logging AJAX calls to static and inline files, like templates */
+        if (url && url.substr(0, 1) === '/' && !url.match(new RegExp('{{ excluded_ajax_paths }}'))) {
             var stackElement = {
                 loading: true,
                 error: false,
@@ -375,7 +364,8 @@
             }
             var promise = originalFetch(input, init);
 
-            if (shouldTrackRequest(url)) {
+            /* prevent logging AJAX calls to static and inline files, like templates */
+            if (url && url.substr(0, 1) === '/' && !url.match(new RegExp('{{ excluded_ajax_paths }}'))) {
                 var stackElement = {
                     loading: true,
                     error: false,

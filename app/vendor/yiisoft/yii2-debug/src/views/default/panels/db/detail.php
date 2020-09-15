@@ -14,10 +14,6 @@ use yii\web\View;
 
 echo Html::tag('h1', $panel->getName() . ' Queries');
 
-if (Yii::$app->log->traceLevel < 1) {
-    echo "<div class=\"callout callout-warning\">Check application configuration section [log] for <b>traceLevel</b></div>";
-}
-
 if ($sumDuplicates === 1) {
     echo "<p><b>$sumDuplicates</b> duplicated query found.</p>";
 } elseif ($sumDuplicates > 1) {
@@ -106,10 +102,8 @@ echo GridView::widget([
 
                     $query .= Html::tag(
                         'div',
-                        Html::a(
-                            '[+] Explain',
-                            ['db-explain', 'seq' => $data['seq'], 'tag' => Yii::$app->controller->summary['tag']]
-                        ),
+                        Html::a('[+] Explain',
+                            ['db-explain', 'seq' => $data['seq'], 'tag' => Yii::$app->controller->summary['tag']]),
                         ['class' => 'db-explain']
                     );
                 }

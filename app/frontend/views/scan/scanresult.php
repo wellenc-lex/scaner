@@ -299,6 +299,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%22.<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin 2</a>  
         </div>
 

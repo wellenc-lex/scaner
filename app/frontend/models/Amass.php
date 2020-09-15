@@ -45,7 +45,9 @@ class Amass extends ActiveRecord
                 $randomid = rand(1, 1000000);;
                 htmlspecialchars($url);
 
-                $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlist.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini -timeout 1000";
+                $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
+
+                //$command = "sudo docker run --cpu-shares=2048 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -ip -noalts -norecursive"; //turned off brute for testing purposes
 
                 exec($command);
 
@@ -66,7 +68,7 @@ class Amass extends ActiveRecord
 
                 $amassoutput = '[' . $fileamass . ']';
 
-                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 5 -ports large -scan-timeout 5000 -screenshot-timeout 10000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+                $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
                 exec($command);
 
@@ -95,7 +97,7 @@ class Amass extends ActiveRecord
                     white-space: nowrap;
                 }', $fileaquatone);
 
-                $fileaquatone = str_replace('.cluster:nth-child(even) {
+                                $fileaquatone = str_replace('.cluster:nth-child(even) {
                     background-color: rgba(0, 0, 0, 0.075);
                     box-shadow: inset 0px 6px 8px rgb(24, 24, 24);
                 }', '.cluster:nth-child(even) {
@@ -123,34 +125,10 @@ class Amass extends ActiveRecord
 
                 /** Copy the screenshots from the folder to volume root in order to be accessible all the time**/
 
-                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && sudo cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo chmod -R 755 /var/www/app/frontend/web/screenshots/ && sudo rm -r /screenshots/" . $randomid . "/ ";
+                $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 755 /var/www/app/frontend/web/screenshots/ ";
 
                 exec($clearthemess);
 
-                //domain
-                //domain+git
-
-
-//db add table+scanresult
-
-
-                //https://yourcompanyname.atlassian.net/servicedesk/customer/user/login
-                //https://yourcompanyname.com.atlassian.net/servicedesk/customer/user/login
-                //domain.club -> domainclub
-
-                /* $bitbucketurl = "https://bitbucket.org/" . $amassoutput[0]["domain"]  . "/profile/projects";
-
-                $servicedeskurl = "https://" . $amassoutput[0]["domain"]  . "/servicedesk/customer/user/login";
-                
-                $bitbucketout = shell_exec("curl ".$servicedeskurl);
-
-                $servicedeskout = shell_exec("curl ".$servicedeskurl);
-
-                if(strpos($servicedeskout,"sdUserSignUpEnabled&quot;:true") !== false) $servicedeskurl = $url;
-
-                if(!(strpos($bitbucketout,"<title>404") !== false)) $bitbucketurl = $url;
-*/
-                
                 /*$command = "/bin/cat /var/www/output/amass/" . $randomid . ".json | /usr/bin/jq --raw-output '.name' > /var/www/output/amass/jq" . $randomid .
                     ".json && /usr/local/bin/subjack -w /var/www/output/amass/jq" . $randomid .
                     ".json -t 10 -timeout 30 -a -o /var/www/output/subtakeover" . $randomid . ".txt -ssl -c /var/www/soft/subjack/fingerprints.json ";
@@ -179,8 +157,7 @@ class Amass extends ActiveRecord
                 $amass->save(); 
 
                 $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-                $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
-                exec('curl --insecure  -H \'Authorization: ' . $auth . '\' --data "taskid=' . $amass->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $amass->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                 
                 $decrement = ToolsAmount::find()
                     ->where(['id' => 1])
@@ -195,17 +172,13 @@ class Amass extends ActiveRecord
                 $decrement->amass=$value;
                 $decrement->save();
 
-                return 1;
-
     }
 
 }
 
 
 
-/* RIP DNS resolution
-docker run -e AWS_ACCESS_KEY_ID=getenv('AWS_ACCESS_KEY_ID') -e AWS_SECRET_ACCESS_KEY=getenv('AWS_SECRET_ACCESS_KEY') -e AWS_DEFAULT_REGION=getenv('AWS_DEFAULT_REGION') -e AWS_DEFAULT_OUTPUT=text --rm -v /Users/mac/Documents/123/buckets/:/data 5631/buckets  --bucket /data/listing.txt --thread 5 --permut 2 --provider amazon --prefix /data/prefixes.txt --output /data/result2.json
-*/
+
 
 
 

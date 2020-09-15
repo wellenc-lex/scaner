@@ -267,7 +267,7 @@ class VerifyController extends Controller
 
                     if (strpos($results->instrument, "7") !== false) {
 
-                        if ($tools_amount->vhosts < 25) {
+                        if ($tools_amount->vhosts < 20) {
 
                             $results->working = 1;
                             $results->todelete = 1;

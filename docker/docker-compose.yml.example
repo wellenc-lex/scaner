@@ -11,7 +11,7 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - "3550:22" #In order to scan with nmap from :22 port - bypases some WAFs
+      - '22:22' #In order to scan with nmap from :22 port - bypases some WAFs
     networks:
       - default
     depends_on:
@@ -27,11 +27,6 @@ services:
     extra_hosts:
       - 'localhost.soft:127.0.0.1'
       - 'dev.localhost.soft:127.0.0.1'
-    deploy:
-      resources:
-        reservations:
-          cpus: '0.1'
-          memory: 40M  
     restart: always      
   
   db:
@@ -49,7 +44,6 @@ services:
     volumes:
       - './database:/var/lib/mysql'
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
-    restart: always  
     logging:
       driver: none
 
@@ -62,7 +56,6 @@ services:
       - app
     volumes:
       - './conf/configs/crontab.txt:/etc/cron.d/crontab'
-    restart: always  
     logging:
       driver: none  
   
@@ -78,9 +71,9 @@ services:
       MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
+      UPLOAD_LIMIT: 3000000000
     networks:
       - default
-    restart: always  
     logging:
       driver: none
   
@@ -91,8 +84,6 @@ services:
     volumes:
       - 'dockerresults:/dockerresults'
       - 'configs:/configs'
-    logging:
-      driver: none  
   
   aquatone:
     image: 5631/aquatone
@@ -130,8 +121,37 @@ services:
       - 'dockerresults:/dockerresults'
       - 'configs:/configs'
       - 'ffuf:/ffuf'
-  
+    logging:
+      driver: none  
 
+  dnsgen:
+    image: 5631/dnsgen
+    networks:
+      - default
+    volumes:
+      - 'dockerresults:/dockerresults'
+      - 'configs:/configs'
+      - 'masscan:/masscan'
+  
+  #masdns
+  masscan:
+    image: 5631/masscan
+    networks:
+      - default
+    volumes:
+      - 'dockerresults:/dockerresults'
+      - 'configs:/configs'
+      - 'masscan:/masscan'
+
+  fdns:
+    image: 5631/fdns
+    networks:
+      - default
+    volumes:
+      - 'dockerresults:/dockerresults'
+      - 'configs:/configs'
+      - 'masscan:/masscan'   
+     
 volumes:
   dockerresults:
     name: dockerresults
@@ -141,12 +161,5 @@ volumes:
     name: screenshots
   ffuf:
     name: ffuf
-
-
-
-
-
-
-
-
-
+  masscan:
+    name: masscan  

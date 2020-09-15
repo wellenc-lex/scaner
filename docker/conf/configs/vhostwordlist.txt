@@ -1,4 +1,10 @@
 127.0.0.1
+localhost
+grafana
+kubernetes
+docker
+git
+bitbucket
 admin
 administration
 ads
@@ -9,6 +15,7 @@ ap
 apache
 api
 app
+jira
 apps
 appserver
 aptest
@@ -50,7 +57,6 @@ firewall
 forum
 ftp
 ftp0
-git
 gw
 help
 helpdesk
@@ -69,7 +75,6 @@ lab
 ldap
 linux
 local
-localhost
 log
 m
 mail
@@ -139,23 +144,6 @@ wiki
 www
 www2
 xml
-grafana
-kubernetes
-docker
-bitbucket
-jira
-kibana
-elasticsearch
-elasticadmin
-aws
-awsadmin
-01
-1
-panel
-dump
-wireshark
-pcap
-access
 administrator
 webmail
 vmm
@@ -164,6 +152,7 @@ admin10
 admin01
 blogadmin
 about
+panel
 panel.staging
 panel.beta
 panel.dev

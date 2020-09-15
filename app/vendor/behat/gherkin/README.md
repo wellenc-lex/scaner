@@ -57,7 +57,7 @@ Installing Dependencies
 -----------------------
 
 ``` bash
-$> curl --insecure  http://getcomposer.org/installer | php
+$> curl http://getcomposer.org/installer | php
 $> php composer.phar update
 ```
 

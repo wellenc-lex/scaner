@@ -40,6 +40,10 @@ class VerifyController extends Controller
 
             $results = Tasks::find()
                 ->where(['!=', 'status', 'Done.'])
+<<<<<<< HEAD
+=======
+                ->limit(1000)
+>>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
                 ->all();
 
             if ($results != NULL) {
@@ -197,11 +201,20 @@ class VerifyController extends Controller
                 ->limit(1)
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
+<<<<<<< HEAD
                 ->one();
 
             if ($results != NULL) {
 
                 if (strpos($results->instrument, "1") !== false) {
+=======
+                ->limit(500)
+                ->all();
+
+            $tools_amount = ToolsAmount::find()
+                ->where(['id' => 1])
+                ->one();     
+>>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
 
                     //$countnmap = "pgrep -c nmap";
 
@@ -251,7 +264,11 @@ class VerifyController extends Controller
                     /*$countdirscan = "pgrep -c python3";
                     http to https
 
+<<<<<<< HEAD
                     exec($countdirscan, $countdirscan_returncode);
+=======
+                        if ($tools_amount->dirscan < 65) {
+>>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
 
                     if ($countdirscan_returncode[0] < 40) {
                     */
@@ -285,7 +302,11 @@ class VerifyController extends Controller
 
                         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
 
+<<<<<<< HEAD
                         exec($countvhost, $countvhost_returncode);
+=======
+                        if ($tools_amount->vhosts < 25) {
+>>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
 
                         if ($countvhost_returncode[0] < 25) {
 
@@ -300,11 +321,18 @@ class VerifyController extends Controller
 
                         } else sleep(250);
 
+<<<<<<< HEAD
                         $results->save();
 
                     } else return 0;
                 //}
             }
+=======
+                    } 
+                }
+                sleep(3);
+            } $tools_amount->save(); return 1;    
+>>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
         } else return Yii::$app->response->statusCode = 403;
     }
 

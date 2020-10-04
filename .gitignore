@@ -4,4 +4,5 @@ app/protected/runtime/*
 app/!protected/runtime/.gitignore
 app/protected/data/*.db
 app/themes/classic/views/
+docker/database/*
 todo

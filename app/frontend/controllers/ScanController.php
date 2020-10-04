@@ -74,7 +74,7 @@ class ScanController extends Controller
         if (!Yii::$app->user->isGuest) {
 
             $result = PassiveScan::find()
-                ->where(['scanid' => $id])
+                ->where(['PassiveScanid' => $id])
                 ->limit(1)
                 ->one();
 
@@ -106,7 +106,7 @@ class ScanController extends Controller
         if (!Yii::$app->user->isGuest) {
 
             $result = GitscanPassive::find()
-                ->where(['scanid' => $id])
+                ->where(['PassiveScanid' => $id])
                 ->limit(1)
                 ->one();
 
@@ -192,7 +192,7 @@ class ScanController extends Controller
             $scanid = Yii::$app->request->post('scanid');
 
             $passive = PassiveScan::find()
-                ->where(['scanid' => $scanid])
+                ->where(['PassiveScanid' => $scanid])
                 ->limit(1)
                 ->one();
 
@@ -220,7 +220,7 @@ class ScanController extends Controller
             $scanid = Yii::$app->request->post('scanid');
 
             $passive = PassiveScan::find()
-                ->where(['scanid' => $scanid])
+                ->where(['PassiveScanid' => $scanid])
                 ->limit(1)
                 ->one();
 

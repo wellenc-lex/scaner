@@ -24,7 +24,7 @@ class Dirscan extends ActiveRecord
     {
         $ip = strtolower($ip);
 
-        preg_match("/([\w\.-\:])*/i", $ip, $ip); //get ip only
+        preg_match("/([\w\.-\:])*/i", $ip, $ip); //get ip only //weird regex because IP parses throguht regexp earlier - when form submits
       
         return $ip[0]; //everything thats inside regex
     }
@@ -33,53 +33,13 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d*)/", $url, $port); //get hostname only
+        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d)*/", $url, $port); //get hostname only
         
         return $port[3]; //group 2 == port
     }
 
-    public static function dirscan($input)
+    public function Wayback($url)
     {
-        
-        $url = dirscan::ParseHostname($input["url"]);
-
-        $port = dirscan::ParsePort($input["url"]);
-
-        if ($port != "") $port = dirscan::ParsePort($input["url"]); else $port = "";
-
-        $taskid = (int) $input["taskid"];
-
-        $randomid = $taskid;
-
-        if (strpos($input["url"], 'https://') !== false) {
-                $scheme = "https://";
-            } else {
-                $scheme = "http://";
-        }
-
-        $url = rtrim($url, ' ');
-        $url = rtrim($url, '/');
-
-        $hostfull = substr($url, 0, strrpos($url, ".")); //hostname without www. and .com at the end
-
-        $hostonly = preg_replace("/(\w)*\./", "", $hostfull); //hostname without subdomain and .com at the end
-
-        if (!isset($input["ip"])) {
-            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url.$port."/FUZZ") . " -t 1 -p 2 -mc all -w /configs/dict.txt -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -r -ac -D -e " . escapeshellarg("log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$url.",".$hostfull.",".$hostonly) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
-        }
-
-        if (isset($input["ip"])) {
-
-            $ip = dirscan::ParseIP($input["ip"]);
-
-            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -s -p 2 -H " . escapeshellarg('Host: ' . $url) . " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg("log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$url.",".$hostfull.",".$hostonly) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json ";
-
-            $start_dirscan_localhost = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -s -p 2 -H 'Host: localhost' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg("log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$url.",".$hostfull.",".$hostonly) . " -o /ffuf/" . $randomid . "/" . $randomid . "localhost.json -od /ffuf/" . $randomid . "/ -of json ";
-
-            exec($start_dirscan_localhost); 
-
-        }
-        
         $wayback_result = array();
         $string = array();
             
@@ -135,6 +95,60 @@ class Dirscan extends ActiveRecord
 
             }
         } //else $wayback_result[] = "Not an array.";
+
+        $wayback_result = array_unique($wayback_result);
+        $wayback_result = array_map('htmlentities', $wayback_result);
+        $wayback_result = json_encode($wayback_result, JSON_UNESCAPED_UNICODE);
+
+        return $wayback_result;
+    }
+
+    public static function dirscan($input)
+    {
+        
+        $url = dirscan::ParseHostname($input["url"]);
+
+        $port = dirscan::ParsePort($input["url"]);
+
+        if ($port != "") $port = dirscan::ParsePort($input["url"]); else $port = "";
+
+        $taskid = (int) $input["taskid"];
+
+        $randomid = $taskid;
+
+        if (strpos($input["url"], 'https://') !== false) {
+                $scheme = "https://";
+            } else {
+                $scheme = "http://";
+        }
+
+        $url = rtrim($url, ' ');
+        $url = rtrim($url, '/');
+
+        $domainfull = substr($url, 0, strrpos($url, ".")); //hostname without www. and .com at the end
+
+        $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
+
+        if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
+
+        $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$url.",".$domainfull.",".$hostonly;
+
+        if (!isset($input["ip"])) {
+            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url.$port."/FUZZ") . " -t 1 -p 2 -mc all -w /configs/dict.txt -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
+
+            $wayback_result = dirscan::Wayback($url);
+        }
+
+        if (isset($input["ip"])) {
+
+            $ip = dirscan::ParseIP($input["ip"]);
+
+            $start_dirscan = " sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 2 -H " . escapeshellarg('Host: ' . $url) . " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json ";
+
+            $start_dirscan_localhost = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 2 -H 'Host: localhost' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . "localhost.json -od /ffuf/" . $randomid . "/ -of json ";
+
+            exec($start_dirscan_localhost); 
+        }
 
         exec($start_dirscan); 
         
@@ -192,16 +206,11 @@ class Dirscan extends ActiveRecord
                     }
                 }
             }
-            $output_localhost_array = json_encode($output_localhost_array);
         } else $output_localhost_array = "No file.";
 
-        if ($output_localhost_array != "No file.") {
+        if ($output_localhost_array != "No file." && !is_null($output_localhost_array) ) {
             $outputarray = json_encode(array_merge($outputdirscan,$output_localhost_array));
         } else $outputarray = json_encode($outputdirscan);
-
-        $wayback_result = array_unique($wayback_result);
-        $wayback_result = array_map('htmlentities', $wayback_result);
-        $wayback_result = json_encode($wayback_result, JSON_UNESCAPED_UNICODE);
 
         $date_end = date("Y-m-d H-i-s");
 
@@ -233,7 +242,6 @@ class Dirscan extends ActiveRecord
 
         exec("sudo rm -r /ffuf/" . $randomid . "/");
         return 1;
-
     }
 
 }

@@ -11,56 +11,51 @@ class Nmap extends ActiveRecord
     {
         return 'passive_scan';
     }
+    
+    public function ParseHostname($url)
+    {
+        $url = strtolower($url);
 
-    /**
-     * 0 == no diffs required
-     * 1 == previous != new information, needs diff.
-     */
+        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
+
+        foreach ($domains[2] as $domain) {
+            if ($domain != "") $hostname = $hostname." ".$domain;
+        }
+        
+        return $hostname;
+    }
 
     public static function scanhost($input)
     {
+        $url = nmap::ParseHostname($input["url"]);
+        $taskid = (int) $input["scanid"];
 
-        $url = $input["url"];
-        $scanid = $input["scanid"];
+        $randomid = $taskid;
 
-        $url = strtolower($url);
-        $url = str_replace("http://", " ", $url);
-        $url = str_replace("https://", " ", $url);
-        $url = str_replace(",", "  ", $url);
-        $url = str_replace("\r", " ", $url);
-        $url = str_replace("\n", " ", $url);
-        $url = str_replace("|", " ", $url);
-        $url = str_replace("&", " ", $url);
-        $url = str_replace("&&", " ", $url);
-        $url = str_replace(">", " ", $url);
-        $url = str_replace("/", " ", $url);
+        //sudo nohup sudo nmap -sS -T4 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC -oA /root/scan20 --stylesheet /root/project/docker/conf/configs/nmap.xsl --script=ftp-anon --script=mysql-empty-password --script=smb-os-discovery --script=mysql-empty-password --script=nfs-ls --script-args='brute.delay=2,brute.firstonly=1' --script smb-enum* --script smb-ls --script smb-os-discovery --script smb-s* --script smb-vuln* --script http-default-accounts --script-args http-default-accounts.fingerprintfile=project/docker/conf/configs/nmap-fingerprints.lua > /root/nmap1.txt &
 
-        $randomid = rand(1, 1000000);
+        //sudo /usr/bin/xsltproc -o /root/scan1.html /var/www/soft/nmap.xsl /root/scan1.xml
 
-        htmlspecialchars($url);
+        //sudo /usr/bin/xsltproc -o /root/scan1.html /root/project/docker/conf/configs/nmap.xsl /root/scan1.xml
+                
+        $scripts = " --script=ftp-anon --script=mysql-empty-password --script=smb-os-discovery --script=mysql-empty-password ".
+                    "--script=nfs-ls --script-args='brute.delay=2,brute.firstonly=1' --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua";
 
-        $command = "sudo /usr/bin/nmap -sS -T3 -A -p- --host-timeout 2000m --source-port 22 --script-timeout 900m -sC -oA /var/www/output/nmap/scan" . $randomid . " --stylesheet /var/www/soft/nmap.xsl  --script smb-brute --script smb-os-discovery  " . $url . "  2>/var/www/output/nmap/scan" . $randomid . ".err";
-//-p-
-        $command1 = "sudo /usr/bin/xsltproc -o /var/www/output/nmap/scan" . $randomid . ".html /var/www/soft/nmap.xsl /var/www/output/nmap/scan" . $randomid . ".xml  2>/var/www/output/nmap/scan" . $randomid . ".xml.err  ";
 
-        $command2 = "sudo /usr/bin/find /var/www/output/nmap/ -name 'scan$randomid.*' -delete &";
+        //" . escapeshellarg($url) . " Gives Failed to resolve " $url ". , don't know how to fix, left it as is.
+            
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T4 -p- -A --host-timeout 4000m --source-port 3550 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
 
-        $escaped_command = ($command);
+        exec("sudo /usr/bin/xsltproc -o /dockerresults/nmap/" . $randomid . ".html /configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");
 
-        system($escaped_command, $nmap_returncode);
-
-        system($command1);
-
-        if (file_exists("/var/www/output/nmap/scan" . $randomid . ".html")) {
-            $output = file_get_contents("/var/www/output/nmap/scan" . $randomid . ".html");
+        if (file_exists("/dockerresults/nmap/" . $randomid . ".html")) {
+            $output = file_get_contents("/dockerresults/nmap/" . $randomid . ".html");
         } else $output = "None.";
 
         $nmap = PassiveScan::find()
-            ->where(['scanid' => $scanid])
+            ->where(['PassiveScanid' => $scanid])
             ->limit(1)
             ->one();
-
-        system($command2);
 
         if ($nmap->nmap_new == "") {
             $nmap->nmap_new = $output;
@@ -76,6 +71,10 @@ class Nmap extends ActiveRecord
 
             $nmap->save();
 
+            /**
+            * 0 == no diffs required
+            * 1 == previous != new information, needs diff.
+            */
             if ($nmap->nmap_previous == $nmap->nmap_new) {
                 return 0; // no diffs
             } else {
@@ -84,13 +83,8 @@ class Nmap extends ActiveRecord
 
         }
 
+        exec("sudo rm /dockerresults/scan" . $randomid . ".xml && sudo rm /dockerresults/nmap/" . $randomid . ".html");
 
+        return 1;
     }
-
-
 }
-
-
-
-
-

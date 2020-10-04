@@ -1,4 +1,5 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -25,19 +26,20 @@ CREATE TABLE `gitscanpassive` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `passive_scan` (
-  `scanid` int NOT NULL,
+  `PassiveScanid` int NOT NULL,
   `userid` int NOT NULL,
-  `notifications_enabled` tinyint(1) NOT NULL DEFAULT '1',
+  `notifications_enabled` tinyint(1) NOT NULL DEFAULT '0',
   `scanday` tinyint(1) NOT NULL,
   `dirscanUrl` varchar(255) DEFAULT NULL,
+  `dirscanIP` varchar(255) DEFAULT NULL,
   `amassDomain` varchar(255) DEFAULT NULL,
   `nmapDomain` varchar(255) DEFAULT NULL,
-  `amass_previous` text,
-  `amass_new` text,
-  `nmap_previous` text,
-  `nmap_new` text,
-  `dirscan_previous` text,
-  `dirscan_new` text,
+  `amass_previous` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  `amass_new` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  `nmap_previous` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  `nmap_new` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  `dirscan_previous` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  `dirscan_new` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `user_notified` tinyint(1) NOT NULL DEFAULT '0',
   `needs_to_notify` tinyint(1) NOT NULL DEFAULT '0',
@@ -78,7 +80,7 @@ CREATE TABLE `tasks` (
   `notification_enabled` tinyint(1) DEFAULT '1',
   `status` varchar(20) DEFAULT 'Working',
   `host` varchar(5600) DEFAULT NULL,
-  `nmap` mediumtext,
+  `nmap` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
   `amass` mediumtext,
   `subtakeover` text,
   `aquatone` mediumtext,
@@ -138,9 +140,9 @@ ALTER TABLE `gitscanpassive`
   ADD UNIQUE KEY `id` (`id`);
 
 ALTER TABLE `passive_scan`
-  ADD PRIMARY KEY (`scanid`),
+  ADD PRIMARY KEY (`PassiveScanid`),
   ADD KEY `userid` (`userid`),
-  ADD KEY `scanid` (`scanid`),
+  ADD KEY `scanid` (`PassiveScanid`),
   ADD KEY `last_scan_monthday` (`last_scan_monthday`),
   ADD KEY `notifications_enabled` (`notifications_enabled`);
 
@@ -155,7 +157,6 @@ ALTER TABLE `tasks`
   ADD PRIMARY KEY (`taskid`),
   ADD UNIQUE KEY `taskid` (`taskid`),
   ADD KEY `userid` (`userid`),
-  ADD KEY `taskid_2` (`taskid`),
   ADD KEY `notification_enabled` (`notification_enabled`),
   ADD KEY `status` (`status`);
 
@@ -174,7 +175,7 @@ ALTER TABLE `gitscanpassive`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 ALTER TABLE `passive_scan`
-  MODIFY `scanid` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `PassiveScanid` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10002;
 
 ALTER TABLE `queue`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1633;

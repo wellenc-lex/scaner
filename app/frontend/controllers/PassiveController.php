@@ -23,6 +23,7 @@ class PassiveController extends Controller
     public function actionIndex()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
 
         $secretIN = Yii::$app->request->post('secret');
 
@@ -37,15 +38,18 @@ class PassiveController extends Controller
             if ($result != NULL) {
 
                 if ($result->nmapDomain != "") {
-                    exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $result->nmapDomain . '& scanid=' . $result->scanid . '& secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
+                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->nmapDomain . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
                 }
 
                 if ($result->amassDomain != "") {
-                    exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $result->amassDomain . '& scanid=' . $result->scanid . '& secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
+                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->amassDomain . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
                 }
 
-                if ($result->dirscanUrl != "") {
-                    exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "url=' . $result->dirscanUrl . '& scanid=' . $result->scanid . '& secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+                if ($result->dirscanUrl != "" && $result->dirscanIP != "") {
+                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip= ' . $result->dirscanIP . ' & url= ' . $result->dirscanUrl . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+                } elseif ($result->dirscanUrl != "") {
+
+                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->dirscanUrl . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
                 }
 
                 $result->last_scan_monthday = date("d");
@@ -58,7 +62,7 @@ class PassiveController extends Controller
         return 0;
     }
 
-    //TODO:вызывать функцию diff, которая ищет и меняет отличия в прошлом и новом скане для всех инструментов
+    //TODO:вызывать функцию diff, которая ищет и меняет отличия в прошлом и новом скане для всех инструментов и добавлять ее результаты в скан
     public function actionNmap()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
@@ -76,7 +80,7 @@ class PassiveController extends Controller
                 $scanid = Yii::$app->request->post('scanid');
 
                 $scan = PassiveScan::find()
-                    ->where(['scanid' => $scanid])
+                    ->where(['PassiveScanid' => $scanid])
                     ->limit(1)
                     ->one();
 
@@ -113,7 +117,7 @@ class PassiveController extends Controller
                 $scanid = Yii::$app->request->post('scanid');
 
                 $scan = PassiveScan::find()
-                    ->where(['scanid' => $scanid])
+                    ->where(['PassiveScanid' => $scanid])
                     ->limit(1)
                     ->one();
 
@@ -149,7 +153,7 @@ class PassiveController extends Controller
                 $scanid = Yii::$app->request->post('scanid');
 
                 $scan = PassiveScan::find()
-                    ->where(['scanid' => $scanid])
+                    ->where(['PassiveScanid' => $scanid])
                     ->limit(1)
                     ->one();
 
@@ -168,43 +172,5 @@ class PassiveController extends Controller
         }
         return 0;
     }
-
-    public function actionVhost()
-    {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-        $model = new Vhostscan();
-
-        $secretIN = Yii::$app->request->post('secret');
-
-        if ($secretIN === $secret) {
-
-            $vhost = $model::vhostscan(Yii::$app->request->post());
-
-            if ($vhost == 1) {
-                //действия, если старый скан != новому
-
-                $scanid = Yii::$app->request->post('scanid');
-
-                $scan = PassiveScan::find()
-                    ->where(['scanid' => $scanid])
-                    ->limit(1)
-                    ->one();
-
-                $scan->needs_to_notify = 1;
-
-                if ($scan->notify_instrument != "") {
-
-                    $scan->notify_instrument = $scan->notify_instrument . ", Vhostscan";
-                } else {
-                    $scan->notify_instrument = "Vhostscan";
-                }
-
-                return $scan->save();
-            }
-            return 1;
-        }
-        return 0;
-    }
-
 
 }

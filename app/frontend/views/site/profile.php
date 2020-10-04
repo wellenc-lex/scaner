@@ -225,7 +225,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                         <tr style="text-align: center">
                                             <td>
-                                                <?= "<b style='vertical-align: middle;'>$scan->scanid</b>" ?>
+                                                <?= "<b style='vertical-align: middle;'>$scan->PassiveScanid</b>" ?>
                                             </td>
 
                                             <td>
@@ -248,13 +248,13 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                             <td style="text-align: center">
                                                 <a class="btn btn-success btn-sm"
-                                                   href="<?= Url::toRoute(['/scan/passivescanresult', 'id' => $scan->scanid]) ?>">
+                                                   href="<?= Url::toRoute(['/scan/passivescanresult', 'id' => $scan->PassiveScanid]) ?>">
                                                     Scan results</a>
 
 
                                                 <?php if ($scan->notifications_enabled === 1): ?>
                                                     <div class="btn btn-success btn-sm" id="onbutton"
-                                                         onclick="sendnotifications(0, <?php echo $scan->scanid ?>);">
+                                                         onclick="sendnotifications(0, <?php echo $scan->PassiveScanid ?>);">
                                                         Turn
                                                         notifications off
                                                     </div>
@@ -262,7 +262,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                                 <?php if ($scan->notifications_enabled === 0): ?>
                                                     <div class="btn btn-success btn-sm" id="offbutton"
-                                                         onclick="sendnotifications(1, <?php echo $scan->scanid ?>);">
+                                                         onclick="sendnotifications(1, <?php echo $scan->PassiveScanid ?>);">
                                                         Turn
                                                         notifications on
                                                     </div>
@@ -270,14 +270,14 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                                 <?php if ($scan->is_active === 1): ?>
                                                     <div class="btn btn-success btn-sm" id="onbutton"
-                                                         onclick="sendactive(0, <?php echo $scan->scanid ?>);">Turn scan
+                                                         onclick="sendactive(0, <?php echo $scan->PassiveScanid ?>);">Turn scan
                                                         off
                                                     </div>
                                                 <?php endif; ?>
 
                                                 <?php if ($scan->is_active === 0): ?>
                                                     <div class="btn btn-success btn-sm" id="offbutton"
-                                                         onclick="sendactive(1, <?php echo $scan->scanid ?>);">Turn scan
+                                                         onclick="sendactive(1, <?php echo $scan->PassiveScanid ?>);">Turn scan
                                                         on
                                                     </div>
                                                 <?php endif; ?>
@@ -302,7 +302,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                 <?php foreach ($passive as $scan): ?>
 
                                     <a class="btn btn-success btn-sm"
-                                       href="<?= Url::toRoute(['/scan/gitpassivescanresult', 'id' => $scan->scanid]) ?>">
+                                       href="<?= Url::toRoute(['/scan/gitpassivescanresult', 'id' => $scan->PassiveScanid]) ?>">
                                         Scan results</a>
 
                                 <?php endforeach; ?>

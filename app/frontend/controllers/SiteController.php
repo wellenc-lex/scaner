@@ -198,7 +198,7 @@ class SiteController extends Controller
                 'totalCount' => $passive->count(),
             ]);
 
-            $passiveresult = $passive->orderBy(['is_active' => SORT_DESC, 'scanid' => SORT_ASC])
+            $passiveresult = $passive->orderBy(['is_active' => SORT_DESC, 'PassiveScanid' => SORT_ASC])
                 ->offset($passivepages->offset)
                 ->limit($passivepages->limit)
                 ->all();

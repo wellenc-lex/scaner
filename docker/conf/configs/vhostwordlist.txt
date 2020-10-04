@@ -1,3 +1,7 @@
+phpmyadmin/phpinfo.php
+index-test.php
+core
+admin
 127.0.0.1
 localhost
 grafana
@@ -5,7 +9,6 @@ kubernetes
 docker
 git
 bitbucket
-admin
 administration
 ads
 adserver

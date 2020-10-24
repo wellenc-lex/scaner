@@ -54,8 +54,9 @@ class ScanController extends Controller
                 $reverseip = $result['reverseip'];
                 $wayback = $result['wayback'];
                 $subtakeover = $result['subtakeover'];
+                $nuclei = $result['nuclei'];
 
-                return $this->render('scanresult', compact('nmap', 'amass', 'aquatone','dirscan', 'gitscan', 'ipscan', 'host', 'vhost', 'js', 'reverseip', 'wayback', 'subtakeover'));
+                return $this->render('scanresult', compact('nmap', 'amass', 'aquatone','dirscan', 'gitscan', 'ipscan', 'host', 'vhost', 'js', 'reverseip', 'wayback', 'subtakeover', 'nuclei'));
             } else {
                 Yii::$app->session->setFlash('error', 'This scan doesnt belong to you.');
                 return $this->redirect(['/site/profile']);

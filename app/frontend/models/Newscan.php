@@ -31,6 +31,7 @@ class Newscan extends Model
     public $activescan;
     public $passivescan;
     public $notify;
+    public $passive;
 
     public $gitPassiveUrl;
     public $gitCompany;
@@ -88,6 +89,7 @@ class Newscan extends Model
             [['activescan'], 'boolean'],
             [['passivescan'], 'boolean'],
             [['notify'], 'boolean'],
+            [['passive'], 'boolean'],
             [['activescan'], 'required'],
             [['passivescan'], 'required'],
             //['verifyCode', 'captcha'],

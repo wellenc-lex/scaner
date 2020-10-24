@@ -349,6 +349,16 @@ class SiteController extends Controller
                         $queue->taskid = $tasks->taskid;
                         $queue->instrument = 2;
                         $queue->save();
+
+                        //adds the domain to scan it later continiously
+                        if ($url["passive"] == 1) {
+                            $passive = new PassiveScan();
+                            $passive->userid = Yii::$app->user->id;
+                            $passive->notifications_enabled = 1;
+                            $passive->amassDomain = $url["amassDomain"];
+                            $passive->scanday = rand(1, 7);
+                            $passive->save();
+                        }
                     }
 
                     if (isset($url["dirscanUrl"]) and $url["dirscanUrl"] != "") {
@@ -487,7 +497,7 @@ class SiteController extends Controller
                         ->andWhere(['is_active' => 1])
                         ->count();
 
-                    if ($count < 3) {
+                    if ($count < 300) {
 
                         $passive = new PassiveScan();
 

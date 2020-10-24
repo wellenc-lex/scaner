@@ -14,9 +14,9 @@ class Amass extends ActiveRecord
     }
 
     /**
-     * 0 == no diffs required
+     * 0 == no changes between scans
      * 1 == previous != new information, needs diff.
-     */
+    */
 
     public static function amassscan($input)
     {
@@ -24,7 +24,7 @@ class Amass extends ActiveRecord
 
         $amass_returncode = 1;        
         $url = $input["url"];        
-        $taskid = $input["scanid"];
+        $scanid = $input["scanid"];
 
         $url = ltrim($url, ' ');
         $url = rtrim($url, '/');
@@ -50,7 +50,7 @@ class Amass extends ActiveRecord
 
         $url = rtrim($url, '/');
 
-        $randomid = rand(1, 1000000);;
+        $randomid = rand(10000, 1000000);;
         htmlspecialchars($url);
 
         $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
@@ -58,6 +58,10 @@ class Amass extends ActiveRecord
         exec($command);
 
         if (file_exists("/dockerresults/amass" . $randomid . ".json")) {
+            $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
+        } else {
+            sleep(180);
+            exec($command);
             $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
         }
 
@@ -84,14 +88,14 @@ class Amass extends ActiveRecord
 
             $amass->save();
 
-            return 0; // no diffs
+            return 0; // no changes between scans
 
         } elseif ($amass->amass_new != "") {
 
             if ($amassoutput === $amass->amass_new) {
-                $changes =  0; // no diffs
+                $changes =  0; // no changes between scans
             } else {
-                $changes =  1; // check diffs
+                $changes =  1; // check changes between scans
             }
 
             $amass->amass_previous = $amass->amass_new;

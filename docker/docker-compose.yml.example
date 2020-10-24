@@ -44,8 +44,6 @@ services:
     volumes:
       - './database:/var/lib/mysql'
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
-    logging:
-      driver: none
 
   cron:
     image: 5631/cron
@@ -121,36 +119,14 @@ services:
       - 'dockerresults:/dockerresults'
       - 'configs:/configs'
       - 'ffuf:/ffuf'
-    logging:
-      driver: none  
 
-  dnsgen:
-    image: 5631/dnsgen
+  nuclei:
+    image: projectdiscovery/nuclei
     networks:
       - default
     volumes:
-      - 'dockerresults:/dockerresults'
+      - 'ffuf:/ffuf'
       - 'configs:/configs'
-      - 'masscan:/masscan'
-  
-  #masdns
-  masscan:
-    image: 5631/masscan
-    networks:
-      - default
-    volumes:
-      - 'dockerresults:/dockerresults'
-      - 'configs:/configs'
-      - 'masscan:/masscan'
-
-  fdns:
-    image: 5631/fdns
-    networks:
-      - default
-    volumes:
-      - 'dockerresults:/dockerresults'
-      - 'configs:/configs'
-      - 'masscan:/masscan'   
      
 volumes:
   dockerresults:
@@ -160,6 +136,13 @@ volumes:
   screenshots:
     name: screenshots
   ffuf:
-    name: ffuf
-  masscan:
-    name: masscan  
+    name: ffuf 
+
+
+
+
+
+
+
+
+

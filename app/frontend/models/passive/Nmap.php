@@ -28,9 +28,9 @@ class Nmap extends ActiveRecord
     public static function scanhost($input)
     {
         $url = nmap::ParseHostname($input["url"]);
-        $taskid = (int) $input["scanid"];
+        $scanid = (int) $input["scanid"];
 
-        $randomid = $taskid;
+        $randomid = $scanid;
 
         //sudo nohup sudo nmap -sS -T4 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC -oA /root/scan20 --stylesheet /root/project/docker/conf/configs/nmap.xsl --script=ftp-anon --script=mysql-empty-password --script=smb-os-discovery --script=mysql-empty-password --script=nfs-ls --script-args='brute.delay=2,brute.firstonly=1' --script smb-enum* --script smb-ls --script smb-os-discovery --script smb-s* --script smb-vuln* --script http-default-accounts --script-args http-default-accounts.fingerprintfile=project/docker/conf/configs/nmap-fingerprints.lua > /root/nmap1.txt &
 

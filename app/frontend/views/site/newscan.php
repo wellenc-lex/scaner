@@ -896,6 +896,7 @@ $this->registerJs($script, View::POS_READY);
             </div>
 
             <div class="col-lg-6">
+                <?= $form->field($model, 'passive')->checkbox(['class' => 'agree', 'checked' => true, 'value' => 1])->label('Scan continiously') ?>
                 <?= $form->field($model, 'agreed')->checkbox(['class' => 'agree', 'checked' => true, 'required' => true])->label('Agreed with TOS') ?>
                 <?= $form->field($model, 'notify')->checkbox(['class' => 'agree', 'checked' => false, 'value' => 0])->label('Notify with email when scan ends') ?>
             </div>

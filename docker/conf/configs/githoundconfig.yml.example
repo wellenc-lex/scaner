@@ -1,2 +1,3 @@
 github_username: 
 github_password: 
+github_totp_seed: ABCDEF1234567890 # Obtained via https://github.com/settings/two_factor_authentication/verify

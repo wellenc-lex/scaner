@@ -112,7 +112,8 @@ class PassiveController extends Controller
             $amass = $model::amassscan(Yii::$app->request->post());
 
             if ($amass == 1) {
-                //действия, если старый скан != новому
+                //действия, если старый скан != новому -> notify user about changes
+                //todo: slack/tg
 
                 $scanid = Yii::$app->request->post('scanid');
 

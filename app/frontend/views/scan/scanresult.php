@@ -311,10 +311,15 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <a style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://storage.googleapis.com/<?php echo $amass[0]["domain"]; ?>" rel="noreferrer"> https://storage.googleapis.com/<?php echo $amass[0]["domain"]; ?> </a>  
         </div>
-
+        
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
-                href="https://buckets.grayhatwarfare.com/buckets/0/<?php echo $amass[0]["domain"]; ?>" rel="noreferrer"> Buckets </a>  
+                href="https://www.google.com/search?q=site:storage.googleapis.com+%7C<?php echo $amass[0]["domain"]; ?>%7C" rel="noreferrer"> Google Apis </a>  
+        </div>
+        
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=site:amazonaws.com+%7C<?php echo $amass[0]["domain"]; ?>%7C" rel="noreferrer"> Amazon </a>  
         </div>
 
         <div style="text-align: center">

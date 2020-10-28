@@ -42,14 +42,24 @@ class Amass extends ActiveRecord
 
         $url = rtrim($url, '/');
 
-        $randomid = rand(1, 1000000);;
+        $randomid = rand(1, 10000);;
         htmlspecialchars($url);
 
-        //  $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . "INTEL.json -active -whois -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -o /dockerresults/amass" . $randomid . "INTEL.txt -active -whois -config /configs/amass.ini";
+
+        exec($command);
 
         $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
 
         exec($command);
+
+        if (file_exists("/dockerresults/amass" . $randomid . "INTEL.txt")) {
+            $intelamass = file_get_contents("/dockerresults/amass" . $randomid . "INTEL.txt");
+
+            $intelamass = json_encode(array_filter(explode(PHP_EOL,$intelamass)));
+        } else {
+            $intelamass = NULL;
+        }
 
         if (file_exists("/dockerresults/amass" . $randomid . ".json")) {
             $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
@@ -152,6 +162,7 @@ class Amass extends ActiveRecord
 
         $amass->amass_status = 'Done.';
         $amass->amass = $amassoutput;
+        $amass->amass_intel = $intelamass;  
         $amass->aquatone = $aquatoneoutput;
         $amass->subtakeover = $subtakeover;
         $amass->date = date("Y-m-d H-i-s");

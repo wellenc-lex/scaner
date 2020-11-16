@@ -14,11 +14,11 @@ class Dirscan extends ActiveRecord
     public function Nuclei($scheme,$url,$port,$randomid)
     {
         /*if($ip!="0.0.0.0"){
-            $nuclei_start = "sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target " . escapeshellarg($scheme.$ip.$port."/") . " -H " . escapeshellarg('Host: ' . $url) . " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 10 -json-requests -t /configs/nuclei-templates -nC -debug -v -c 100 "; } else {*/ // Nuclei can't work with Host: + ip :(
+            $nuclei_start = "sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target " . escapeshellarg($scheme.$ip.$port."/") . " -H " . escapeshellarg('Host: ' . $url) . " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 10 -json-requests -t /configs/nuclei-templates -nC -debug -v -c 100 "; } else {*/ // Nuclei can't work with Host: header+ ip :(
 
-        exec("sudo chmod 777 /ffuf/" . $randomid . "/ -R");
+        exec("sudo chmod 777 /ffuf/" . $randomid . "/ -R && sudo chmod 777 /ffuf/" . $randomid . " -R");
 
-        $nuclei_start = "sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target " . escapeshellarg($scheme.$url.$port."/") . "  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 10 -json-requests -t /configs/nuclei-templates -nC -c 1 ";
+        $nuclei_start = "sudo docker run --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target " . escapeshellarg($scheme.$url.$port."/") . "  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H ' X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -exclude technologies -severity critical,medium -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 10 -json-requests -t /configs/nuclei-templates -nC -c 1 ";
 
         exec($nuclei_start); 
 
@@ -44,7 +44,7 @@ class Dirscan extends ActiveRecord
             }
 
             json_encode($output_json);   
-        } else $output_json = null;
+        } else $output_json = NULL;
     
         return $output_json;
     }
@@ -71,9 +71,9 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d)*/", $url, $port); //get hostname only
+        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d*)/", $url, $port); //get hostname only
         
-        return $port[3]; //group 2 == port
+        return $port[3]; //group  == port
     }
 
     public function Wayback($url)
@@ -213,14 +213,44 @@ class Dirscan extends ActiveRecord
                     $outputarray[$id]["redirect"] = $results["redirectlocation"];
 
                     if ($results["length"] < 350000 ){
-                        exec("sudo chmod -R 755 /ffuf/" . $randomid . "/");
+                        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
                         $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
                     }
                 }
             }
             $outputdirscan = $outputarray;
-        } else $outputarray = "No file.";
+        } else {
+            sleep(1800);
+            exec($start_dirscan);
+
+                if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
+                    $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
+                    $output = json_decode($output, true);
+
+                    $outputarray = array();
+                    $id=0;
+                    $result_length = array();
+
+                    foreach ($output["results"] as $results) {
+                        if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
+                            $id++;
+                            $result_length[] = $results["length"];//so no duplicates gonna be added
+                            $outputarray[$id]["url"] = $results["url"];
+                            $outputarray[$id]["length"] = $results["length"];
+                            $outputarray[$id]["status"] = $results["status"];
+                            $outputarray[$id]["redirect"] = $results["redirectlocation"];
+
+                            if ($results["length"] < 350000 ){
+                                exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
+
+                                $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                            }
+                        }
+                    }
+                    $outputdirscan = $outputarray;
+                } else $outputarray = "No file.";
+        }
 
         //Get localhost dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "localhost.json")) {
@@ -242,7 +272,7 @@ class Dirscan extends ActiveRecord
                     $output_localhost_array[$id]["localhost"] = 1;
 
                     if ($results["length"] < 350000 ){
-                        exec("sudo chmod -R 755 /ffuf/" . $randomid . "/");
+                        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
                         $output_localhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
                     }

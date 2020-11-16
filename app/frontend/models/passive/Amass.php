@@ -50,7 +50,7 @@ class Amass extends ActiveRecord
 
         $url = rtrim($url, '/');
 
-        $randomid = rand(10000, 1000000);;
+        $randomid = rand(10000, 1000000);
         htmlspecialchars($url);
 
         $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
@@ -60,7 +60,7 @@ class Amass extends ActiveRecord
         if (file_exists("/dockerresults/amass" . $randomid . ".json")) {
             $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
         } else {
-            sleep(180);
+            sleep(3600);
             exec($command);
             $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
         }
@@ -90,17 +90,20 @@ class Amass extends ActiveRecord
 
             return 0; // no changes between scans
 
-        } elseif ($amass->amass_new != "") {
+        } elseif ($amass->amass_new != "") { //latest scan info in DB
 
             if ($amassoutput === $amass->amass_new) {
                 $changes =  0; // no changes between scans
             } else {
                 $changes =  1; // check changes between scans
+
+                $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
+                $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "passive=1&taskid=' . $scanid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
             }
 
             $amass->amass_previous = $amass->amass_new;
             $amass->amass_new = $amassoutput;
-
             $amass->save();
         }
 

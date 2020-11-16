@@ -3,6 +3,7 @@
 namespace frontend\models;
 
 use Yii;
+use frontend\models\Queue;
 use yii\db\ActiveRecord;
 
 class Amass extends ActiveRecord
@@ -45,28 +46,28 @@ class Amass extends ActiveRecord
         $randomid = rand(1, 10000);;
         htmlspecialchars($url);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -o /dockerresults/amass" . $randomid . "INTEL.txt -active -whois -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -whois -config /configs/amass.ini";
 
         exec($command);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -config /configs/amass.ini";
 
         exec($command);
 
-        if (file_exists("/dockerresults/amass" . $randomid . "INTEL.txt")) {
-            $intelamass = file_get_contents("/dockerresults/amass" . $randomid . "INTEL.txt");
+        if (file_exists("/dockerresults/" . $randomid . "amassINTEL.txt")) {
+            $intelamass = file_get_contents("/dockerresults/" . $randomid . "amassINTEL.txt");
 
             $intelamass = json_encode(array_filter(explode(PHP_EOL,$intelamass)));
         } else {
             $intelamass = NULL;
         }
 
-        if (file_exists("/dockerresults/amass" . $randomid . ".json")) {
-            $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
+        if (file_exists("/dockerresults/" . $randomid . "amass.json")) {
+            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         } else {
             sleep(180);
             exec($command);
-            $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
+            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         }
 
         $fileamass = str_replace("}
@@ -82,7 +83,7 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        $command = "cat /dockerresults/amass" . $randomid . ".json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+        $command = "cat /dockerresults/" . $randomid . "amass.json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
         exec($command);
 
@@ -139,7 +140,7 @@ class Amass extends ActiveRecord
 
         /** Copy the screenshots from the folder to volume in order to be accessible from nginx **/
 
-        $clearthemess = "sudo chmod -R 755 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 755 /var/www/app/frontend/web/screenshots/ ";
+        $clearthemess = "sudo chmod -R 777 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 777 /var/www/app/frontend/web/screenshots && sudo rm /dockerresults/" . $randomid . "amass*";
 
         exec($clearthemess);
 
@@ -169,9 +170,23 @@ class Amass extends ActiveRecord
 
         $amass->save(); 
 
+        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-        exec('curl --insecure  -H \'Authorization: Basic bmdpbng6U25pcGVydWx0cmEx\' --data "taskid=' . $amass->taskid . ' & secret=' . $secret . '" http://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
-        
+
+        $queue = new Queue();
+        $queue->taskid = $taskid;
+        $queue->instrument = 7;
+        $queue->save();
+
+        //add vhost scan to queue
+
+        $queue = new Queue();
+        $queue->taskid = $taskid;
+        $queue->instrument = 4;
+        $queue->save();
+
+        //add git scan to queue
+
         $decrement = ToolsAmount::find()
             ->where(['id' => 1])
             ->one();

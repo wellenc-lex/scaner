@@ -63,6 +63,38 @@ function senddirscan(host) {
     return false;
 }
 
+function sendamass(host) {
+    amassDomain = host;
+    Newscan = {amassDomain: host, agreed: '1', 'activescan': '1', 'passivescan': '0', 'notify': '0'};
+
+    $.ajax({
+
+        url: '/site/newscan',
+        type: 'POST',
+        data: {
+            Newscan: Newscan,
+            "_csrf-frontend": yii.getCsrfToken(),
+
+        },
+        success: function () {
+            $("#messagesuccess").hide();
+            $("#messagesuccess").slideDown().show();
+            setTimeout(function () {
+                $("#messagesuccess").slideUp().hide();
+            }, 10000);
+        },
+        error: function () {
+            $("#messagefailure").hide();
+            $("#messagefailure").slideDown().show();
+            setTimeout(function () {
+                $("#messagefailure").slideUp().hide();
+            }, 10000);
+        }
+    });
+
+    return false;
+}
+
 function sendvhost(host) {
     vhostDomain = host;
     Newscan = {vhostDomain: host, "agreed": '1', 'activescan': '1', 'passivescan': '0', 'notify': '0'};

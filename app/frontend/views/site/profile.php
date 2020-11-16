@@ -133,8 +133,18 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
 
                                 <?php endforeach; ?>
+
                                 </tbody>
                             </table>
+
+                            <div class="btn btn-success btn-xs" id="deletedonebutton" style=" margin-left: -15%;" onclick="
+                                    <?php foreach ($done as $task): ?>
+
+                                            <?php echo('deletefunc(' . $task->taskid . ');'); ?>
+
+                                    <?php endforeach; ?>
+                                "> Delete all done on page
+                            </div>
 
 
                         </div>
@@ -160,23 +170,33 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                         <td style="text-align: center; height: 50px; min-height: 50px; max-width: 400px; min-width: 400px; width: 400px;">
                                             <div style="text-align: center; overflow:auto;  white-space:nowrap; resize: none; ">
-                                                <?= "<b style='vertical-align: middle;'>$task->host</b>" ?>
+                                                
+                                                <a style="vertical-align: middle;"href="<?php 
+
+                                                    if (stripos($task->host, 'http') !== false) { echo $task->host; }
+                                                    else { echo 'http://'.$task->host; } ?>" rel="noreferrer"><?php echo $task->host; ?>
+                                                    
+                                                </a>
+
                                             </div>
                                         </td>
 
-                                        <td style="text-align: center; min-width: 200px; width: 200px">
+                                        <td style="text-align: center; min-width: 260px; width: 260px">
                                             <a class="btn btn-success btn-sm"
                                                href="<?= Url::toRoute(['/scan/scanresult', 'id' => $task->taskid]) ?>">
                                                 Scan results</a>
 
                                             <div class="btn btn-success btn-xs" id="hidebutton"
-                                                 onclick="hide(0, <?php echo $task->taskid ?>);">Hide
+                                                onclick="hide(0, <?php echo $task->taskid ?>);">Hide
                                             </div>
 
                                             <div class="btn btn-success btn-xs" id="deletebutton"
-                                                 onclick="deletefunc(<?php echo $task->taskid ?>);">Delete
+                                                onclick="deletefunc(<?php echo $task->taskid ?>);">Delete
                                             </div>
 
+                                            <div class="btn btn-success btn-xs" id="<?php echo $task->host ?>"
+                                                onclick="senddirscan(id);"> Dirscan
+                                            </div>
 
                                         </td>
 
@@ -185,13 +205,16 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                 <?php endforeach; ?>
 
                                 </tbody>
+
                             </table>
 
                         </div>
 
+                        <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $runningpages]) ?></div>
+                        
+
                     </div>
 
-                    <div style="margin-left: 7%; margin-top: 22%; position: fixed"><?= LinkPager::widget(['pagination' => $runningpages]) ?></div>
 
                 </div>
 
@@ -289,7 +312,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                     </tbody>
                                 </table>
 
-                                <div style="margin-left: 24%; margin-top: 26%; position: fixed"><?= LinkPager::widget(['pagination' => $passivepages]) ?></div>
+                                <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $passivepages]) ?></div>
 
                             </div>
 
@@ -359,7 +382,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                             </tbody>
                         </table>
 
-                        <div style="margin-left: 24%; margin-top: 5%; position: fixed"><?= LinkPager::widget(['pagination' => $hiddenpages]) ?></div>
+                        <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $hiddenpages]) ?></div>
 
                     </div>
 

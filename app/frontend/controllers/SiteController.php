@@ -173,7 +173,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id]);
 
             $donepages = new Pagination([
-                'defaultPageSize' => 5,
+                'defaultPageSize' => 10,
                 'totalCount' => $done->count(),
             ]);
 
@@ -183,7 +183,7 @@ class SiteController extends Controller
                 ->all();
 
             $taskspages = new Pagination([
-                'defaultPageSize' => 5,
+                'defaultPageSize' => 10,
                 'totalCount' => $tasks->count(),
             ]);
 
@@ -194,7 +194,7 @@ class SiteController extends Controller
                 ->all();
 
             $passivepages = new Pagination([
-                'defaultPageSize' => 5,
+                'defaultPageSize' => 10,
                 'totalCount' => $passive->count(),
             ]);
 
@@ -204,7 +204,7 @@ class SiteController extends Controller
                 ->all();
 
             $hiddenpages = new Pagination([
-                'defaultPageSize' => 5,
+                'defaultPageSize' => 10,
                 'totalCount' => $hidden->count(),
             ]);
 

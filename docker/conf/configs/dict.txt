@@ -1,9 +1,14 @@
+static../main.py
+.sql
+.bash_history
+.zsh_history
 .dockerignore
 DIRC
 Dockerfile
 docker-compose.yml
 Jenkinsfile
 .git/logs/HEAD
+.idea/workspace.xml
 __graphql
 static/%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c%5cetc%5cpasswd
 static../.git/config
@@ -13,6 +18,9 @@ scripts
 ks.json
 yaml.log
 yaml_cron.log
+get.php
+protected/config/
+protected
 yarn-debug.log
 yarn-error.log
 ws_ftp.ini
@@ -950,7 +958,6 @@ _www
 .idea/workspace(5).xml
 .idea/workspace(6).xml
 .idea/workspace(7).xml
-.idea/workspace.xml
 .idea0/
 .idea_modules/
 .ignore
@@ -1077,7 +1084,6 @@ _www
 .sln
 .smushit-status
 .spamassassin
-.sql
 .sql.bz2
 .sql.gz
 .sqlite_history
@@ -1227,7 +1233,6 @@ _www
 .babelrc
 .backup
 .bak
-.bash_history
 .bash_logout
 .bash_profile
 .bashrc
@@ -1512,7 +1517,6 @@ locale
 .yarn-integrity
 .yo-rc.json
 .zip
-.zsh_history
 .zshrc
 /!.gitignore
 /!.htaccess

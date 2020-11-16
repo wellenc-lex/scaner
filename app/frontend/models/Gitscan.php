@@ -2,7 +2,11 @@
 
 namespace frontend\models;
 
+set_time_limit(0);
+use Yii;
 use yii\db\ActiveRecord;
+use frontend\models\PassiveScan;
+use frontend\models\ToolsAmount;
 
 class Gitscan extends ActiveRecord
 {
@@ -11,49 +15,130 @@ class Gitscan extends ActiveRecord
         return 'tasks';
     }
 
-    public static function gitscan($input)
+    public function PassiveGitscan($taskid)
     {
-        //$taskid = $input["taskid"];
+        sleep(5); //so the amass passive results are 100% updated in db
 
-        $taskid = 3384;
-
-        $task = Tasks::find()
-            ->where(['taskid' => $taskid])
+        $task = PassiveScan::find()
+            ->where(['PassiveScanid' => $taskid])
             ->limit(1)
             ->one();
 
-        $token = "b54732426e4a8ad9ee3aa10baf51f2d8abb6a8cb"; //change later to pick up from DB
+        Yii::$app->db->close(); //closes DB connection so no timeout occur
 
+        $amass = json_decode($task["amass_new"], true); 
 
-        $task = json_decode($task["amass"], true);
+        $done = array();
 
-        foreach ($task as $json) {
+        foreach ($amass as $json) {
             $addresses[] = $json["name"];
         }
-        var_dump($addresses);
-        return 1;
 
+        array_unique($addresses);
 
+        foreach ($addresses as $address) {
+            if(preg_match("/(www.|static|sctp)/i", $address) === 1 ){
+                continue;
+            } else $done[] = "\"".$address."\"";
+        }
 
+        array_unique($done);
 
+        file_put_contents("/dockerresults/" . $taskid . "amassGitscanPassive.txt", implode(PHP_EOL, $done));
 
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanPassive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOut.txt");
 
-        /*system('sudo /usr/bin/docker run --name=' . $randomid . ' abhartiya/tools_gitallsecrets -mergeOutput -token=' .
-               $token . ' -repoURL=' . $url . ' >/dev/null && sudo /usr/bin/docker cp ' .
-            $randomid . ':/root/results.txt /root/gitscan' . $randomid . ' && sudo /usr/bin/docker rm ' .
-            $randomid . '&& sudo mv /root/gitscan' . $randomid . ' /var/www/output/docker/' . $randomid . ' ');
+        $gitout = file_get_contents("/dockerresults/" . $taskid . "amassGitOut.txt");
 
-        $output = file_get_contents("/var/www/output/docker/" . $randomid);
-*/
+        Yii::$app->db->open();
 
-        $task->gitscan_status = "Done.";
-        //$gitscan->gitscan = $output;
-        $task->date = date("Y-m-d H-i-s");
+        $PassiveScan = PassiveScan::find()
+            ->where(['PassiveScanid' => $taskid])
+            ->limit(1)
+            ->one();
 
-                //system("find /var/www/output/docker/ -name " . $randomid . " -delete &");
-        $task->save();
+        $PassiveScan->gitscan = base64_encode($gitout);
 
-        return 1;
+        return $PassiveScan->save();
+    }
+
+    public static function gitscan($input)
+    {
+
+        //gitscan rm /dockerresults/" . $randomid . "amass*
+
+        $taskid = (int) $input["taskid"];
+
+        exec("sudo chmod 777 /dockerresults/ -R && sudo chmod 777 /dockerresults -R");
+
+        if ($input["passive"] == 1){
+
+            $wayback_result = gitscan::PassiveGitscan($taskid);
+
+            return 2;
+
+        } elseif ($input["active"] == 1){
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            Yii::$app->db->close(); //closes DB connection so no timeout occur when $task->save()
+
+            $task = json_decode($task["amass"], true); 
+
+            $done = array();
+
+            foreach ($task as $json) {
+                $addresses[] = $json["name"];
+            }
+
+            array_unique($addresses);
+
+            foreach ($addresses as $address) {
+                if(preg_match("/(www.|static|sctp)/i", $address) === 1 ){
+                    continue;
+                } else $done[] = "\"".$address."\"";
+            }
+
+            array_unique($done);
+
+            file_put_contents("/dockerresults/" . $taskid . "amassGitscanActive.txt", implode(PHP_EOL, $done));
+
+            exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanActive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOutActive.txt");
+
+            $gitout = file_get_contents("/dockerresults/" . $taskid . "amassGitOutActive.txt");
+
+            Yii::$app->db->open();
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            $task->gitscan = base64_encode($gitout);
+            $task->date = date("Y-m-d H-i-s");
+            $task->gitscan_status = "Done.";
+            $task->save();
+
+            $decrement = ToolsAmount::find()
+            ->where(['id' => 1])
+            ->one();
+
+            $value = $decrement->gitscan;
+            
+            if ($value <= 1) {
+                $value=0;
+            } else $value = $value-1;
+
+            $decrement->gitscan=$value;
+            $decrement->save();
+
+            exec("sudo rm /dockerresults/" . $taskid . "*");
+
+            return 1;
+        }    
     }
 }
 

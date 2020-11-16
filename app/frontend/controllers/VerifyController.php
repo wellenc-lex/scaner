@@ -40,6 +40,7 @@ class VerifyController extends Controller
         if ($secret === $secretIN) {
 
             $results = Tasks::find()
+                ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
                 ->where(['!=', 'status', 'Done.'])
                 ->limit(1000)
                 ->all();
@@ -57,7 +58,7 @@ class VerifyController extends Controller
                     $reverseip = 0;
 
                     if (($pos1 = strpos($result->notify_instrument, "1")) !== false) {
-                        if ($result->nmap_status == "Done.") $nmap = 1;
+                        if ($result->nmap_status === "Done.") $nmap = 1;
                     } else $nmap = 1;
 
                     if ($pos = strpos($result->notify_instrument, "2") !== false) {
@@ -84,6 +85,10 @@ class VerifyController extends Controller
                         if ($result->vhost_status == "Done.") $vhost = 1;
                     } else $vhost = 1;
 
+                    if ($result->notify_instrument == "3") {
+                        Tasks::deleteAll(['notify_instrument' => "3", 'wayback' => "[]", 'nuclei' => "null", 'dirscan' => "null", 'taskid' => $result->taskid]);
+                    }
+
                     if ($nmap == 1 && $amass == 1 && $dirscan == 1 && $gitscan == 1 && $vhost == 1 && $ips == 1 && $reverseip == 1) {
 
                         if ($result->notified == 0 && $result->notification_enabled == 1) {
@@ -92,7 +97,11 @@ class VerifyController extends Controller
 
                             $result->notified = 1;
 
-                            $user = User::find()
+                            $result->save(false);
+
+                            $diff = 0;
+
+                            /*$user = User::find()
                                 ->where(['id' => $result->userid])
                                 ->limit(1)
                                 ->one();
@@ -101,7 +110,9 @@ class VerifyController extends Controller
 
                             $result->save(false);
 
-                            $this->sendactiveemail($result->taskid, $email, $user->id);
+                            $this->sendactiveemail($result->taskid, $email, $user->id);*/
+
+                            $this->sendslack($result->taskid, $diff);
                         } elseif ($result->notified == 0 && $result->notification_enabled == 0) {
 
                             $result->status = "Done.";
@@ -133,51 +144,54 @@ class VerifyController extends Controller
             $results = PassiveScan::find()
                 ->where(['is_active' => 1])
                 ->andWhere(['needs_to_notify' => 1])
+                ->andWhere(['notifications_enabled' => 1])
                 ->andWhere(['user_notified' => 0])
+                ->limit(10)
                 ->all();
 
             if ($results != NULL) {
                 foreach ($results as $result) {
 
-                    if ($result->notifications_enabled == 1) {
+                    $diff = 0;
 
-                        $instruments = "";
+                    //- распарсить и вызвать для каждого нового поддомена дирскан
+                    //- записать поддомены из array_diff в тхт и вызвать гитхаунд
+
                         if ($pos = strpos($result->notify_instrument, "1") !== false) {
 
-                            $instruments = $instruments . "Nmap, ";
+                            if ($result->nmap_previous != null && $result->nmap_new != null){
+                                $diff = array_unique(array_diff($result->nmap_new,$result->nmap_previous));
+                            }
                         }
 
                         if ($pos = strpos($result->notify_instrument, "2") !== false) {
 
-                            $instruments = $instruments . "Amass, ";
+                            if ($result->amass_previous != null && $result->amass_new != null) {
+
+                                $diff = array_unique(array_diff($result->amass_new,$result->amass_previous));
+                            }
                         }
 
                         if ($pos = strpos($result->notify_instrument, "3") !== false) {
 
-                            $instruments = $instruments . "Dirscan, ";
+                            if ($result->dirscan_previous != null && $result->dirscan_new != null){
+                                $diff = array_unique(array_diff($result->dirscan_new,$result->dirscan_previous));
+                            }
 
                         }
 
-                        if ($result->needs_to_notify == 1 && $result->notifications_enabled == 1) {
+                        $result->needs_to_notify = 0;
 
-                            $user = User::find()
-                                ->where(['id' => $result->userid])
-                                ->limit(1)
-                                ->one();
+                        $result->notify_instrument = 0;
 
-                            $email = $user->email;
+                        $result->user_notified = 1;
 
-                            $result->needs_to_notify = 0;
+                        $result->save(false);
 
-                            $result->notify_instrument = 0;
-
-                            $result->user_notified = 1;
-
-                            $result->save(false);
-
-                            $this->sendpassiveemail($instruments, $result->scanid, $email, $user->id);
+                        if ($diff != ""){
+                            $this->sendPassiveSlack($result->scanid, $diff);
                         }
-                    }
+                        
                 }
             }
         } else return Yii::$app->response->statusCode = 403;
@@ -187,7 +201,7 @@ class VerifyController extends Controller
     public function actionQueue()
     {
 
-        //1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips,7=vhost
+        //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips, 7=vhost
 
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
@@ -210,92 +224,163 @@ class VerifyController extends Controller
 
                 if ($results != NULL) {
 
-                    if (strpos($results->instrument, "1") !== false) {
+                    if ($results->passivescan == 1){
 
-                        if ($tools_amount->nmap < 10) {
+                        if (strpos($results->instrument, "1") !== false) {
 
-                            $results->working = 1;
-                            $results->todelete = 1;
+                                if ($tools_amount->nmap < 10) {
 
-                            $nmapurl = $results->nmap;
+                                    $results->working = 1;
+                                    $results->todelete = 1;
 
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
 
-                            $results->save();
+                                    $results->save();
 
-                            $tools_amount->nmap = $tools_amount->nmap+1;
-                        }
-                    }
-
-                    if (strpos($results->instrument, "2") !== false) {
-
-                        if ($tools_amount->amass < 3) {
-
-                            $results->working  = 1;
-                            $results->todelete = 1;
-
-                            $url = $results->amassdomain;
-
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
-
-                            $results->save();
-
-                            $tools_amount->amass = $tools_amount->amass+1;
-                        }
-                    }
-
-                    if (strpos($results->instrument, "3") !== false) {
-
-                        if ($tools_amount->dirscan < 65) {
-
-                            $results->working = 1;
-                            $results->todelete = 1;
-
-                            $dirscanurl = $results->dirscanUrl;
-                            $dirscanip = $results->dirscanIP;
-
-                            if ($dirscanip != "") {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
-                            } else {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                    $tools_amount->nmap = $tools_amount->nmap+1;
+                                }
                             }
-                            $results->save();
 
-                            $tools_amount->dirscan = $tools_amount->dirscan+1;
+                            if (strpos($results->instrument, "2") !== false) {
+
+                                if ($tools_amount->amass < 3) {
+
+                                    $results->working  = 1;
+                                    $results->todelete = 1;
+
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
+
+                                    $results->save();
+
+                                    $tools_amount->amass = $tools_amount->amass+1;
+                                }
+                            }
+
+                            if (strpos($results->instrument, "3") !== false) {
+
+                                if ($tools_amount->dirscan < 65) {
+
+                                    $results->working = 1;
+                                    $results->todelete = 1;
+
+                                    if ($dirscanip != "") {
+
+                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip= ' . $results->dirscanIP . ' & url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+
+                                    } else {
+                                        
+                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+
+                                    }
+                                    $results->save();
+
+                                    $tools_amount->dirscan = $tools_amount->dirscan+1;
+                                }
+                            }
+
+                    } else 
+                    {
+                        if (strpos($results->instrument, "1") !== false) {
+
+                            if ($tools_amount->nmap < 10) {
+
+                                $results->working = 1;
+                                $results->todelete = 1;
+
+                                $nmapurl = $results->nmap;
+
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
+
+                                $results->save();
+
+                                $tools_amount->nmap = $tools_amount->nmap+1;
+                            }
                         }
+
+                        if (strpos($results->instrument, "2") !== false) {
+
+                            if ($tools_amount->amass < 3) {
+
+                                $results->working  = 1;
+                                $results->todelete = 1;
+
+                                $url = $results->amassdomain;
+
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
+
+                                $results->save();
+
+                                $tools_amount->amass = $tools_amount->amass+1;
+                            }
+                        }
+
+                        if (strpos($results->instrument, "3") !== false) {
+
+                            if ($tools_amount->dirscan < 65) {
+
+                                $results->working = 1;
+                                $results->todelete = 1;
+
+                                $dirscanurl = $results->dirscanUrl;
+                                $dirscanip = $results->dirscanIP;
+
+                                if ($dirscanip != "") {
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                } else {
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                }
+                                $results->save();
+
+                                $tools_amount->dirscan = $tools_amount->dirscan+1;
+                            }
+                        }
+
+                        if (strpos($results->instrument, "4") !== false) {
+
+                            if ($tools_amount->gitscan < 1) {
+
+                                $results->working  = 1;
+                                $results->todelete = 1;
+
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+
+                                $results->save();
+
+                                $tools_amount->gitscan = $tools_amount->gitscan+1;
+                            }
+                        }
+
+                        if (strpos($results->instrument, "7") !== false) {
+
+                            if ($tools_amount->vhosts < 20) {
+
+                                $results->working = 1;
+                                $results->todelete = 1;
+
+                                if ($results->vhostport != 0 && $results->vhostdomain != 0 && $results->vhostip != 0){
+                                    if ( $results->vhostport == 1 ) $ssl = "1"; else $ssl = "0";
+
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid
+                                            . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
+                                            . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+
+                                } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+
+                                $results->save();
+                                $tools_amount->vhosts = $tools_amount->vhosts+1;                   
+                            }
+
+                        } 
                     }
-
-                    if (strpos($results->instrument, "7") !== false) {
-
-                        if ($tools_amount->vhosts < 20) {
-
-                            $results->working = 1;
-                            $results->todelete = 1;
-
-                            if ($results->vhostport != 0 && $results->vhostdomain != 0 && $results->vhostip != 0){
-                                if ( $results->vhostport == 1 ) $ssl = "1"; else $ssl = "0";
-
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid
-                                        . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
-                                        . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
-
-                            } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
-
-                            $results->save();
-                            $tools_amount->vhosts = $tools_amount->vhosts+1;                   
-                        }
-
-                    } 
                 }
                 sleep(3);
-            } $tools_amount->save(); return 1;    
+            } $tools_amount->save();    
         } else return Yii::$app->response->statusCode = 403;
     }
 
 
     private function sendpassiveemail($instrument, $scanid, $email, $userid)
     {
-
         $text = "We have detected changes while doing your passive scan with ID: " . $scanid . " with instruments: " . $instrument . ". \n\r Please visit your passive scan results tab to see the changes.";
 
         Yii::$app->mailer->compose()
@@ -320,7 +405,6 @@ class VerifyController extends Controller
 
     private function sendactiveemail($scanid, $email, $userid)
     {
-
         $text = "Your scan with ID: " . $scanid . " was successfully done and waiting for you in your profile! \n\r Please visit your passive scan results tab to see the changes. \n\r Thanks for using our service, and have a nice day.";
 
         Yii::$app->mailer->compose()
@@ -340,6 +424,30 @@ class VerifyController extends Controller
         $mail->userid = $userid;
 
         return $mail->save();
+    }
+
+    private function sendslack($scanid, $diff)
+    {
+        $slack_url = getenv('SLACK_WEBHOOK_URL', 'https://hooks.slack.com/services/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');
+
+        $text = "Your scan with ID: " . $scanid . " was successfully done and waiting for you in your profile!";
+
+        exec("curl -X POST -H 'Content-type: application/json' --data '{'text':". json_encode($text) . "'} " . $slack_url . "");
+
+
+        return 1;
+    }
+
+    private function sendPassiveSlack($scanid, $diff)
+    {
+        $slack_url = getenv('SLACK_WEBHOOK_URL', 'https://hooks.slack.com/services/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');
+
+        $text = "PASSIVE SCAN ID: " . $scanid . " DIFF:" . json_encode($diff);
+
+        exec("curl -X POST -H 'Content-type: application/json' --data '{'text':" . json_encode($text) . "}' " . $slack_url . "");
+
+        return 1;
+
     }
 
 

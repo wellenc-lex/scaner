@@ -35,6 +35,38 @@ function sendnotifications(status, scanid) {
     return false;
 }
 
+function senddirscan(host) {
+    dirscanDomain = host;
+    Newscan = {dirscanUrl: host, agreed: '1', 'activescan': '1', 'passivescan': '0', 'notify': '0'};
+
+    $.ajax({
+
+        url: '/site/newscan',
+        type: 'POST',
+        data: {
+            Newscan: Newscan,
+            "_csrf-frontend": yii.getCsrfToken(),
+
+        },
+        success: function () {
+            $("#messagesuccess").hide();
+            $("#messagesuccess").slideDown().show();
+            setTimeout(function () {
+                $("#messagesuccess").slideUp().hide();
+            }, 10000);
+        },
+        error: function () {
+            $("#messagefailure").hide();
+            $("#messagefailure").slideDown().show();
+            setTimeout(function () {
+                $("#messagefailure").slideUp().hide();
+            }, 10000);
+        }
+    });
+
+    return false;
+}
+
 
 function sendactive(status, scanid) {
 

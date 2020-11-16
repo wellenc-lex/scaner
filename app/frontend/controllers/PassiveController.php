@@ -6,6 +6,8 @@ use frontend\models\passive\Amass;
 use frontend\models\passive\Dirscan;
 use frontend\models\passive\Nmap;
 use frontend\models\PassiveScan;
+use frontend\models\ToolsAmount;
+use frontend\models\Queue;
 use Yii;
 use yii\web\Controller;
 
@@ -29,35 +31,64 @@ class PassiveController extends Controller
 
         if ($secret === $secretIN) {
 
-            $result = PassiveScan::find()
+            $allresults = PassiveScan::find()
                 ->where(['is_active' => 1])
                 ->andWhere(['!=', 'last_scan_monthday', date("d")])
                 ->andWhere(['scanday' => date("N")])
-                ->one();
+                ->all();
 
-            if ($result != NULL) {
+            foreach ($allresults as $result) {    
 
-                if ($result->nmapDomain != "") {
-                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->nmapDomain . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
+                if ($result != NULL) {
+
+                    if ($result->nmapDomain != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 1;
+                        $queue->save();
+
+                    }
+
+                    if ($result->amassDomain != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 2;
+                        $queue->save();
+
+                    }
+
+                    if ($result->dirscanUrl != "" && $result->dirscanIP != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 3;
+                        $queue->dirscanUrl = $result->dirscanUrl;
+                        $queue->dirscanIP = $result->dirscanIP;
+                        $queue->save();
+
+                    } elseif ($result->dirscanUrl != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 3;
+                        $queue->dirscanUrl = $result->dirscanUrl;
+                        $queue->save();
+
+                    }
+
+                    $result->last_scan_monthday = date("d");
+                    $result->save(false);
                 }
-
-                if ($result->amassDomain != "") {
-                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->amassDomain . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
-                }
-
-                if ($result->dirscanUrl != "" && $result->dirscanIP != "") {
-                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip= ' . $result->dirscanIP . ' & url= ' . $result->dirscanUrl . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
-                } elseif ($result->dirscanUrl != "") {
-
-                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->dirscanUrl . ' & scanid=' . $result->PassiveScanid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
-                }
-
-                $result->last_scan_monthday = date("d");
-                $result->save(false);
 
             }
 
-            return 1;
+            return 1;    
         }
         return 0;
     }

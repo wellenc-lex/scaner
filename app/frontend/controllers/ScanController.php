@@ -7,11 +7,10 @@ use frontend\models\Dirscan;
 use frontend\models\Gitscan;
 use frontend\models\Ipscan;
 use frontend\models\Nmap;
-use frontend\models\passive\GitscanPassive;
 use frontend\models\PassiveScan;
 use frontend\models\Reverseip;
 use frontend\models\Tasks;
-use frontend\models\Vhost;
+use frontend\models\Vhostscan;
 use Yii;
 use yii\web\Controller;
 
@@ -41,11 +40,14 @@ class ScanController extends Controller
 
             if (Yii::$app->user->id === $result['userid']) {
 
+                $this->view->title = $result['host'];
+
                 $host = $result['host'];
 
                 $js = $result['js'];
                 $nmap = $result['nmap'];
                 $amass = $result['amass'];
+                $amass_intel = $result['amass_intel'];
                 $aquatone = $result['aquatone'];
                 $gitscan = $result['gitscan'];
                 $dirscan = $result['dirscan'];
@@ -56,7 +58,7 @@ class ScanController extends Controller
                 $subtakeover = $result['subtakeover'];
                 $nuclei = $result['nuclei'];
 
-                return $this->render('scanresult', compact('nmap', 'amass', 'aquatone','dirscan', 'gitscan', 'ipscan', 'host', 'vhost', 'js', 'reverseip', 'wayback', 'subtakeover', 'nuclei'));
+                return $this->render('scanresult', compact('nmap', 'amass', 'aquatone','dirscan', 'gitscan', 'ipscan', 'host', 'vhost', 'js', 'reverseip', 'wayback', 'subtakeover', 'nuclei','amass_intel'));
             } else {
                 Yii::$app->session->setFlash('error', 'This scan doesnt belong to you.');
                 return $this->redirect(['/site/profile']);
@@ -90,6 +92,7 @@ class ScanController extends Controller
                 $nmap = $result['nmap_new'];
                 $amass = $result['amass_new'];
                 $dirscan = $result['dirscan_new'];
+                $gitscan = $result['gitscan'];
 
                 $result->viewed = 1;
                 $result->needs_to_notify = 0;
@@ -100,39 +103,6 @@ class ScanController extends Controller
         }
 
     }
-
-    public function actionGitpassivescanresult($id)
-    {
-
-        if (!Yii::$app->user->isGuest) {
-
-            $result = GitscanPassive::find()
-                ->where(['PassiveScanid' => $id])
-                ->limit(1)
-                ->one();
-
-            if (Yii::$app->user->id === $result['userid']) {
-
-                $aquatone = 0;
-                $host = 0;
-                $vhost = 0;
-                $js = 0;
-                $reverseip = 0;
-                $nmap = 0;
-                $amass = 0;
-                $dirscan = 0;
-
-                $gitscan = $result['gitscan_new'];
-
-                $result->viewed = 1;
-                $result->save();
-
-                return $this->render('scanresult', compact('nmap', 'amass', 'dirscan', 'gitscan', 'aquatone', 'host', 'vhost', 'js', 'reverseip'));
-            }
-        }
-
-    }
-
 
     public function actionDelete()
     {
@@ -321,7 +291,7 @@ class ScanController extends Controller
     public function actionVhostscan()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-        $model = new Vhost();
+        $model = new Vhostscan();
 
         $secretIN = Yii::$app->request->post('secret');
 

@@ -201,8 +201,14 @@ ALTER TABLE `sent_email`
 ALTER TABLE `tasks`
   ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `user` (`id`);
 
-ALTER TABLE `tasks` ADD `amass_intel` LONGTEXT NULL DEFAULT NULL AFTER `amass`; 
-ALTER TABLE `tasks` ADD `nuclei` LONGTEXT NULL DEFAULT NULL AFTER `amass`;   
+ALTER TABLE `tasks` ADD `amass_intel` LONGTEXT NULL DEFAULT NULL AFTER `amass`;
+
+ALTER TABLE `tasks` ADD `nuclei` LONGTEXT NULL DEFAULT NULL AFTER `amass`;
+
+ALTER TABLE `passive_scan` ADD `gitscan` LONGTEXT NULL DEFAULT NULL AFTER `dirscan_new`;
+
+ALTER TABLE `queue`  ADD `passivescan` BOOLEAN NOT NULL DEFAULT FALSE  AFTER `taskid`;
+
 COMMIT;
 
 

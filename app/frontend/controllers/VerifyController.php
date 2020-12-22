@@ -42,7 +42,7 @@ class VerifyController extends Controller
             $results = Tasks::find()
                 ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
                 ->where(['!=', 'status', 'Done.'])
-                ->limit(1000)
+                ->limit(500)
                 ->all();
 
             if ($results != NULL) {
@@ -213,7 +213,8 @@ class VerifyController extends Controller
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->limit(500)
+                ->orderBy(['passivescan' => SORT_ASC])
+                ->limit(1000)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
@@ -233,7 +234,7 @@ class VerifyController extends Controller
                                     $results->working = 1;
                                     $results->todelete = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $result->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $result->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -243,12 +244,12 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "2") !== false) {
 
-                                if ($tools_amount->amass < 3) {
+                                if ($tools_amount->amass < 1) {
 
                                     $results->working  = 1;
                                     $results->todelete = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -258,18 +259,18 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "3") !== false) {
 
-                                if ($tools_amount->dirscan < 65) {
+                                if ($tools_amount->dirscan < 35) {
 
                                     $results->working = 1;
                                     $results->todelete = 1;
 
                                     if ($dirscanip != "") {
 
-                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip= ' . $results->dirscanIP . ' & url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip=' . $results->dirscanIP . ' & url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
 
                                     } else {
                                         
-                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
+                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/dirscan > /dev/null 2>/dev/null &');
 
                                     }
                                     $results->save();
@@ -289,7 +290,7 @@ class VerifyController extends Controller
 
                                 $nmapurl = $results->nmap;
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url= ' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $nmapurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
 
                                 $results->save();
 
@@ -299,7 +300,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount->amass < 3) {
+                            if ($tools_amount->amass < 2) {
 
                                 $results->working  = 1;
                                 $results->todelete = 1;
@@ -316,7 +317,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ($tools_amount->dirscan < 65) {
+                            if ($tools_amount->dirscan < 95) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;
@@ -325,9 +326,9 @@ class VerifyController extends Controller
                                 $dirscanip = $results->dirscanIP;
 
                                 if ($dirscanip != "") {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                                 } else {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url= ' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                                 }
                                 $results->save();
 
@@ -339,14 +340,17 @@ class VerifyController extends Controller
 
                             if ($tools_amount->gitscan < 1) {
 
-                                $results->working  = 1;
-                                $results->todelete = 1;
+                                if ($tools_amount->amass < 1) {
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                                    $results->working  = 1;
+                                    $results->todelete = 1;
 
-                                $results->save();
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
 
-                                $tools_amount->gitscan = $tools_amount->gitscan+1;
+                                    $results->save();
+
+                                    $tools_amount->gitscan = $tools_amount->gitscan+1;
+                                }
                             }
                         }
 
@@ -372,8 +376,8 @@ class VerifyController extends Controller
 
                         } 
                     }
+                    if ($results->working = 1) sleep(3); // give os some time to properly create process
                 }
-                sleep(3);
             } $tools_amount->save();    
         } else return Yii::$app->response->statusCode = 403;
     }

@@ -15,7 +15,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
+        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
         
         return $domain[2]; //group 2 == domain name
     }

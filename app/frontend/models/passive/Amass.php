@@ -3,6 +3,7 @@
 namespace frontend\models\passive;
 
 use Yii;
+use frontend\models\Queue;
 use frontend\models\PassiveScan;
 use yii\db\ActiveRecord;
 
@@ -97,9 +98,11 @@ class Amass extends ActiveRecord
             } else {
                 $changes =  1; // check changes between scans
 
-                $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
-                $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "passive=1&taskid=' . $scanid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                $queue = new Queue();
+                $queue->taskid = $scanid;
+                $queue->instrument = 4;
+                $queue->passivescan = 1;
+                $queue->save();
             }
 
             $amass->amass_previous = $amass->amass_new;

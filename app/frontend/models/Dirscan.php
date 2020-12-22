@@ -53,7 +53,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
+        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
         
         return $domain[2]; //group 2 == domain name
     }
@@ -85,7 +85,7 @@ class Dirscan extends ActiveRecord
 
         foreach ($wayback_result as $id => $result) {
             //wayback saves too much (js,images,xss payloads)
-            if(preg_match("/(icons|image|img|images|css|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|.js|.svg|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
+            if(preg_match("/(icons|image|img|images|css|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|.svg|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
                 unset($wayback_result[$id]);
                 continue;
             }
@@ -106,7 +106,7 @@ class Dirscan extends ActiveRecord
         
             foreach ($alienvault_json["url_list"] as $alienvault_urls) {
 
-            if(preg_match("/(icons|image|img|images|css|gif|tiff|woff|woff2|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|.js|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a|mp4|webm|.svg)/i", $alienvault_urls["url"]) === 1 ){ continue; } else $wayback_result[] = $alienvault_urls["url"];
+            if(preg_match("/(icons|image|img|images|css|gif|tiff|woff|woff2|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a|mp4|webm|.svg)/i", $alienvault_urls["url"]) === 1 ){ continue; } else $wayback_result[] = $alienvault_urls["url"];
             }  
         }
 
@@ -126,7 +126,7 @@ class Dirscan extends ActiveRecord
             foreach ($commoncrawl as $id) {
 
                    if ($id["status"] == 200 || $id["status"] == 204 || $id["status"] == 302 || $id["status"] == 500){
-                       if(preg_match("/(icons|image|img|images|css|gif|tiff|woff|woff2|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|.js|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a|mp4|webm|.svg)/i", $id["url"]) === 1 ){
+                       if(preg_match("/(icons|image|img|images|css|gif|tiff|woff|woff2|fonts|font-icons|robots.txt|.png|.jpeg|.jpg|%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a|mp4|webm|.svg)/i", $id["url"]) === 1 ){
                            continue;
                        } else $wayback_result[] = $id["url"];
                    } 
@@ -135,6 +135,13 @@ class Dirscan extends ActiveRecord
         } //else $wayback_result[] = "Not an array.";
 
         $wayback_result = array_unique($wayback_result);
+
+        foreach ($wayback_result as $key => $url) {
+            if(preg_match("/(.js)/i", $url) === 1 ){
+                unset($wayback_result[$key]);
+            }
+        }
+
         $wayback_result = array_map('htmlentities', $wayback_result);
         $wayback_result = json_encode($wayback_result, JSON_UNESCAPED_UNICODE);
 
@@ -160,6 +167,7 @@ class Dirscan extends ActiveRecord
                 $scheme = "http://";
         }
 
+        $url = ltrim($url, ' ');
         $url = rtrim($url, ' ');
         $url = rtrim($url, '/');
 
@@ -297,7 +305,7 @@ class Dirscan extends ActiveRecord
 
         $dirscan->save();
 
-        //Scaner's work is done -> decrement scaner's amount in DB
+        //Scaner's work is done -> decrement scaner's dirscan amount in DB
         $decrement = ToolsAmount::find()
             ->where(['id' => 1])
             ->one();

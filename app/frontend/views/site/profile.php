@@ -137,13 +137,31 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                 </tbody>
                             </table>
 
-                            <div class="btn btn-success btn-xs" id="deletedonebutton" style=" margin-left: -15%;" onclick="
+                            <div class="btn btn-success btn-xs" style=" margin-left: -15%;" onclick="
+                                    <?php foreach ($done as $task): ?>
+
+                                            <?php echo('window.open(`' . Url::toRoute(["/scan/scanresult", "id" => $task->taskid]) . '`);'); ?>    
+
+                                    <?php endforeach; ?>
+                                "> Show all pages
+                            </div>
+
+                            <div class="btn btn-success btn-xs" style=" margin-left: 5%;" onclick="
                                     <?php foreach ($done as $task): ?>
 
                                             <?php echo('deletefunc(' . $task->taskid . ');'); ?>
 
                                     <?php endforeach; ?>
                                 "> Delete all done on page
+                            </div>
+
+                            <div class="btn btn-success btn-xs" style=" margin-left: 10%;" onclick="
+                                    <?php foreach ($done as $task): ?>
+
+                                            <?php echo('hide(0, ' . $task->taskid . ');'); ?>
+
+                                    <?php endforeach; ?>
+                                "> Hide all done on page
                             </div>
 
 

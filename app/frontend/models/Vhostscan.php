@@ -54,7 +54,7 @@ class Vhostscan extends ActiveRecord
             $outputdomain = array();
             $length = array();
 
-            $domainlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
+            $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
 
             if ($port == 443 || $port == 8443 || (isset($input["ssl"]) && $input["ssl"] == "1")) {
                 $scheme = "https";
@@ -92,7 +92,7 @@ class Vhostscan extends ActiveRecord
                 $outputdomain[] = $newdata;
             } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-            foreach ($domainlist as $domaintoask) {
+            foreach ($vhostlist as $domaintoask) {
 
                 $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . ":" . $port . " --resolve \"" . $domaintoask . ":" . $port . ":" . $ip . "\"");
                 sleep(1);
@@ -163,35 +163,48 @@ class Vhostscan extends ActiveRecord
 
             $taskid = (int) $input["taskid"];
 
-            $taskfirst = Tasks::find()
+            $task = Tasks::find()
                 ->where(['taskid' => $taskid])
                 ->limit(1)
                 ->one();
 
             Yii::$app->db->close();  
 
-            $amassoutput = json_decode($taskfirst->amass, true);
+            $amassoutput = json_decode($task->amass, true);
+
+            $maindomain = $amassoutput[0]["domain"];
 
             $checkedips = array();
             $outputdomain = array();
             $length = array();
 
-            $domainlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
+            $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
 
-            $maindomain = $amassoutput[0]["domain"];
+            $host = rtrim($task->host, '/');
 
-            foreach ($amassoutput as $json) {
-                if (!in_array($json["name"], $domainlist)) {
-                    array_push($domainlist, $json["name"]); //if domain found by amass isnt already in toscan list
+            $domainfull = substr($host, 0, strrpos($host, ".")); //hostname without www. and .com at the end
+
+            $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
+
+            if ($domainfull == $hostonly) $hostonly = "";
+
+            foreach ($vhostlist as $list) {
+                if ($domainfull != "") {
+                    array_push($vhostlist, $domainfull.$list ); //att.com.loc
+
+                    if ($hostonly != "") {
+                        array_push($vhostlist, $hostonly.$list ); //att.loc
+                    }
                 }
             }
 
-            array_unique($domainlist);
-
-            //No need to scan at 127.0.0.1
-            if (($key = array_search("127.0.0.1",$domainlist)) !== false) {
-                unset($domainlist[$key]);
+            foreach ($amassoutput as $json) {
+                if (!in_array($json["name"], $vhostlist)) {
+                    array_push($vhostlist, $json["name"]); //if domain found by amass isnt already in vhost list
+                }
             }
+
+            array_unique($vhostlist);
 
             //Get vhost names from amass scan & wordlist file + use only unique ones
 
@@ -201,57 +214,25 @@ class Vhostscan extends ActiveRecord
 
                     if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
 
-                        if (!in_array($ip["ip"], $checkedips)) { //if ip wasnt called earlier - then call it
+                        if (strpos($ip["ip"], '127.0.0.1') === false) {
 
-                            $stop = 0;
+                            if (!in_array($ip["ip"], $checkedips)) { //if ip wasnt called earlier - then call it
 
-                            for ($n = 0; $n < count($masks); $n++) { 
+                                $stop = 0;
 
-                                if (((ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask
-                                    $stop = 1;
-                                    break;
-                                } else $stop = 0;
-                            }
+                                for ($n = 0; $n < count($masks); $n++) { 
 
-                            if ($stop == 0) {
+                                    if (((ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask
+                                        $stop = 1;
+                                        break;
+                                    } else $stop = 0;
+                                }
 
-                                //Asks Host:localhost /domain.com/
-                                $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
-                                
-                                sleep(1);
+                                if ($stop == 0) {
 
-                                $curl_length = strlen(trim($curl_result));
-
-                                if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                                    $newdata = array(
-                                        'ip' => $ip["ip"],
-                                        'length' => $curl_length,
-                                        'domain' => $maindomain,
-                                        'body' => base64_encode($curl_result),
-                                    );
-                                    $outputdomain[] = $newdata;
-                                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
-                                //Asks Host:localhost /domain.com/
-                                $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
-                                sleep(1);
-
-                                $curl_length = strlen(trim($curl_result));
-
-                                if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                                    $newdata = array(
-                                        'ip' => $ip["ip"],
-                                        'length' => $curl_length,
-                                        'domain' => $maindomain,
-                                        'body' => base64_encode($curl_result),
-                                    );
-                                    $outputdomain[] = $newdata;
-                                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
-                                foreach ($domainlist as $domaintoask) {
-
-                                    //Asks Host:localhost, dev, etc
-                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
+                                    //Asks Host:localhost /domain.com/
+                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                    
                                     sleep(1);
 
                                     $curl_length = strlen(trim($curl_result));
@@ -260,14 +241,14 @@ class Vhostscan extends ActiveRecord
                                         $newdata = array(
                                             'ip' => $ip["ip"],
                                             'length' => $curl_length,
-                                            'domain' => $domaintoask,
+                                            'domain' => $maindomain,
                                             'body' => base64_encode($curl_result),
                                         );
                                         $outputdomain[] = $newdata;
                                     } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                                    //Asks Host:localhost.domain.com, dev.domain.com, etc
-                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
+                                    //Asks Host:localhost /domain.com/
+                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
                                     $curl_length = strlen(trim($curl_result));
@@ -276,15 +257,50 @@ class Vhostscan extends ActiveRecord
                                         $newdata = array(
                                             'ip' => $ip["ip"],
                                             'length' => $curl_length,
-                                            'domain' => $domaintoask . "." . $maindomain,
+                                            'domain' => $maindomain,
                                             'body' => base64_encode($curl_result),
                                         );
                                         $outputdomain[] = $newdata;
                                     } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                                } $checkedips[] = $ip["ip"]; //Mark IP as checked out
+                                    foreach ($vhostlist as $domaintoask) {
+
+                                        //Asks Host:localhost, dev, etc
+                                        $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
+                                        sleep(1);
+
+                                        $curl_length = strlen(trim($curl_result));
+
+                                        if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                            $newdata = array(
+                                                'ip' => $ip["ip"],
+                                                'length' => $curl_length,
+                                                'domain' => $domaintoask,
+                                                'body' => base64_encode($curl_result),
+                                            );
+                                            $outputdomain[] = $newdata;
+                                        } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+                                        //Asks Host:localhost.domain.com, dev.domain.com, etc
+                                        $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
+                                        sleep(1);
+
+                                        $curl_length = strlen(trim($curl_result));
+
+                                        if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                            $newdata = array(
+                                                'ip' => $ip["ip"],
+                                                'length' => $curl_length,
+                                                'domain' => $domaintoask . "." . $maindomain,
+                                                'body' => base64_encode($curl_result),
+                                            );
+                                            $outputdomain[] = $newdata;
+                                        } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+                                    } $checkedips[] = $ip["ip"]; //Mark IP as checked out
+                                }
                             }
-                        }
+                        }    
                     }
                 }
             }

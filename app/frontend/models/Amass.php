@@ -156,37 +156,6 @@ class Amass extends ActiveRecord
 
         else */$subtakeover = 0;
 
-        $amass = Tasks::find()
-            ->where(['taskid' => $taskid])
-            ->limit(1)
-            ->one();
-
-        $amass->amass_status = 'Done.';
-        $amass->amass = $amassoutput;
-        $amass->amass_intel = $intelamass;  
-        $amass->aquatone = $aquatoneoutput;
-        $amass->subtakeover = $subtakeover;
-        $amass->date = date("Y-m-d H-i-s");
-
-        $amass->save(); 
-
-        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-
-        $queue = new Queue();
-        $queue->taskid = $taskid;
-        $queue->instrument = 7;
-        $queue->save();
-
-        //add vhost scan to queue
-
-        $queue = new Queue();
-        $queue->taskid = $taskid;
-        $queue->instrument = 4;
-        $queue->save();
-
-        //add git scan to queue
-
         $decrement = ToolsAmount::find()
             ->where(['id' => 1])
             ->one();
@@ -199,6 +168,48 @@ class Amass extends ActiveRecord
 
         $decrement->amass=$value;
         $decrement->save();
+
+        $amass = Tasks::find()
+            ->where(['taskid' => $taskid])
+            ->limit(1)
+            ->one();
+
+        if(!empty($amass)){ //if querry exists in db
+
+            $amass->amass_status = 'Done.';
+            $amass->amass = $amassoutput;
+            $amass->amass_intel = $intelamass;  
+            $amass->aquatone = $aquatoneoutput;
+            $amass->subtakeover = $subtakeover;
+            $amass->date = date("Y-m-d H-i-s");
+
+            $amass->save(); 
+        } else {
+            $amass = new Tasks();
+            
+            $amass->taskid = $taskid;
+            $amass->amass_status = 'Done.';
+            $amass->amass = $amassoutput;
+            $amass->amass_intel = $intelamass;  
+            $amass->aquatone = $aquatoneoutput;
+            $amass->subtakeover = $subtakeover;
+            $amass->date = date("Y-m-d H-i-s");
+
+            $amass->save(); 
+        }
+
+        //add vhost scan to queue
+        $queue = new Queue();
+        $queue->taskid = $taskid;
+        $queue->instrument = 7;
+        $queue->save();
+
+
+        //add git scan to queue
+        $queue = new Queue();
+        $queue->taskid = $taskid;
+        $queue->instrument = 4;
+        $queue->save();
 
         return 1;
     }

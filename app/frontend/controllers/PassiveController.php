@@ -34,7 +34,7 @@ class PassiveController extends Controller
             $allresults = PassiveScan::find()
                 ->where(['is_active' => 1])
                 ->andWhere(['!=', 'last_scan_monthday', date("d")])
-                ->andWhere(['scanday' => date("N")])
+                ->andWhere(['scanday' => date("d")])
                 ->all();
 
             foreach ($allresults as $result) {    

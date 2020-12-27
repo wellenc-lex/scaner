@@ -146,6 +146,20 @@ class Dirscan extends ActiveRecord
             $outputarray = json_encode(array_merge($outputdirscan,$output_localhost_array));
         } else $outputarray = json_encode($outputdirscan);
 
+        //Scaner's work is done -> decrement scaner's dirscan amount in DB
+        $decrement = ToolsAmount::find()
+            ->where(['id' => 1])
+            ->one();
+
+        $value = $decrement->dirscan;
+        
+        if ($value <= 1) {
+            $value=0;
+        } else $value = $value-1;
+
+        $decrement->dirscan=$value;
+        $decrement->save();
+
         $dirscan = PassiveScan::find()
             ->where(['PassiveScanid' => $scanid])
             ->limit(1)

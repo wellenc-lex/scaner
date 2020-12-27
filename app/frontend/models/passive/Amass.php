@@ -79,6 +79,19 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
+        $decrement = ToolsAmount::find()
+            ->where(['id' => 1])
+            ->one();
+
+        $value = $decrement->amass;
+        
+        if ($value <= 1) {
+            $value=0;
+        } else $value = $value-1;
+
+        $decrement->amass=$value;
+        $decrement->save();
+
         $amass = PassiveScan::find()
             ->where(['PassiveScanid' => $scanid])
             ->limit(1)

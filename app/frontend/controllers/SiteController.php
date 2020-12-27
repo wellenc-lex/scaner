@@ -356,7 +356,7 @@ class SiteController extends Controller
                             $passive->userid = Yii::$app->user->id;
                             $passive->notifications_enabled = 1;
                             $passive->amassDomain = $url["amassDomain"];
-                            $passive->scanday = rand(1, 7);
+                            $passive->scanday = rand(1, 28);
                             $passive->save();
                         }
                     }
@@ -514,19 +514,19 @@ class SiteController extends Controller
 
                         if (isset($url["nmapDomain"]) and $url["nmapDomain"] != "") {
                             $passive->nmapDomain = $url["nmapDomain"];
-                            $passive->scanday = rand(1, 7);
+                            $passive->scanday = rand(1, 28);
                             $nmap = 1;
                         }
 
                         if (isset($url["amassDomain"]) and $url["amassDomain"] != "") {
                             $passive->amassDomain = $url["amassDomain"];
-                            $passive->scanday = rand(1, 7);
+                            $passive->scanday = rand(1, 28);
                             $amass = 1;
                         }
 
                         if (isset($url["dirscanUrl"]) and $url["dirscanUrl"] != "") {
                             $passive->dirscanUrl = $url["dirscanUrl"];
-                            $passive->scanday = rand(1, 7);
+                            $passive->scanday = rand(1, 28);
                             $dirscan = 1;
                         }
 

@@ -317,7 +317,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ($tools_amount->dirscan < 95) {
+                            if ( (($tools_amount->dirscan < 100) && ($tools_amount->amass < 2)) || ($tools_amount->dirscan < 80)) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;
@@ -342,14 +342,17 @@ class VerifyController extends Controller
 
                                 if ($tools_amount->amass < 1) {
 
-                                    $results->working  = 1;
-                                    $results->todelete = 1;
+                                    if ($tools_amount->dirscan < 30) {
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                                        $results->working  = 1;
+                                        $results->todelete = 1;
 
-                                    $results->save();
+                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
 
-                                    $tools_amount->gitscan = $tools_amount->gitscan+1;
+                                        $results->save();
+
+                                        $tools_amount->gitscan = $tools_amount->gitscan+1;
+                                    }
                                 }
                             }
                         }

@@ -292,19 +292,6 @@ class Dirscan extends ActiveRecord
             $outputarray = json_encode(array_merge($outputdirscan,$output_localhost_array));
         } else $outputarray = json_encode($outputdirscan);
 
-        $dirscan = Tasks::find()
-            ->where(['taskid' => $taskid])
-            ->limit(1)
-            ->one();
-
-        $dirscan->dirscan_status = "Done.";
-        $dirscan->dirscan = $outputarray;
-        $dirscan->nuclei = json_encode($nuclei);
-        $dirscan->wayback = $wayback_result;
-        $dirscan->date = date("Y-m-d H-i-s");
-
-        $dirscan->save();
-
         //Scaner's work is done -> decrement scaner's dirscan amount in DB
         $decrement = ToolsAmount::find()
             ->where(['id' => 1])
@@ -318,6 +305,32 @@ class Dirscan extends ActiveRecord
 
         $decrement->dirscan=$value;
         $decrement->save();
+
+        $dirscan = Tasks::find()
+            ->where(['taskid' => $taskid])
+            ->limit(1)
+            ->one();
+
+        if(!empty($dirscan)){ //if querry exists in db
+
+            $dirscan->dirscan_status = "Done.";
+            $dirscan->dirscan = $outputarray;
+            $dirscan->nuclei = json_encode($nuclei);
+            $dirscan->wayback = $wayback_result;
+            $dirscan->date = date("Y-m-d H-i-s");
+
+            $dirscan->save();
+        } else {
+            $dirscan = new Tasks();
+            $dirscan->taskid = $taskid;
+            $dirscan->dirscan_status = "Done.";
+            $dirscan->dirscan = $outputarray;
+            $dirscan->nuclei = json_encode($nuclei);
+            $dirscan->wayback = $wayback_result;
+            $dirscan->date = date("Y-m-d H-i-s");
+
+            $dirscan->save();
+        }
 
         exec("sudo rm -r /ffuf/" . $randomid . "/");
         return 1;

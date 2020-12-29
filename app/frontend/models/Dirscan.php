@@ -323,6 +323,7 @@ class Dirscan extends ActiveRecord
         } else {
             $dirscan = new Tasks();
             $dirscan->taskid = $taskid;
+            $dirscan->userid = 10;
             $dirscan->dirscan_status = "Done.";
             $dirscan->dirscan = $outputarray;
             $dirscan->nuclei = json_encode($nuclei);

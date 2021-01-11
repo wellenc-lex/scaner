@@ -1,4 +1,9 @@
-* * * * *  curl http://app/verify/active --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
-0 5,17 * * * curl http://app/verify/passive --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
-*/10 * * * * curl http://app/passive/index --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
-*/30 * * * * curl http://app/verify/queue --data "secret=secretkeyzzzzcbv55" --insecure >/dev/null 2>&1
+*/10 * * * *  curl https://app/verify/active --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+
+0 5,17 * * * curl https://app/verify/passive --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+
+40 * * * * curl https://app/passive/index --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+
+*/30 * * * * curl https://app/verify/queue --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+
+* */24 * * * cd /configs/nuclei-templates/ && git pull >/dev/null 2>&1

@@ -54,16 +54,16 @@ class Amass extends ActiveRecord
         $randomid = rand(10000, 1000000);
         htmlspecialchars($url);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/amass" . $randomid . ".json -active -brute -ip -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -config /configs/amass.ini";
 
         exec($command);
 
-        if (file_exists("/dockerresults/amass" . $randomid . ".json")) {
-            $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
+        if (file_exists("/dockerresults/" . $randomid . "amass.json")) {
+            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         } else {
-            sleep(3600);
+            sleep(180);
             exec($command);
-            $fileamass = file_get_contents("/dockerresults/amass" . $randomid . ".json");
+            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         }
 
         $fileamass = str_replace("}
@@ -113,7 +113,7 @@ class Amass extends ActiveRecord
 
                 $queue = new Queue();
                 $queue->taskid = $scanid;
-                $queue->instrument = 4;
+                $queue->instrument = 4; //gitscan
                 $queue->passivescan = 1;
                 $queue->save();
             }

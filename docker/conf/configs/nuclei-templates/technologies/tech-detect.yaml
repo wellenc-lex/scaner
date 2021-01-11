@@ -2726,3 +2726,18 @@ requests:
           - "SEEEMS.FRAMEWORK"
         condition: or
         part: body
+
+      - type: regex
+        name: awselb
+        regex:
+          - 'awselb'
+        part: header
+
+      - type: word
+        name: pfsense
+        words:
+          - "Login to pfSense"
+          - "<title>pfSense - Login</title>"
+          - "maintained by Netgate"
+        part: body
+        condition: and

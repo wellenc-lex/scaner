@@ -188,7 +188,6 @@ class Amass extends ActiveRecord
             $amass = new Tasks();
             
             $amass->taskid = $taskid;
-            $amass->userid = 10;
             $amass->amass_status = 'Done.';
             $amass->amass = $amassoutput;
             $amass->amass_intel = $intelamass;  

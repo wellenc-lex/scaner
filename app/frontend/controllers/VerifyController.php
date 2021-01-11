@@ -244,7 +244,7 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "2") !== false) {
 
-                                if ($tools_amount->amass < 1) {
+                                if ($tools_amount->amass < 2) {
 
                                     $results->working  = 1;
                                     $results->todelete = 1;
@@ -317,7 +317,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( (($tools_amount->dirscan < 100) && ($tools_amount->amass < 2)) || ($tools_amount->dirscan < 80)) {
+                            if ( (($tools_amount->dirscan < 100) && ($tools_amount->amass < 2)) || ($tools_amount->dirscan < 45)) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;

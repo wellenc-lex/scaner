@@ -209,6 +209,8 @@ ALTER TABLE `passive_scan` ADD `gitscan` LONGTEXT NULL DEFAULT NULL AFTER `dirsc
 
 ALTER TABLE `queue`  ADD `passivescan` BOOLEAN NOT NULL DEFAULT FALSE  AFTER `taskid`;
 
+ALTER TABLE `tasks` CHANGE `userid` `userid` INT NOT NULL DEFAULT '10'; 
+
 COMMIT;
 
 

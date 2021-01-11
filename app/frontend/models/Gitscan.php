@@ -112,19 +112,9 @@ class Gitscan extends ActiveRecord
 
             Yii::$app->db->open();
 
-            $task = Tasks::find()
-                ->where(['taskid' => $taskid])
-                ->limit(1)
-                ->one();
-
-            $task->gitscan = base64_encode($gitout);
-            $task->date = date("Y-m-d H-i-s");
-            $task->gitscan_status = "Done.";
-            $task->save();
-
             $decrement = ToolsAmount::find()
-            ->where(['id' => 1])
-            ->one();
+                ->where(['id' => 1])
+                ->one();
 
             $value = $decrement->gitscan;
             
@@ -134,6 +124,17 @@ class Gitscan extends ActiveRecord
 
             $decrement->gitscan=$value;
             $decrement->save();
+            
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            $task->gitscan = base64_encode($gitout);
+            $task->date = date("Y-m-d H-i-s");
+            $task->gitscan_status = "Done.";
+            $task->save();
 
             exec("sudo rm /dockerresults/" . $taskid . "*");
 

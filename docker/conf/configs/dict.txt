@@ -15,6 +15,12 @@ static../.git/config
 js
 scripts
 .env.local
+logi
+logi.%EXT%
+lk
+lk.%EXT%
+config
+config.%EXT%
 ks.json
 yaml.log
 yaml_cron.log
@@ -3636,7 +3642,6 @@ Gemfile.lock
 GEMINI/
 gen/
 Generated_Code/
-get.php
 getFile.cfm
 git/
 github-cache
@@ -6180,8 +6185,6 @@ cgibin/
 cmd
 conf.html
 conferences
-config
-config.%EXT%
 confirmation.%EXT%
 console/j_security_check
 docs/CHANGELOG.html
@@ -8600,7 +8603,6 @@ zf_backend.php
 zimbra/
 zipkin/
 zone-h.php
->>>>>>> 25872b2... Merge remote-tracking branch 'origin/master'
 1.php
 1.sql
 1.tar.gz

@@ -33,8 +33,8 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php if (isset($amass)) $amass = json_decode($amass, true); else $amass = "" ?>
     <?php if (isset($amass_intel)) $amass_intel = json_decode($amass_intel, true); else $amass_intel = "" ?>
-    <?php if (isset($dirscan)) $dirscan = json_decode($dirscan, true); else $dirscan = "" ?>
     <?php if (isset($nuclei)) $nuclei = json_decode($nuclei, true); else $nuclei = "" ?>
+    <?php if (isset($dirscan)) $dirscan = json_decode($dirscan, true); else $dirscan = "" ?>
     <?php if (isset($gitscan)) $gitscan = json_decode(base64_decode($gitscan), true); else $gitscan = "" ?>
     <?php if (isset($ipscan)) $ipscan = json_decode($ipscan, true); else $ipscan = "" ?>
     <?php if (isset($vhost)) $vhosts = json_decode($vhost, true); else $vhosts = "" ?>
@@ -163,12 +163,12 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#aquatone">Aquatone
                                 Results</a></li> <?php endif; ?>
 
-                    <?php if ($dirscan != "" && $dirscan != "No file."): ?>
-                        <li style="text-align: center;  float: none; display: inline-block;"><a href="#dirscan">Dirscan
-                                Results</a></li> <?php endif; ?>
-
                     <?php if ($nuclei != "" && $nuclei != "null"): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#nuclei">Nuclei
+                                Results</a></li> <?php endif; ?>            
+
+                    <?php if ($dirscan != "" && $dirscan != "No file."): ?>
+                        <li style="text-align: center;  float: none; display: inline-block;"><a href="#dirscan">Dirscan
                                 Results</a></li> <?php endif; ?>
                                             
                     <?php if ($gitscan != ""): ?>
@@ -502,6 +502,177 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php endif; ?>
 
+    <?php if ($nuclei != ""): ?>
+        <?php if ($nuclei != "null"): ?>
+
+        <style>
+            .response-headers-container {
+                display: none;
+            }
+
+            table.response-headers td {
+                font-family: Anonymous Pro, Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+            }
+
+            table.response-headers tr.insecure td {
+                color: #E74C3C;
+                font-weight: bold;
+            }
+
+            table.response-headers tr.secure td {
+                color: rgb(0, 188, 140);
+                font-weight: bold;
+            }
+
+            .page {
+                overflow: hidden;
+                box-shadow: unset !important;
+            }
+        </style>
+
+        <h3 style="text-align:center" id="nuclei">Nuclei output</h3>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse;">
+                        <thead>
+                        <tr>
+                            <th style="text-align:center;">
+                                <b style="text-align: center">Template</b>
+                            </th>
+
+                            <th style="text-align:center">
+                                <b style="text-align: center">Matched</b>
+                            </th>
+
+                            <th style="text-align:center">
+                                <b style="text-align: center">Severity</b>
+                            </th>
+
+                            <th style="text-align:center;">
+                                <b style="text-align: center">Response</b>
+                            </th>
+
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <?php foreach ($nuclei as $scan) { ?>
+                                    <tr>
+                                        
+                                        <td style=" width: 300px">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["template"]; ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td style=" width: 350px;">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <a style="vertical-align: middle;"
+                                                           href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo $scan["matched"]; ?></a>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td style="width: 100px;">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["severity"]; ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td align="center" valign="middle" style="text-align: center;"  width="15%">
+                                            <ul class="list-group">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <div class="page card mb-3">
+
+                                                            <div class="card-footer text-muted">
+                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                            </div>
+
+                                                            <div class="response-headers-container">
+                                                                <table class="table table-responsive table-striped table-hover table-sm response-headers">
+                                                                    <thead class="thead-dark">
+                                                                        <tr>
+                                                                            <th scope="col">Response</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>   
+                                                                            <td style="word-wrap: break-word; max-width: 100px;">
+                                                                                <?php echo(nl2br(htmlspecialchars($scan["response"]))); ?>   
+                                                                            </td>
+                                                                        </tr> 
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </ul>
+                                        </td>
+
+                                    </tr>
+                            <?php } ?>
+                        
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+
+                $(document).ready(function () {
+                    $('#table-nuclei').DataTable();
+                });
+
+                $( window ).on( "load", function() {
+                    $(".page-details-link").on("click", function (e) {
+                        e.preventDefault();
+                        var page = $(this).closest(".page");
+                        var url = page.find("h5.card-title").text();
+                        var headers = page.find(".response-headers-container").html();
+                        $("#details_modal .modal-header h5").text(url);
+                        $("#details_modal .modal-body").html(headers);
+                        $("#details_modal").modal();
+                    });
+                });
+
+            </script>
+        <?php endif; ?>
+    <?php endif; ?>
+
 
     <?php if ($dirscan != ""): ?>
         <?php if ($dirscan != "No file."): ?>
@@ -690,176 +861,6 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
         <?php endif; ?>
     <?php endif; ?>
 
-    <?php if ($nuclei != ""): ?>
-        <?php if ($nuclei != "null"): ?>
-
-        <style>
-            .response-headers-container {
-                display: none;
-            }
-
-            table.response-headers td {
-                font-family: Anonymous Pro, Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
-            }
-
-            table.response-headers tr.insecure td {
-                color: #E74C3C;
-                font-weight: bold;
-            }
-
-            table.response-headers tr.secure td {
-                color: rgb(0, 188, 140);
-                font-weight: bold;
-            }
-
-            .page {
-                overflow: hidden;
-                box-shadow: unset !important;
-            }
-        </style>
-
-        <h3 style="text-align:center" id="nuclei">Nuclei output</h3>
-
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse;">
-                        <thead>
-                        <tr>
-                            <th style="text-align:center;">
-                                <b style="text-align: center">Template</b>
-                            </th>
-
-                            <th style="text-align:center">
-                                <b style="text-align: center">Matched</b>
-                            </th>
-
-                            <th style="text-align:center">
-                                <b style="text-align: center">Severity</b>
-                            </th>
-
-                            <th style="text-align:center;">
-                                <b style="text-align: center">Response</b>
-                            </th>
-
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        <?php foreach ($nuclei as $scan) { ?>
-                                    <tr>
-                                        
-                                        <td style=" width: 300px">
-                                            <ul class="list-group">
-                                                <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px;">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["template"]; ?></b>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </td>
-
-                                        <td style=" width: 350px;">
-                                            <ul class="list-group">
-                                                <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px;">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <a style="vertical-align: middle;"
-                                                           href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo $scan["matched"]; ?></a>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </td>
-
-                                        <td style="width: 100px;">
-                                            <ul class="list-group">
-                                                <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px;">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["severity"]; ?></b>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </td>
-
-                                        <td align="center" valign="middle" style="text-align: center;"  width="15%">
-                                            <ul class="list-group">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <div class="page card mb-3">
-
-                                                            <div class="card-footer text-muted">
-                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
-                                                            </div>
-
-                                                            <div class="response-headers-container">
-                                                                <table class="table table-responsive table-striped table-hover table-sm response-headers">
-                                                                    <thead class="thead-dark">
-                                                                        <tr>
-                                                                            <th scope="col">Response</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <tr>   
-                                                                            <td style="word-wrap: break-word; max-width: 100px;">
-                                                                                <?php echo(nl2br(htmlspecialchars($scan["response"]))); ?>   
-                                                                            </td>
-                                                                        </tr> 
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                            </ul>
-                                        </td>
-
-                                    </tr>
-                            <?php } ?>
-                        
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script type="text/javascript">
-
-                $(document).ready(function () {
-                    $('#table-nuclei').DataTable();
-                });
-
-                $( window ).on( "load", function() {
-                    $(".page-details-link").on("click", function (e) {
-                        e.preventDefault();
-                        var page = $(this).closest(".page");
-                        var url = page.find("h5.card-title").text();
-                        var headers = page.find(".response-headers-container").html();
-                        $("#details_modal .modal-header h5").text(url);
-                        $("#details_modal .modal-body").html(headers);
-                        $("#details_modal").modal();
-                    });
-                });
-
-            </script>
-        <?php endif; ?>
-    <?php endif; ?>
 
     <?php if ($ipscan != ""): ?>
 

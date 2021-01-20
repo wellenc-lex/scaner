@@ -234,7 +234,7 @@ class VerifyController extends Controller
                                     $results->working = 1;
                                     $results->todelete = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $result->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -249,7 +249,7 @@ class VerifyController extends Controller
                                     $results->working  = 1;
                                     $results->todelete = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassDomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -300,7 +300,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount->amass < 2) {
+                            if ($tools_amount->amass < 4) {
 
                                 $results->working  = 1;
                                 $results->todelete = 1;

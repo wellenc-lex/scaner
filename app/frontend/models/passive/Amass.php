@@ -24,7 +24,7 @@ class Amass extends ActiveRecord
         $changes = 0;
 
         $amass_returncode = 1;        
-        $url = $input["url"];        
+        $url = $input["url"];     
         $scanid = $input["scanid"];
 
         $url = ltrim($url, ' ');

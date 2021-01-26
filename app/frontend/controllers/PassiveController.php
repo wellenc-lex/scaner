@@ -56,7 +56,7 @@ class PassiveController extends Controller
                         $queue = new Queue();
                         $queue->passivescan = 1;
                         $queue->taskid = $result->PassiveScanid;
-                        $queue->amassDomain = $result->amassDomain;
+                        $queue->amassdomain = $result->amassDomain;
                         $queue->instrument = 2;
                         $queue->save();
 

@@ -219,7 +219,11 @@ class VerifyController extends Controller
 
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
-                ->one();     
+                ->one();
+
+            $tools_amount_amass = exec('docker ps | grep "amass" | wc -l');
+
+            $tools_amount_ffuf = exec('docker ps | grep "ffuf" | wc -l');      
 
             foreach ($allresults as $results) {
 
@@ -244,7 +248,7 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "2") !== false) {
 
-                                if ($tools_amount->amass < 2) {
+                                if ($tools_amount_amass < 2) {
 
                                     $results->working  = 1;
                                     $results->todelete = 1;
@@ -253,13 +257,13 @@ class VerifyController extends Controller
 
                                     $results->save();
 
-                                    $tools_amount->amass = $tools_amount->amass+1;
+                                    $tools_amount_amass = $tools_amount_amass+1;
                                 }
                             }
 
                             if (strpos($results->instrument, "3") !== false) {
 
-                                if ($tools_amount->dirscan < 35) {
+                                if ($tools_amount_ffuf < 20) {
 
                                     $results->working = 1;
                                     $results->todelete = 1;
@@ -275,7 +279,7 @@ class VerifyController extends Controller
                                     }
                                     $results->save();
 
-                                    $tools_amount->dirscan = $tools_amount->dirscan+1;
+                                    $tools_amount_ffuf = $tools_amount_ffuf+1;
                                 }
                             }
 
@@ -300,7 +304,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount->amass < 4) {
+                            if ($tools_amount_amass < 3) {
 
                                 $results->working  = 1;
                                 $results->todelete = 1;
@@ -311,13 +315,13 @@ class VerifyController extends Controller
 
                                 $results->save();
 
-                                $tools_amount->amass = $tools_amount->amass+1;
+                                $tools_amount_amass = $tools_amount_amass+1;
                             }
                         }
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( (($tools_amount->dirscan < 100) && ($tools_amount->amass < 2)) || ($tools_amount->dirscan < 45)) {
+                            if ( (($tools_amount_ffuf < 110) && ($tools_amount_amass < 2)) || ($tools_amount_ffuf < 55)) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;
@@ -332,7 +336,7 @@ class VerifyController extends Controller
                                 }
                                 $results->save();
 
-                                $tools_amount->dirscan = $tools_amount->dirscan+1;
+                                $tools_amount_ffuf = $tools_amount_ffuf+1;
                             }
                         }
 
@@ -340,9 +344,9 @@ class VerifyController extends Controller
 
                             if ($tools_amount->gitscan < 1) {
 
-                                if ($tools_amount->amass < 1) {
+                                if ($tools_amount_amass < 1) {
 
-                                    if ($tools_amount->dirscan < 30) {
+                                    if ($tools_amount_ffuf < 20) {
 
                                         $results->working  = 1;
                                         $results->todelete = 1;

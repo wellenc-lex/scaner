@@ -133,7 +133,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 INSERT INTO `user` (`id`, `auth_key`, `password_hash`, `password_reset_token`, `email`, `status`, `rights`, `created_at`, `updated_at`, `scans_counter`, `scan_timeout`) VALUES
-(10, 'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A', '$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe', NULL, 'admin@admin.com', 10, 0, 1575122687, 1587303432, 304, 0);
+(10, 'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A', '$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe', NULL, 'admin@admin.com', 10, 0, 1575122687, 1587303432, 0, 0);
 
 ALTER TABLE `gitscanpassive`
   ADD PRIMARY KEY (`id`),

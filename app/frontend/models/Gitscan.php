@@ -141,6 +141,47 @@ class Gitscan extends ActiveRecord
             return 1;
         }    
     }
+
+    public static function gittofile()
+    {
+
+        exec("sudo chmod 777 /dockerresults/ -R && sudo chmod 777 /dockerresults -R");
+
+            $tasks = Tasks::find()
+                ->where(['>','taskid','8000']) //gitscan results not null check in Db
+                ->andWhere(['!=','amass','[]'])
+                ->andWhere(['IS NOT', 'amass', null])
+                ->all();
+
+            $done = array();
+
+            foreach ($tasks as $task) {
+                $task = json_decode($task["amass"], true); 
+
+                foreach ($task as $json) {
+                    $addresses[] = $json["name"];
+                }
+
+                array_unique($addresses);
+
+                foreach ($addresses as $address) {
+                    if(preg_match("/(www.|static|sctp)/i", $address) === 1 ){
+                        continue;
+                    } else $done[] = "\"".$address."\"";
+                }
+            }
+            
+            array_unique($done);
+
+            file_put_contents("/dockerresults/gitdomains.txt", implode(PHP_EOL, $done));
+
+        foreach ($done as $out) {
+            echo($out."\n");
+        }
+            return 1;
+         
+    }
+
 }
 
 

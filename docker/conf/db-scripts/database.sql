@@ -58,9 +58,9 @@ CREATE TABLE `queue` (
   `dirscanUrl` varchar(255) DEFAULT NULL,
   `dirscanIP` varchar(255) DEFAULT NULL,
   `nmap` varchar(6000) DEFAULT NULL,
-  `vhostport` varchar(20) DEFAULT NULL,
-  `vhostip` varchar(255) DEFAULT NULL,
-  `vhostdomain` varchar(255) DEFAULT NULL,
+  `vhostport` mediumtext DEFAULT NULL,
+  `vhostip` mediumtext DEFAULT NULL,
+  `vhostdomain` mediumtext DEFAULT NULL,
   `vhostssl` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

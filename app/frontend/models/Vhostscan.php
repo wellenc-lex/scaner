@@ -1,5 +1,27 @@
 <?php
 
+
+
+// несколько портов задать через запятую или один порт одна линия - к примеру опросить 80,8080,443
+
+// список из много айпи и много кастомных хостов
+
+//ffuf -w hosts.txt:HOSTS -w content.txt:FUZZ -u https://HOSTS/FUZZ
+
+
+//ffuf -w /path/to/vhost/wordlist -u https://target -H "Host: FUZZ" -mc all
+
+
+
+//$headers = "-H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' ";
+
+//$start_dirscan_localhost = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 3 " . $headers . " -H 'Host: localhost' -mc all -w /configs/dict.txt -r -ac -o /ffuf/" . $randomid . "/" . $randomid . "localhost.json -od /ffuf/" . $randomid . "/ -of json ";
+
+            //exec($start_dirscan_localhost); 
+
+
+
+
 namespace frontend\models;
 
 use yii\db\ActiveRecord;
@@ -42,12 +64,10 @@ class Vhostscan extends ActiveRecord
             return ($ip_ip_net == $ip_net);
         }
 
+        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1'";
+
         if ((isset($input["taskid"]) && $input["taskid"] != "") && (isset($input["domain"]) && $input["domain"] != "")
             && (isset($input["port"]) && $input["port"] != "") && (isset($input["ip"]) && $input["ip"] != "")) {
-
-            $port = escapeshellarg((int) $input["port"]);
-            $maindomain = vhost::ParseHostname($input["domain"]);
-            $ip = escapeshellarg($input["ip"]);
 
             $taskid = (int) $input["taskid"];
 
@@ -60,83 +80,89 @@ class Vhostscan extends ActiveRecord
                 $scheme = "https";
             } else $scheme = "http";
 
-            //Asks Host:localhost /domain.com/
-            $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/ --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
-            sleep(1);
+            //foreach ip
 
-            $curl_length = strlen(trim($curl_result));
+            $ips = explode(PHP_EOL, $input["ip"]);
+            $domains = explode(PHP_EOL, $input["domain"]);
+            $ports = explode(PHP_EOL, $input["port"]);
+            
 
-            if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                $newdata = array(
-                    'ip' => $ip["ip"],
-                    'length' => $curl_length,
-                    'domain' => $maindomain,
-                    'body' => base64_encode($curl_result),
-                );
-                $outputdomain[] = $newdata;
-            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+            //asks each ip each domain on each port in cycle
 
-            //Asks Host:localhost /domain.com/index.php
-            $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s ". $scheme ."://localhost/" . $maindomain . "/ --resolve \"localhost:" . $port . ":" . $ip["ip"] . "\"");
-            sleep(1);
+            foreach($ips as $iparray){
+                //echo $iparray;
 
-            $curl_length = strlen(trim($curl_result));
+                foreach($ports as $portarray){
+                    //echo $portarray;
 
-            if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                $newdata = array(
-                    'ip' => $ip["ip"],
-                    'length' => $curl_length,
-                    'domain' => $maindomain,
-                    'body' => base64_encode($curl_result),
-                );
-                $outputdomain[] = $newdata;
-            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+                    foreach($domains as $domainarray){
+                        //echo $domainarray;
 
-            foreach ($vhostlist as $domaintoask) {
+                        $port = escapeshellarg($portarray);
+                        $maindomain = vhost::ParseHostname($domainarray);
+                        $ip = escapeshellarg($iparray);
 
-                $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . ":" . $port . " --resolve \"" . $domaintoask . ":" . $port . ":" . $ip . "\"");
-                sleep(1);
+                        //Asks Host:localhost/domain.com/ directory
+                        //$curl_result = exec("curl --insecure --path-as-is " . $headers . " -s ". $scheme ."://localhost/" . $maindomain . "/ -L --resolve \"localhost:" . $port . ":0" . $ip . "\"");
 
-                $curl_length = strlen(trim($curl_result));
+                        $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s ". $scheme ."://localhost/" . $maindomain . "/ -L --resolve \"localhost:" . $port . ":0" . $ip . "\"");
+                        sleep(1);
 
-                if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                    $newdata = array(
-                        'ip' => $ip,
-                        'port' => $port,
-                        'length' => $curl_length,
-                        'domain' => $domaintoask,
-                        'body' => base64_encode($curl_result),
-                    );
-                    $outputdomain[] = $newdata;
-                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+                        $curl_length = strlen(trim($curl_result));
 
-                $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s " . $scheme . "://" . $domaintoask . "." . $maindomain . ":" . $port . " --resolve \"" . $domaintoask . "." . $maindomain . ":" . $port . ":" . $ip . "\"");
-                sleep(1);
+                        if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                            $newdata = array(
+                                'ip' => $ip["ip"],
+                                'length' => $curl_length,
+                                'domain' => $maindomain,
+                                'body' => base64_encode($curl_result),
+                            );
+                            $outputdomain[] = $newdata;
+                        } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
-                if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                    $newdata = array(
-                        'ip' => $ip,
-                        'port' => $port,
-                        'length' => trim($curl),
-                        'domain' => $domaintoask . "." . $maindomain,
-                    );
-                    $outputdomain[] = $newdata;
-                } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+                        foreach ($vhostlist as $domaintoask) {
+
+                            $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s " . $scheme . "://" . $domaintoask . ":0" . $port . " -L --resolve \"" . $domaintoask . ":" . $port . ":0" . $ip . "\"");
+                            sleep(1);
+
+                            $curl_length = strlen(trim($curl_result));
+
+                            if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                $newdata = array(
+                                    'ip' => $ip,
+                                    'port' => $port,
+                                    'length' => $curl_length,
+                                    'domain' => $domaintoask,
+                                    'body' => base64_encode($curl_result),
+                                );
+                                $outputdomain[] = $newdata;
+                            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+                            $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s " . $scheme . "://" . $domaintoask . "." . $maindomain . ":" . $port . " -L --resolve \"" . $domaintoask . "." . $maindomain . ":" . $port . ":0" . $ip . "\"");
+                            sleep(1);
+
+                            if ($curl_length > 0 && !in_array($curl_length,$length)) {
+                                $newdata = array(
+                                    'ip' => $ip,
+                                    'port' => $port,
+                                    'length' => trim($curl),
+                                    'domain' => $domaintoask . "." . $maindomain,
+                                );
+                                $outputdomain[] = $newdata;
+                            } if (!in_array($curl_length,$length)) $length[] = $curl_length;
+
+
+
+return 1;
+                        }
+                    
+                    }
+                
+                }
 
             }
 
-            $task = Tasks::find()
-                ->where(['taskid' => $taskid])
-                ->limit(1)
-                ->one();
-
-            $task->vhost_status = "Done.";
-            $task->vhost = json_encode($outputdomain);
-
-            $task->date = date("Y-m-d H-i-s");
-
-            $a = "Done";
-            $task->save();
+            
 
             $decrement = ToolsAmount::find()
                 ->where(['id' => 1])
@@ -151,6 +177,14 @@ class Vhostscan extends ActiveRecord
             $decrement->vhosts=$value;
             $decrement->save();
 
+            $task = new Tasks();
+                
+            $task->vhost_status = "Done.";
+            $task->vhost = json_encode($outputdomain);
+            $task->date = date("Y-m-d H-i-s");
+
+            $task->save();
+            
             return 1;
         }
 
@@ -230,25 +264,8 @@ class Vhostscan extends ActiveRecord
 
                                 if ($stop == 0) {
 
-                                    //Asks Host:localhost /domain.com/
-                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
-                                    
-                                    sleep(1);
-
-                                    $curl_length = strlen(trim($curl_result));
-
-                                    if ($curl_length > 0 && !in_array($curl_length,$length)) {
-                                        $newdata = array(
-                                            'ip' => $ip["ip"],
-                                            'length' => $curl_length,
-                                            'domain' => $maindomain,
-                                            'body' => base64_encode($curl_result),
-                                        );
-                                        $outputdomain[] = $newdata;
-                                    } if (!in_array($curl_length,$length)) $length[] = $curl_length;
-
-                                    //Asks Host:localhost /domain.com/
-                                    $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://localhost/" . $maindomain . "/ --resolve \"localhost:80:" . $ip["ip"] . "\"");
+                                    //Asks localhost/domain.com/
+                                    $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s http://localhost/" . $maindomain . "/ -L --resolve \"localhost:80:" . $ip["ip"] . "\"");
                                     sleep(1);
 
                                     $curl_length = strlen(trim($curl_result));
@@ -266,7 +283,7 @@ class Vhostscan extends ActiveRecord
                                     foreach ($vhostlist as $domaintoask) {
 
                                         //Asks Host:localhost, dev, etc
-                                        $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . " --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
+                                        $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s http://" . $domaintoask . " -L --resolve \"" . $domaintoask . ":80:" . $ip["ip"] . "\"");
                                         sleep(1);
 
                                         $curl_length = strlen(trim($curl_result));
@@ -282,7 +299,7 @@ class Vhostscan extends ActiveRecord
                                         } if (!in_array($curl_length,$length)) $length[] = $curl_length;
 
                                         //Asks Host:localhost.domain.com, dev.domain.com, etc
-                                        $curl_result = exec("curl --insecure --path-as-is -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -s http://" . $domaintoask . "." . $maindomain . " --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
+                                        $curl_result = exec("curl --insecure --path-as-is " . $headers . " -s http://" . $domaintoask . "." . $maindomain . " -L --resolve \"" . $domaintoask . "." . $maindomain . ":80:" . $ip["ip"] . "\"");
                                         sleep(1);
 
                                         $curl_length = strlen(trim($curl_result));
@@ -307,18 +324,6 @@ class Vhostscan extends ActiveRecord
 
             Yii::$app->db->open();
 
-            $task = Tasks::find()
-                ->where(['taskid' => $taskid])
-                ->limit(1)
-                ->one();
-
-            $task->vhost_status = "Done.";
-            $task->vhost = json_encode($outputdomain);
-
-            $task->date = date("Y-m-d H-i-s");
-
-            $task->save();
-
             $decrement = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
@@ -332,6 +337,14 @@ class Vhostscan extends ActiveRecord
             $decrement->vhosts=$value;
             $decrement->save();
 
+            $task = new Tasks();
+                
+            $task->vhost_status = "Done.";
+            $task->vhost = json_encode($outputdomain);
+            $task->date = date("Y-m-d H-i-s");
+
+            $task->save();
+            
             return 1;
         }
     }

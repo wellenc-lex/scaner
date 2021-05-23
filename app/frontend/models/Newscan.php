@@ -70,13 +70,14 @@ class Newscan extends Model
             [['raceBody'], 'string', 'length' => [3, 20000]],
             [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9,=  %&\.\-\/\:;]+)$/'],
 
-            [['vhostDomain'], 'string', 'length' => [5, 2550]],
-            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.,\-\/\:]+)$/'],
+            [['vhostDomain'], 'string'],
+            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.,\-\/\r\n]+)$/'],
 
-            [['vhostIp'], 'string', 'length' => [5, 255]],
-            [['vhostIp'], 'ip'],
+            [['vhostIp'], 'string'],
+            [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\r\n]+)$/'],
 
-            [['vhostPort'], 'number', 'max' => 65536],
+            [['vhostPort'], 'string'],
+            [['vhostPort'], 'match', 'pattern' => '/^([0-9\.\:\r\n]+)$/'],
 
             [['vhostSsl'], 'boolean'],
 

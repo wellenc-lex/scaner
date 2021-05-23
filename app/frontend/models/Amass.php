@@ -46,11 +46,11 @@ class Amass extends ActiveRecord
         $randomid = rand(1, 10000);;
         htmlspecialchars($url);
 
-        #$command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -whois -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass.ini";
 
-        #exec($command);
+        exec($command);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -timeout 1200 -ip -config /configs/amass.ini";
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -timeout 800 -ip -config /configs/amass.ini";
 
         exec($command);
 
@@ -65,7 +65,7 @@ class Amass extends ActiveRecord
         if (file_exists("/dockerresults/" . $randomid . "amass.json")) {
             $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         } else {
-            sleep(180);
+            sleep(1800);
             exec($command);
             $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
         }

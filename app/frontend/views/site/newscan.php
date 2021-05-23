@@ -796,13 +796,13 @@ $this->registerJs($script, View::POS_READY);
                             <p align="center">Enter options for checking virtual hosts:</p>
 
                             <?= $form->field($model, 'vhostDomain', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['placeholder' => "Domain. Example: scaner.pw"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['placeholder' => "Domain. Example: scaner.pw"])->label(false) ?>
 
                             <?= $form->field($model, 'vhostIp', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">IP</span>{input}</div>'])->textInput(['placeholder' => "Domain's IP. Example: 8.8.8.8"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">IP</span>{input}</div>'])->textArea(['placeholder' => "Domain's IP. Example: 8.8.8.8"])->label(false) ?>
 
                             <?= $form->field($model, 'vhostPort', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Port</span>{input}</div>'])->textInput(['required' => false, 'placeholder' => "Port. Example: 80"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Port</span>{input}</div>'])->textArea(['required' => false, 'placeholder' => "Port. Example: 80"])->label(false) ?>
                             <?= $form->field($model, 'vhostSsl', [
                                 'inputTemplate' => '<div class="input-group"><span class="input-group-addon">SSL</span>{input}</div>'])->textInput(['required' => false, 'placeholder' => "Should scanner use SSL? 0/1"])->label(false) ?>
 

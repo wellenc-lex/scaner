@@ -4,6 +4,14 @@ namespace frontend\controllers;
 
 use frontend\models\Amass;
 use frontend\models\Dirscan;
+
+
+
+
+
+use frontend\models\Nuclei;
+
+
 use frontend\models\Gitscan;
 use frontend\models\Ipscan;
 use frontend\models\Nmap;
@@ -249,6 +257,19 @@ class ScanController extends Controller
 
     }
 
+    public function actionGittofile()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new Gitscan();
+
+        $secretIN = $secret;//Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::gittofile(Yii::$app->request->get());
+        }
+
+    }
+
     public function actionDirscan()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
@@ -258,6 +279,19 @@ class ScanController extends Controller
 
         if ($secretIN === $secret) {
             return $model::dirscan(Yii::$app->request->post());
+        }
+
+    }
+
+    public function actionNuclei()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new Nuclei();
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::nuclei(Yii::$app->request->post());
         }
 
     }

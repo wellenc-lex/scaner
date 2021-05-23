@@ -314,12 +314,12 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
-                href="https://www.google.com/search?q=site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin </a>  
+                href="https://www.google.com/search?q=%28site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%7C+site:apiary.io%29%20%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin </a>  
         </div>
 
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
-                href="https://www.google.com/search?q=site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%22.<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin 2</a>  
+                href="https://www.google.com/search?q=%28site%3Acodepad.co+%7C+site%3Ascribd.com+%7C+site%3Anpm.runkit.com+%7C+site%3Aycombinator.com+%7C+site%3Acoggle.it+%7C+site%3Apapaly.com+%7C+site%3Aprezi.com+%7C+site%3Ajsdelivr.net+%7C+site%3Asharecode.io+%7C+site%3Azoom.us+%7C+site%3Aproductforums.google.com+%7C+site%3Agitter.im+%7C+site%3Abitbucket.org+%7C+site%3A*.atlassian.net%29%20%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin 2</a>  
         </div>
         
         <div style="text-align: center">
@@ -535,7 +535,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse;">
+                    <table id="table-nuclei" class="table table-bordered" style="border-collapse: collapse;">
                         <thead>
                         <tr>
                             <th style="text-align:center;">

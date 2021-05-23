@@ -54,7 +54,7 @@ class Amass extends ActiveRecord
         $randomid = rand(10000, 1000000);
         htmlspecialchars($url);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -config /configs/amass.ini";
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -timeout 1200 -config /configs/amass.ini";
 
         exec($command);
 
@@ -78,19 +78,6 @@ class Amass extends ActiveRecord
 {\"name\"", "},{\"name\"", $fileamass);
 
         $amassoutput = '[' . $fileamass . ']';
-
-        $decrement = ToolsAmount::find()
-            ->where(['id' => 1])
-            ->one();
-
-        $value = $decrement->amass;
-        
-        if ($value <= 1) {
-            $value=0;
-        } else $value = $value-1;
-
-        $decrement->amass=$value;
-        $decrement->save();
 
         $amass = PassiveScan::find()
             ->where(['PassiveScanid' => $scanid])

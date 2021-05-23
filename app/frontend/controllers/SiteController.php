@@ -317,6 +317,7 @@ class SiteController extends Controller
                     $tasks->save();
 
                     $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
+                    $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
                     //checks if at least 1 instrument exists
 
                     if (isset($url["notify"]) and $url["notify"] == 1)
@@ -411,20 +412,44 @@ class SiteController extends Controller
                     }
 
                     if ((isset($url["vhostDomain"]) and $url["vhostDomain"] != "") && (isset($url["vhostIp"]) and $url["vhostIp"] != "")) {
-                        $tasks->host = $url["vhostIp"];
+
                         $tasks->vhost_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "7";
                         $vhost = 1;
 
+                        $queue = new Queue();
+                        $queue->taskid = $tasks->taskid;
+                        $queue->instrument = 7;
+
                         if ((isset($url["vhostPort"]) and $url["vhostPort"] != "")) {
 
                             if (isset($url["vhostSsl"]) and $url["vhostSsl"] === 1) {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& ssl=1& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+
+                                $queue->vhostdomain = $url["vhostDomain"];
+                                $queue->vhostip = $url["vhostIp"];
+                                $queue->vhostport = $url["vhostPort"];
+                                $queue->vhostssl = 1;
+                                $queue->save();
+
+                                //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& ssl=1& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             } else {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+
+                                $queue->vhostdomain = $url["vhostDomain"];
+                                $queue->vhostip = $url["vhostIp"];
+                                $queue->vhostport = $url["vhostPort"];
+                                $queue->save();
+                                
+                                //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             }
+
                         } else {
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+
+                            $queue->vhostdomain = $url["vhostDomain"];
+                            $queue->vhostip = $url["vhostIp"];
+                            $queue->vhostport = "80";
+                            $queue->save();
+
+                            //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                         }
 
                     }

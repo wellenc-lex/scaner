@@ -437,6 +437,7 @@ class SiteController extends Controller
                                 $queue->vhostdomain = $url["vhostDomain"];
                                 $queue->vhostip = $url["vhostIp"];
                                 $queue->vhostport = $url["vhostPort"];
+                                $queue->vhostssl = 0;
                                 $queue->save();
                                 
                                 //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
@@ -447,6 +448,7 @@ class SiteController extends Controller
                             $queue->vhostdomain = $url["vhostDomain"];
                             $queue->vhostip = $url["vhostIp"];
                             $queue->vhostport = "80";
+                            $queue->vhostssl = 0;
                             $queue->save();
 
                             //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');

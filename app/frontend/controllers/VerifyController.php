@@ -345,8 +345,8 @@ class VerifyController extends Controller
                                 $results->working = 1;
                                 $results->todelete = 1;
 
-                                if ($results->vhostport != 0 && $results->vhostdomain != 0 && $results->vhostip != 0){
-                                    if ( $results->vhostport == 1 ) $ssl = "1"; else $ssl = "0";
+                                if ($results->vhostport != "" && $results->vhostdomain != "" && $results->vhostip != ""){
+                                    if ( $results->vhostssl == 1 ) $ssl = "1"; else $ssl = "0";
 
                                     exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "taskid=' . $results->taskid
                                             . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip

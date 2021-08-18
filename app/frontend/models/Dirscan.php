@@ -16,9 +16,9 @@ class Dirscan extends ActiveRecord
 
         exec("sudo chmod 777 /ffuf/" . $randomid . "/ -R && sudo chmod 777 /ffuf/" . $randomid . " -R");
 
-        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1'";
+        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
 
-        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target " . escapeshellarg($scheme.$url.$port."/") . " " . $headers . " -t /configs/nuclei-templates -exclude /configs/nuclei-templates/helpers -exclude /configs/nuclei-templates/dns -exclude /configs/nuclei-templates/takeovers -exclude /configs/nuclei-templates/miscellaneous -exclude /configs/nuclei-templates/exposed-tokens/generic -exclude /configs/nuclei-templates/technologies/tech-detect.yaml -exclude /configs/nuclei-templates/technologies/waf-detect.yaml -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 20 -c 1 -rate-limit 5";
+        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target '" . $scheme.$url.$port."/' " . " " . $headers . " -t /configs/nuclei-templates -exclude /configs/nuclei-templates/helpers -exclude /configs/nuclei-templates/dns -exclude /configs/nuclei-templates/takeovers -exclude /configs/nuclei-templates/miscellaneous -exclude /configs/nuclei-templates/exposed-tokens/generic -exclude /configs/nuclei-templates/technologies/tech-detect.yaml -exclude /configs/nuclei-templates/technologies/waf-detect.yaml -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 25 -c 1 -rate-limit 4";
 
         exec($nuclei_start); 
 
@@ -175,6 +175,9 @@ class Dirscan extends ActiveRecord
         $url = rtrim($url, ' ');
         $url = rtrim($url, '/');
 
+        $url = ltrim(rtrim($url, ' '), ' ');
+        $port = ltrim(rtrim($port, ' '), ' ');
+
         $domainfull = substr($url, 0, strrpos($url, ".")); //hostname without www. and .com at the end
 
         $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
@@ -185,12 +188,12 @@ class Dirscan extends ActiveRecord
 
         if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url, $matches) == 1) $input["ip"] = $matches[0];
 
-        $headers = "-H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1'";
+        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
 
         if (!isset($input["ip"])) {
-            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url.$port."/FUZZ") . " -t 1 -p 4 -mc all -w /configs/dict.txt  " . $headers . "  -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
+            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url.$port."/FUZZ") . " -t 1 -p 1 -mc all -w /configs/dict.txt  " . $headers . "  -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
 
-            //$wayback_result = dirscan::Wayback($url);
+            $wayback_result = dirscan::Wayback($url);
         }
 
         if (isset($input["ip"])) {
@@ -210,8 +213,7 @@ class Dirscan extends ActiveRecord
         
         //Get dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
-            $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
-            $output = json_decode($output, true);
+            $output = json_decode(file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json"), true);
 
             $outputarray = array();
             $id=0;
@@ -239,59 +241,62 @@ class Dirscan extends ActiveRecord
             exec($start_dirscan);
 
                 if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
-                    $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
-                    $output = json_decode($output, true);
+                    $output = json_decode(file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json"), true);
 
                     $outputarray = array();
                     $id=0;
                     $result_length = array();
 
-                    foreach ($output["results"] as $results) {
-                        if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
-                            $id++;
-                            $result_length[] = $results["length"];//so no duplicates gonna be added
-                            $outputarray[$id]["url"] = $results["url"];
-                            $outputarray[$id]["length"] = $results["length"];
-                            $outputarray[$id]["status"] = $results["status"];
-                            $outputarray[$id]["redirect"] = $results["redirectlocation"];
+                    if( isset($output["results"]) ) {
+                            foreach ($output["results"] as $results) {
+                            if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
+                                $id++;
+                                $result_length[] = $results["length"];//so no duplicates gonna be added
+                                $outputarray[$id]["url"] = $results["url"];
+                                $outputarray[$id]["length"] = $results["length"];
+                                $outputarray[$id]["status"] = $results["status"];
+                                $outputarray[$id]["redirect"] = $results["redirectlocation"];
 
-                            if ($results["length"] < 350000 ){
-                                exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
+                                if ($results["length"] < 350000 ){
+                                    exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-                                $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                                    $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                                }
                             }
-                        }
-                    }
-                    $outputdirscan = $outputarray;
+                        } $outputdirscan = $outputarray;
+
+                    } else $outputarray = "No file.";
+
                 } else $outputarray = "No file.";
         }
 
         //Get localhost dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "localhost.json")) {
-            $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "localhost.json");
-            $output = json_decode($output, true);
+            $output = json_decode(file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "localhost.json", true));
 
             $output_localhost_array = array();
             $id=0;
             $result_length = array();
 
-            foreach ($output["results"] as $results) {
-                if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
-                    $id++;
-                    $result_length[] = $results["length"];//so no duplicates gonna be added
-                    $output_localhost_array[$id]["url"] = $results["url"];
-                    $output_localhost_array[$id]["length"] = $results["length"];
-                    $output_localhost_array[$id]["status"] = $results["status"];
-                    $output_localhost_array[$id]["redirect"] = $results["redirectlocation"];
-                    $output_localhost_array[$id]["localhost"] = 1;
+            if( isset($output["results"]) ) {
+                foreach ($output["results"] as $results) {
+                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
+                        $id++;
+                        $result_length[] = $results["length"];//so no duplicates gonna be added
+                        $output_localhost_array[$id]["url"] = $results["url"];
+                        $output_localhost_array[$id]["length"] = $results["length"];
+                        $output_localhost_array[$id]["status"] = $results["status"];
+                        $output_localhost_array[$id]["redirect"] = $results["redirectlocation"];
+                        $output_localhost_array[$id]["localhost"] = 1;
 
-                    if ($results["length"] < 350000 ){
-                        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
+                        if ($results["length"] < 350000 ){
+                            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-                        $output_localhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                            $output_localhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                        }
                     }
                 }
-            }
+            } else $output_localhost_array = "No file.";
         } else $output_localhost_array = "No file.";
 
         if ($output_localhost_array != "No file." && !is_null($output_localhost_array) ) {
@@ -328,7 +333,7 @@ class Dirscan extends ActiveRecord
             $dirscan->save();
         } else {
             $dirscan = new Tasks();
-            $dirscan->taskid = $domainfull;
+            $dirscan->taskid = $taskid;
             $dirscan->host = $url;
             $dirscan->dirscan_status = "Done.";
             $dirscan->dirscan = $outputarray;

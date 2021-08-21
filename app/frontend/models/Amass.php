@@ -46,11 +46,11 @@ class Amass extends ActiveRecord
         $randomid = rand(1, 10000);;
         htmlspecialchars($url);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass.ini";
+        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass2.ini";
 
         exec($command);
 
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -timeout 1000 -ip -config /configs/amass.ini";
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -timeout 1000 -ip -config /configs/amass1.ini";
 
         exec($command);
 
@@ -83,7 +83,7 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        $command = "cat /dockerresults/" . $randomid . "amass.json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 4 -ports large -scan-timeout 5000 -screenshot-timeout 3000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
+        $command = "cat /dockerresults/" . $randomid . "amass.json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 3 -ports large -scan-timeout 5000 -screenshot-timeout 6000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
 
         exec($command);
 
@@ -138,7 +138,7 @@ class Amass extends ActiveRecord
 
         $aquatoneoutput = $fileaquatone;
 
-        /** Copy the screenshots from the folder to volume in order to be accessible from nginx **/
+        /** Copy the screenshots from the volume to folder in order to be accessible from nginx **/
 
         $clearthemess = "sudo chmod -R 777 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 777 /var/www/app/frontend/web/screenshots && sudo rm /dockerresults/" . $randomid . "amass*";
 
@@ -210,6 +210,9 @@ class Amass extends ActiveRecord
         $queue->taskid = $taskid;
         $queue->instrument = 4;
         $queue->save();
+
+
+        //TODO:add nuclei scan to queue
 
         return 1;
     }

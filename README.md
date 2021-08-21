@@ -24,7 +24,7 @@ Rename docker-compose.yml.example into docker-compose.yml
 
 Move env.example at app/.env
 
-Insert your API keys into the amass.ini.example and rename it into amass.ini
+Insert your API keys into the amass1.ini.example and rename it into amass1.ini
 
 Change your secret in the crontab.txt.example (same as in the app/.env) and rename it into crontab.txt
 

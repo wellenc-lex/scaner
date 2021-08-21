@@ -281,7 +281,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < 3) {
+                            if ($tools_amount_amass < 2) {
 
                                 $results->working  = 1;
                                 $results->todelete = 1;

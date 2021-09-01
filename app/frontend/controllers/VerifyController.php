@@ -251,10 +251,16 @@ class VerifyController extends Controller
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
+            
+            static $tools_amount_amass;
+            static $tools_amount_ffuf;
+            static $tools_amount_jsa;
 
             $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
             $tools_amount_ffuf = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
+
+            $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');   
 
             foreach ($allresults as $results) {
 
@@ -281,7 +287,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < 2) {
+                            if ($tools_amount_amass < 1 && $tools_amount_jsa <=10) {
 
                                 $results->working  = 1;
                                 $results->todelete = 1;
@@ -298,7 +304,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ( ($tools_amount_ffuf < 50) && ($tools_amount_amass < 2) ) || ($tools_amount_ffuf < 35) ) {
+                            if ( ($tools_amount_ffuf < 35 && $tools_amount_amass < 2) || ($tools_amount_ffuf < 20 && $tools_amount_jsa <=10) ) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;
@@ -323,7 +329,7 @@ class VerifyController extends Controller
 
                                 if ($tools_amount_amass < 1) {
 
-                                    if ($tools_amount_ffuf < 20) {
+                                    if ($tools_amount_ffuf < 20 && $tools_amount_jsa <=10) {
 
                                         $results->working  = 1;
                                         $results->todelete = 1;
@@ -340,7 +346,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "7") !== false) {
 
-                            if ($tools_amount->vhosts < 50) {
+                            if ($tools_amount_ffuf < 45 && $tools_amount_jsa <=15) {
 
                                 $results->working = 1;
                                 $results->todelete = 1;
@@ -365,7 +371,7 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "1") !== false) {
 
-                                if ($tools_amount->nmap < 10) {
+                                if ($tools_amount->nmap < 0) { //turned off
 
                                     $results->working = 1;
                                     $results->todelete = 1;
@@ -380,7 +386,7 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "2") !== false) {
 
-                                if ($tools_amount_amass < 2) {
+                                if ($tools_amount_amass < 0) { //turned off
 
                                     $results->working  = 1;
                                     $results->todelete = 1;
@@ -395,7 +401,7 @@ class VerifyController extends Controller
 
                             if (strpos($results->instrument, "3") !== false) {
 
-                                if ($tools_amount_ffuf < 20) {
+                                if ($tools_amount_ffuf < 0) {
 
                                     $results->working = 1;
                                     $results->todelete = 1;

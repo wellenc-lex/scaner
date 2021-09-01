@@ -2,7 +2,9 @@
 
 namespace frontend\models;
 
+use Yii;
 use yii\db\ActiveRecord;
+require_once 'Nuclei.php';
 
 class Dirscan extends ActiveRecord
 {
@@ -11,53 +13,11 @@ class Dirscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function Nuclei($scheme,$url,$port,$randomid)
-    {
-
-        exec("sudo chmod 777 /ffuf/" . $randomid . "/ -R && sudo chmod 777 /ffuf/" . $randomid . " -R");
-
-        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
-
-        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ projectdiscovery/nuclei -target '" . $scheme.$url.$port."/' " . " " . $headers . " -t /configs/nuclei-templates -exclude /configs/nuclei-templates/helpers -exclude /configs/nuclei-templates/dns -exclude /configs/nuclei-templates/takeovers -exclude /configs/nuclei-templates/miscellaneous -exclude /configs/nuclei-templates/exposed-tokens/generic -exclude /configs/nuclei-templates/technologies/tech-detect.yaml -exclude /configs/nuclei-templates/technologies/waf-detect.yaml -o /ffuf/" . $randomid . "/" . $randomid . "nuclei.json -json -timeout 25 -c 1 -rate-limit 4";
-
-        exec($nuclei_start); 
-
-        if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "nuclei.json")) {
-            $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "nuclei.json");
-                    
-            $output = str_replace("}
-{", "},{", $output);
-
-            $output = '[' . $output . ']';
-            $output = json_decode($output, true);
-
-            $id=0;
-            foreach ($output as $results) {
-                $id++;
-                $output_json[$id]["template"] = $results["template"];
-                $output_json[$id]["matched"] = $results["matched"];
-                $output_json[$id]["severity"] = $results["severity"];
-
-                if ( isset( $results["extracted_results"] ) ){
-                    $output_json[$id]["regexp"] = $results["extracted_results"];
-                }
-
-                if ($results["response"] < 350000 ){
-                    $output_json[$id]["response"] = $results["response"];
-                }
-            }
-
-            json_encode($output_json);   
-        } else $output_json = NULL;
-    
-        return $output_json;
-    }
-
     public function ParseHostname($url)
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
+        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
         
         return $domain[2]; //group 2 == domain name
     }
@@ -79,6 +39,118 @@ class Dirscan extends ActiveRecord
         
         return $port[3]; //group  == port
     }
+
+    public function FindScheme($url)
+    {
+        //We need to find out which ports are alive to find virtual hosts on them
+        $schemes = ["http://", "https://"];
+        $returnscheme = array();
+
+        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
+
+        foreach ($schemes as $scheme){
+
+            $schemestatus = exec('curl --insecure --connection-timeout 30 -sL -w "%{http_code}\n" '. escapeshellarg($scheme . $domain[2]) .' -o /dev/null');
+
+            if($schemestatus != "000" && $schemestatus>1 && $schemestatus != "400"){
+                $returnscheme = $scheme;
+            }                 
+        }
+
+        return $returnscheme;
+    }
+
+    public function jsa($scheme,$url,$port, $randomid)
+    {
+
+        $command = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$url.$port) . " " . $randomid . " ";
+
+        exec($command);
+
+        if (file_exists("/ffuf/" . $randomid . "/linkfinder.html")) {
+            $linkfinder = file_get_contents("/ffuf/" . $randomid . "/linkfinder.html");
+        } else $linkfinder="linkfinder error no file";
+
+        if (file_exists("/ffuf/" . $randomid . "/secretfinder.html")) {
+            $secretfinder = file_get_contents("/ffuf/" . $randomid . "/secretfinder.html");
+        } else $secretfinder="secretfinder error no file";
+
+        $return = base64_encode($secretfinder.$linkfinder); //both htmls in one variable encoded so there will be no error with inserting into db
+        
+        return $return; 
+    }
+
+    public function savetodb($taskid, $hostname, $outputarray, $nuclei, $jsanalysis, $wayback_result)
+    {
+        if($jsanalysis=="c2VjcmV0ZmluZGVyIGVycm9yIG5vIGZpbGVsaW5rZmluZGVyIGVycm9yIG5vIGZpbGU=" && $outputarray=="" && $nuclei==""){
+            return 1; //no need to save empty results
+        }
+
+        try{
+            Yii::$app->db->open();
+
+            $decrement = ToolsAmount::find()
+                ->where(['id' => 1])
+                ->one();
+
+            $value = $decrement->dirscan;
+            
+            if ($value <= 1) {
+                $value=0;
+            } else $value = $value-1;
+
+            $decrement->dirscan=$value;
+            $decrement->save();
+
+            $dirscan = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            if(!empty($dirscan)){ //if task exists in db
+
+                $dirscan->dirscan_status = "Done.";
+                $dirscan->dirscan = $outputarray;
+                $dirscan->nuclei = json_encode($nuclei);
+                $dirscan->js = $jsanalysis;
+                $dirscan->wayback = $wayback_result;
+                $dirscan->date = date("Y-m-d H-i-s");
+
+                $dirscan->save();
+                
+            } else {
+                $dirscan = new Tasks();
+                $dirscan->taskid = $taskid;
+                $dirscan->host = $hostname;
+                $dirscan->dirscan_status = "Done.";
+                $dirscan->dirscan = $outputarray;
+                $dirscan->nuclei = json_encode($nuclei);
+                $dirscan->js = $jsanalysis;
+                $dirscan->wayback = $wayback_result;
+                $dirscan->date = date("Y-m-d H-i-s");
+
+                $dirscan->save();
+            }
+
+            exec("sudo rm -r /ffuf/" . $randomid . "/");
+        } catch (\yii\db\Exception $exception) {
+
+                sleep(1000);
+                $dirscan = new Tasks();
+                $dirscan->taskid = $taskid;
+                $dirscan->host = $hostname;
+                $dirscan->dirscan_status = "Done.";
+                $dirscan->dirscan = $outputarray;
+                $dirscan->nuclei = json_encode($nuclei);
+                $dirscan->js = $jsanalysis;
+                $dirscan->wayback = $wayback_result;
+                $dirscan->date = date("Y-m-d H-i-s");
+
+                $dirscan->save();
+                return $exception.$outputarray.$nuclei.$jsanalysis.$wayback_result;
+            }
+    }
+
 
     public function Wayback($url)
     {
@@ -155,7 +227,7 @@ class Dirscan extends ActiveRecord
     public static function dirscan($input)
     {
         
-        $url = dirscan::ParseHostname($input["url"]);
+        $hostname = dirscan::ParseHostname($input["url"]);
 
         $port = dirscan::ParsePort($input["url"]);
 
@@ -166,50 +238,53 @@ class Dirscan extends ActiveRecord
         $randomid = $taskid;
 
         if (strpos($input["url"], 'https://') !== false) {
-                $scheme = "https://";
-            } else {
+            $scheme = "https://";
+            
+            if (strpos($input["url"], 'http://') !== false) {
                 $scheme = "http://";
+            } else {
+                $scheme = dirscan::FindScheme($input["url"]);
+            }
         }
 
-        $url = ltrim($url, ' ');
-        $url = rtrim($url, ' ');
-        $url = rtrim($url, '/');
+        $hostname = trim($hostname, ' ');
+        $hostname = rtrim($hostname, '/');
 
-        $url = ltrim(rtrim($url, ' '), ' ');
-        $port = ltrim(rtrim($port, ' '), ' ');
+        $hostname = trim($hostname, ' ');
+        $port = trim($port, ' ');
 
-        $domainfull = substr($url, 0, strrpos($url, ".")); //hostname without www. and .com at the end
+        $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
 
         $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
 
         if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
 
-        $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$url.",".$domainfull.",".$hostonly;
+        $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$hostname.",".$domainfull.",".$hostonly;
 
-        if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url, $matches) == 1) $input["ip"] = $matches[0];
+        if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set ip if wasnt specified by user but is in the url
+
+        global $headers;
 
         $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
 
         if (!isset($input["ip"])) {
-            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$url.$port."/FUZZ") . " -t 1 -p 1 -mc all -w /configs/dict.txt  " . $headers . "  -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
+            $start_dirscan = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --rm --cpu-shares 512 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -t 1 -p 1 -timeout 30 -mc all -w /configs/dict.txt  " . $headers . "  -r -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json";
 
-            $wayback_result = dirscan::Wayback($url);
+            $wayback_result = dirscan::Wayback($hostname);
         }
 
         if (isset($input["ip"])) {
 
             $ip = dirscan::ParseIP($input["ip"]);
 
-            $start_dirscan = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 3 -H " . escapeshellarg('Host: ' . $url) . " " . $headers . " -H 'CF-Connecting-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json ";
+            $start_dirscan = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 3 -H " . escapeshellarg('Host: ' . $hostname) . " " . $headers . " -H 'CF-Connecting-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . ".json -od /ffuf/" . $randomid . "/ -of json ";
 
-            $start_dirscan_localhost = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 3 " . $headers . " -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . "localhost.json -od /ffuf/" . $randomid . "/ -of json ";
+            $start_dirscan_localhost = "sudo mkdir /ffuf/" . $randomid . " && sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -t 1 -p 1 " . $headers . " -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1' -mc all -w /configs/dict.txt -r -ac -D -e " . escapeshellarg($extensions) . " -o /ffuf/" . $randomid . "/" . $randomid . "localhost.json -od /ffuf/" . $randomid . "/ -of json ";
 
             exec($start_dirscan_localhost); 
         }
 
         exec($start_dirscan);
-
-        $nuclei = dirscan::Nuclei($scheme,$url,$port,$randomid); //starts nuclei scan and stores result json into $nuclei
         
         //Get dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
@@ -237,7 +312,9 @@ class Dirscan extends ActiveRecord
             }
             $outputdirscan = $outputarray;
         } else {
-            sleep(1800);
+
+
+            /*sleep(1800);
             exec($start_dirscan);
 
                 if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
@@ -267,8 +344,9 @@ class Dirscan extends ActiveRecord
 
                     } else $outputarray = "No file.";
 
-                } else $outputarray = "No file.";
+                } else */$outputarray = "No file.";
         }
+        
 
         //Get localhost dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "localhost.json")) {
@@ -303,48 +381,12 @@ class Dirscan extends ActiveRecord
             $outputarray = json_encode(array_merge($outputdirscan,$output_localhost_array));
         } else $outputarray = json_encode($outputdirscan);
 
-        //Scaner's work is done -> decrement scaner's dirscan amount in DB
-        $decrement = ToolsAmount::find()
-            ->where(['id' => 1])
-            ->one();
+        $nuclei = Nuclei::Nucleiscan($scheme,$hostname,$port,$randomid); //starts nuclei scan and stores result json into $nuclei
 
-        $value = $decrement->dirscan;
-        
-        if ($value <= 1) {
-            $value=0;
-        } else $value = $value-1;
+        $jsanalysis = dirscan::jsa($scheme,$hostname,$port, $randomid);
 
-        $decrement->dirscan=$value;
-        $decrement->save();
+        dirscan::savetodb($taskid, $hostname, $outputarray, $nuclei, $jsanalysis, $wayback_result);
 
-        $dirscan = Tasks::find()
-            ->where(['taskid' => $taskid])
-            ->limit(1)
-            ->one();
-
-        if(!empty($dirscan)){ //if task exists in db
-
-            $dirscan->dirscan_status = "Done.";
-            $dirscan->dirscan = $outputarray;
-            $dirscan->nuclei = json_encode($nuclei);
-            $dirscan->wayback = $wayback_result;
-            $dirscan->date = date("Y-m-d H-i-s");
-
-            $dirscan->save();
-        } else {
-            $dirscan = new Tasks();
-            $dirscan->taskid = $taskid;
-            $dirscan->host = $url;
-            $dirscan->dirscan_status = "Done.";
-            $dirscan->dirscan = $outputarray;
-            $dirscan->nuclei = json_encode($nuclei);
-            $dirscan->wayback = $wayback_result;
-            $dirscan->date = date("Y-m-d H-i-s");
-
-            $dirscan->save();
-        }
-
-        exec("sudo rm -r /ffuf/" . $randomid . "/");
         return 1;
     }
 

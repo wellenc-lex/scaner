@@ -3,6 +3,7 @@ namespace frontend\models;
 
 use yii\db\ActiveRecord;
 use Yii;
+use frontend\models\Queue;
 set_time_limit(0);
 
 class Vhostscan extends ActiveRecord
@@ -38,7 +39,7 @@ class Vhostscan extends ActiveRecord
 
             if( isset($output["results"]) ) {
                 foreach ($output["results"] as $results) {
-                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length)){
+                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
                         $id++;
                         $result_length[] = $results["length"];//so no duplicates gonna be added
                         $output_vhost_array[$id]["url"] = $results["url"];
@@ -119,12 +120,14 @@ class Vhostscan extends ActiveRecord
         return $output_vhosts;
     }
 
-    public function amassAlivePort($ip,$domain)
+    public function amassAlivePort($ip,$url)
     {
         //We need to find out which ports are alive to find virtual hosts on them
         $ports = ["80","443","8080","8443","8000"];
         $schemes = ["http://", "https://"];
         $aliveports = array();
+
+        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
 
         foreach($ports as $port){
 
@@ -132,7 +135,7 @@ class Vhostscan extends ActiveRecord
 
                 static $id = 1;
 
-                $portstatus = exec('curl --insecure -sL -w "%{http_code}\n" '. $scheme . $domain .':' . $port . ' -L --resolve ' . $domain . ':' . $port . ':' . $ip . ' -o /dev/null');
+                $portstatus = exec('curl --insecure -sL --connection-timeout 30 -w "%{http_code}\n" '. $scheme . $domain[2] .':' . $port . ' -L --resolve ' . $domain[2] . ':' . $port . ':' . $ip . ' -o /dev/null');
 
                 if($portstatus != "000" && $portstatus>1 && $portstatus != "400"){
                     if(($port!="443" && $scheme="http://") && ($port!="8443" && $scheme="http://") ){
@@ -197,35 +200,69 @@ class Vhostscan extends ActiveRecord
         return 1;
     }
 
-    public function saveToDB($taskid,$output)
+    public function saveToDB($taskid, $output, $nmapips)
     {
+        $output = json_encode(array_unique($output));
 
-        Yii::$app->db->open();
+        if($output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
 
-        $decrement = ToolsAmount::find()
-                ->where(['id' => 1])
-                ->one();
+            try{
 
-        $value = $decrement->vhosts;
+                Yii::$app->db->open();
+
+                //add ips for nmap scan to queue
+                $queue = new Queue();
+                $queue->nmap = $nmapips;
+                $queue->instrument = 1;
+                $queue->save();
+
+                $decrement = ToolsAmount::find()
+                        ->where(['id' => 1])
+                        ->one();
+
+                $value = $decrement->vhosts;
+                        
+                if ($value <= 1) {
+                    $value=0;
+                } else $value = $value-1;
+
+                $decrement->vhosts=$value;
+                $decrement->save();
+
+                $task = new Tasks();
+                        
+                $task->vhost_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."7";
+                $task->vhost = $output;
+                $task->host = "Vhost";
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+
+
                 
-        if ($value <= 1) {
-            $value=0;
-        } else $value = $value-1;
-
-        $decrement->vhosts=$value;
-        $decrement->save();
-
-        $task = new Tasks();
+                exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
                 
-        $task->vhost_status = "Done.";
-        $task->vhost = json_encode(array_unique($output));
-        $task->date = date("Y-m-d H-i-s");
+                return 1;
 
-        $task->save();
+            } catch (\yii\db\Exception $exception) {
+                var_dump($exception);
+                sleep(360);
+
+                $task = new Tasks();
+                        
+                $task->vhost_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."7";
+                $task->vhost = $output;
+                $task->host = "Vhost";
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+
+                return $exception.json_encode(array_unique($output));
+            }
+        }
         
-        exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
-        
-        return 1;
     }
 
 
@@ -239,6 +276,8 @@ class Vhostscan extends ActiveRecord
         //dirscan too!!
 
         // символ переноса строки должен быть в вайтлисте - проверить запросом
+
+        // regexp только на уровне модели, сюда нет смысла - есть другие точки для иньекций ранее
 
         global $headers;
         global $randomid;
@@ -327,6 +366,7 @@ class Vhostscan extends ActiveRecord
 
             $checkedips = array();
             $output = array();
+            static $ipsqueue;
 
             vhostscan::getVHosts(0, $amassoutput);
 
@@ -355,6 +395,8 @@ class Vhostscan extends ActiveRecord
 
                                     if ($stop == 0) { //if ip is allowed
 
+                                        $ipsqueue = $ipsqueue." ";
+
                                         $curlalive = vhostscan::amassAlivePort($ip["ip"],$maindomain);
 
                                         foreach ($curlalive as $id=>$value){
@@ -377,7 +419,7 @@ class Vhostscan extends ActiveRecord
                 }
             } else return "NO AMASS RESULTS or NO PORTS";
 
-            vhostscan::saveToDB($taskid, $output);
+            vhostscan::saveToDB($taskid, $output, $ipsqueue);
             return 1;
         }
     }

@@ -272,7 +272,7 @@ class SiteController extends Controller
 
                 if ($url["activescan"] == 1) {
 
-                    if ($user->scans_counter > 1500) {
+                    if ($user->scans_counter > 150000) {
                         if ($user->updated_at < (time() - 1800)) {
                             $user->scans_counter = 0;
                         } else {

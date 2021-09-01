@@ -26,6 +26,7 @@ lk.%EXT%
 config
 config.%EXT%
 ks.json
+static/shards/html
 yaml.log
 ioncube/loader-wizard.php
 yaml_cron.log

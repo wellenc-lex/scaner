@@ -41,6 +41,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
     <?php if (isset($reverseip)) $reverseip = json_decode($reverseip, true); else $reverseip = "" ?>
     <?php if (isset($wayback)) $wayback= json_decode($wayback, true); else $wayback = "" ?>
     <?php if (isset($subtakeover)) $subtakeover = json_decode($subtakeover, true); else $subtakeover = "" ?>
+    <?php if (isset($js)) $js = base64_decode($js); else $js = "" ?>
 
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <link rel="stylesheet" href="https://bootswatch.com/3/darkly/bootstrap.min.css">
@@ -92,7 +93,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
         .cluster:nth-child(even) {
             border-bottom: 1px solid rgb(68, 68, 68) !important;
             padding: 30px 20px 20px 20px !important;
-            overflow-x: auto !important;
+            overflow-x: scroll !important;
             white-space: nowrap !important;
             box-shadow: inset 0px 6px 8px rgb(24, 24, 24) !important;
         }
@@ -250,6 +251,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
                                                 echo $ip['ip'];
                                                 echo " ";
+                                                $ipstoscan[]=$ip['ip'];
                                             }
 
                                         } ?>
@@ -281,6 +283,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
                     </table>
                 </div>
+
+                <div class="btn btn-success btn-sm" id="dirscanallfromamass?>" onclick="<?php foreach ($amass as $json) { echo('senddirscan(\''.$json['name'].'\');'); } ?> ">
+                    <b href="#" data-toggle="tooltip" title="Scan subdomains with FFUF">Scan subdomains with FFUF</b>
+                </div>
+
             </div>
         </div>
 
@@ -956,7 +963,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <div id="vhostdiv-1">
             <h3 style="text-align:center; color: rgb(68, 68, 68);" id="vhost-1">Vhost output</h3>
 
-            <div class="panel panel-default">
+            <div width="150%" class="panel panel-default">
                 <div class="panel-body">
                     <div class="table-responsive">
                         <table id="table-vhost" class="table table-bordered"
@@ -964,13 +971,16 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             <thead>
                             <tr>
                                 <th style="text-align:center">
-                                    <b>IP</b>
-                                </th>
-                                <th style="text-align:center">
-                                    <b>Domain</b>
-                                </th>
-                                <th style="text-align:center">
                                     <b>Length</b>
+                                </th>
+                                <th style="text-align:center">
+                                    <b>Status</b>
+                                </th>
+                                <th style="text-align:center">
+                                    <b>URL</b>
+                                </th>
+                                <th style="text-align:center">
+                                    <b>Host</b>
                                 </th>
                                 <th style="text-align:center">
                                     <b>Body</b>
@@ -978,20 +988,23 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             </tr>
                             </thead>
 
-                            <?php foreach ($vhosts as $vhost) {
+                            <?php foreach ($vhosts as $vhostbigarray) { foreach ($vhostbigarray as $vhostarray) { foreach ($vhostarray as $vhost) {
                                 ?>
 
                                 <tr style="text-align: center" valign="middle">
-                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
-                                        <b style="vertical-align: middle;"><?php echo($vhost["ip"]); ?> </b>
-                                    </td>
-                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
-                                        <b style="vertical-align: middle;"><?php echo($vhost["domain"]); ?> </b>
-                                    </td>
-                                    <td align="center" style="text-align: center;" valign="middle" width="25%">
+                                    <td align="center" style="text-align: center;" valign="middle" width="15%">
                                         <b style="vertical-align: middle;"><?php echo($vhost["length"]); ?> </b>
                                     </td>
-                                    <td align="center" style="text-align: center;" valign="middle" width="15%">
+                                    <td align="center" style="text-align: center;" valign="middle" width="20%">
+                                        <b style="vertical-align: middle;"><?php echo($vhost["status"]); ?> </b>
+                                    </td>
+                                    <td align="center" style="text-align: center;" valign="middle" width="20%">
+                                        <b style="vertical-align: middle;"><?php echo($vhost["url"]); ?> </b>
+                                    </td>
+                                    <td align="center" style="text-align: center;" valign="middle" width="20%">
+                                        <b style="vertical-align: middle;"><?php echo($vhost["host"]); ?> </b>
+                                    </td>
+                                    <td align="center" style="text-align: center;" valign="middle" width="10%">
                                         <div class="page card mb-3" style="width: 80%;">
 
                                             <div class="card-footer text-muted">
@@ -1009,7 +1022,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                             
                                                             <tr>   
                                                                 <td style="word-wrap: break-word; max-width: 100px;">
-                                                                    <?php echo(nl2br(htmlspecialchars(base64_decode($vhost["body"])))); ?>   
+                                                                    <?php echo(nl2br(htmlspecialchars(base64_decode($vhost["resultfile"])))); ?>   
                                                                 </td>
                                                             </tr>
                                                             
@@ -1021,7 +1034,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 </tr>
 
                                 <?php
-                            }
+                            }}}
                             ?>
 
                         </table>
@@ -1067,22 +1080,6 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                 });
 
             </script>
-
-    <?php endif; ?>
-
-    <?php if ($js != ""): ?>
-
-        <h3 style="text-align:center; color: rgb(68, 68, 68);" id="jsscan">JS scan output</h3>
-
-        <?php echo $js ?>
-
-        <script>
-
-            $(document).ready(function () {
-                document.body.contentEditable = "false";
-            });
-
-        </script>
 
     <?php endif; ?>
 
@@ -1191,6 +1188,21 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php endif; ?>
 
+        <?php if ($js != ""): ?>
+
+        <h3 style="text-align:center; color: rgb(68, 68, 68);" id="jsscan">JS scan output</h3>
+
+        <?php echo $js ?>
+
+        <script>
+
+            $(document).ready(function () {
+                document.body.contentEditable = "false";
+            });
+
+        </script>
+
+    <?php endif; ?>
 
     <?php if ($dirscan == "" && $nuclei == "" && $amass == "" && $gitscan == "" && $nmap == "" && $ipscan == "" && $vhosts == "" && $js == "" && $reverseip == "" && $wayback == ""): ?>
 

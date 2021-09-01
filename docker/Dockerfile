@@ -16,3 +16,5 @@ RUN ln -s /etc/nginx/sites-available/site.conf /etc/nginx/sites-enabled/site.con
 
 ADD docker/conf/configs/ /configs/
 
+RUN chmod -R 777 /var/www/app/frontend/
+

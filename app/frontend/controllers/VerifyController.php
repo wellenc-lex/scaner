@@ -211,36 +211,6 @@ class VerifyController extends Controller
 
         if ($secret === $secretIN) {
 
-            /* $allresults = Queue::find()
-                ->andWhere(['instrument' => "3"])
-                ->andWhere(['passivescan' => "0"])
-                ->andWhere(['todelete' => "1"])
-                ->limit(10)
-                ->all();
-
-             foreach ($allresults as $results) {
-
-                if ($results != NULL) {
-
-                    $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');
-
-                    if ($tools_amount_nuclei < 80) {
-
-                        $results->delete();
-
-                        $dirscanurl = $results->dirscanUrl;
-                        $dirscanip = $results->dirscanIP;
-
-                        if ($dirscanip != "") {
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nuclei > /dev/null 2>/dev/null &');
-                        } else {
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nuclei > /dev/null 2>/dev/null &');
-                        }
-                                         
-                    }
-                }
-            } */
-
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
@@ -313,9 +283,9 @@ class VerifyController extends Controller
                                 $dirscanip = $results->dirscanIP;
 
                                 if ($dirscanip != "") {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & ip=' . $dirscanip . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                                 } else {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' & taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                                 }
                                 $results->save();
 

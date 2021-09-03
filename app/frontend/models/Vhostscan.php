@@ -150,9 +150,9 @@ class Vhostscan extends ActiveRecord
         return $aliveports;
     }
 
-    public function getVHosts($domains, $amassoutput)
+    public function getVHosts($domains, $amassoutput, $vhostwordlist)
     {
-        global $randomid;
+        global $randomid; global $domains; global $vhostlist;
 
         $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
 
@@ -166,7 +166,6 @@ class Vhostscan extends ActiveRecord
                     array_push($domains, $json["name"]);
                 }
             }
-
         }
 
         foreach($domains as $domainarray){
@@ -190,6 +189,8 @@ class Vhostscan extends ActiveRecord
 
             $domains[] = $host;
         }
+
+        if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
 
         $vhostlist = array_unique($vhostlist);
         $domains = array_unique($domains);
@@ -239,8 +240,6 @@ class Vhostscan extends ActiveRecord
 
                 $task->save();
 
-
-                
                 exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
                 
                 return 1;
@@ -262,22 +261,11 @@ class Vhostscan extends ActiveRecord
                 return $exception.json_encode(array_unique($output));
             }
         }
-        
     }
-
 
 
     public static function vhostscan($input)
     {
-
-        //add regexp - ip regexp, port - onlynumbers - проверка прямо для текущего порта в самом начале выполнения, domain - onlyletters,numbers,/onedot , taskid - only numbers!!
-
-        //regexp - not banning, only searching for needed symbols!
-        //dirscan too!!
-
-        // символ переноса строки должен быть в вайтлисте - проверить запросом
-
-        // regexp только на уровне модели, сюда нет смысла - есть другие точки для иньекций ранее
 
         global $headers;
         global $randomid;
@@ -315,7 +303,7 @@ class Vhostscan extends ActiveRecord
 
             //add subdomain names from the input to the ffuf wordlist
             if( isset( $domains ) ){
-                vhostscan::getVHosts($domains, 0);
+                vhostscan::getVHosts($domains, 0, 0);
             }
 
             //asks each ip each domain on each port in cycle
@@ -334,9 +322,7 @@ class Vhostscan extends ActiveRecord
                     if( isset( $domains ) ){
                         $output[] = vhostscan::findVhostsWithDomain($scheme, $currentIP, $currentport);
                     }
-
                 }
-
             }
 
             vhostscan::saveToDB($taskid, $output);
@@ -360,6 +346,8 @@ class Vhostscan extends ActiveRecord
 
             Yii::$app->db->close();  
 
+            $vhostwordlist = json_decode($task->vhostwordlist, true);
+
             $amassoutput = json_decode($task->amass, true);
 
             $maindomain = $amassoutput[0]["domain"];
@@ -368,7 +356,7 @@ class Vhostscan extends ActiveRecord
             $output = array();
             static $ipsqueue;
 
-            vhostscan::getVHosts(0, $amassoutput);
+            vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
             if(isset($amassoutput)){
 
@@ -395,7 +383,7 @@ class Vhostscan extends ActiveRecord
 
                                     if ($stop == 0) { //if ip is allowed
 
-                                        $ipsqueue = $ipsqueue." ";
+                                        $ipsqueue = $ipsqueue." ".$ip["ip"];
 
                                         $curlalive = vhostscan::amassAlivePort($ip["ip"],$maindomain);
 
@@ -407,8 +395,6 @@ class Vhostscan extends ActiveRecord
                                             $output[] = vhostscan::findVhostsNoDomain($curlalive[$id]["scheme"], $ip["ip"], $curlalive[$id]["port"]);
 
                                         }
-
-                                        //var_dump($output);
 
                                         $checkedips[] = $ip["ip"]; //Mark IP as checked out
                                     }

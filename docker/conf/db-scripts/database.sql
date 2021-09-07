@@ -9,7 +9,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `scaner1`
+-- Database: `scaner`
 --
 
 -- --------------------------------------------------------
@@ -32,7 +32,7 @@ CREATE TABLE `gitscanpassive` (
   `needs_to_notify` int(11) NOT NULL,
   `token` varchar(100) NOT NULL DEFAULT '0',
   `viewed` int(11) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -64,8 +64,6 @@ CREATE TABLE `passive_scan` (
   `viewed` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
 --
 -- Table structure for table `queue`
 --
@@ -78,7 +76,7 @@ CREATE TABLE `queue` (
   `working` int(11) NOT NULL DEFAULT '0',
   `todelete` int(11) NOT NULL DEFAULT '0',
   `amassdomain` varchar(255) DEFAULT NULL,
-  `wordlist` tinyint(1) NULL DEFAULT '0',
+  `wordlist` tinyint(4) DEFAULT '0',
   `dirscanUrl` varchar(255) DEFAULT NULL,
   `dirscanIP` varchar(255) DEFAULT NULL,
   `nmap` varchar(6000) DEFAULT NULL,
@@ -86,7 +84,7 @@ CREATE TABLE `queue` (
   `vhostip` varchar(255) DEFAULT NULL,
   `vhostdomain` varchar(255) DEFAULT NULL,
   `vhostssl` tinyint(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -144,12 +142,6 @@ CREATE TABLE `tasks` (
   `hidden` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `tools_amount`
---
-
 CREATE TABLE `tools_amount` (
   `id` smallint(6) NOT NULL,
   `amass` smallint(6) NOT NULL DEFAULT '0',
@@ -159,6 +151,13 @@ CREATE TABLE `tools_amount` (
   `googlescan` smallint(6) NOT NULL DEFAULT '0',
   `gitscan` smallint(6) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `tools_amount`
+--
+
+INSERT INTO `tools_amount` (`id`, `amass`, `nmap`, `vhosts`, `dirscan`, `googlescan`, `gitscan`) VALUES
+(1, 0, 10, 0, 8, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -179,6 +178,13 @@ CREATE TABLE `user` (
   `scans_counter` int(11) NOT NULL DEFAULT '0',
   `scan_timeout` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `user`
+--
+
+INSERT INTO `user` (`id`, `auth_key`, `password_hash`, `password_reset_token`, `email`, `status`, `rights`, `created_at`, `updated_at`, `scans_counter`, `scan_timeout`) VALUES
+(10, 'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A', '$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe', NULL, 'admin@admin.com', 10, 0, 1575122687, 1630514317, 352, 1630432689);
 
 --
 -- Indexes for dumped tables
@@ -261,7 +267,7 @@ ALTER TABLE `passive_scan`
 -- AUTO_INCREMENT for table `queue`
 --
 ALTER TABLE `queue`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3604;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3608;
 
 --
 -- AUTO_INCREMENT for table `sent_email`
@@ -287,6 +293,13 @@ ALTER TABLE `tools_amount`
 ALTER TABLE `user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `passive_scan`
+--
 ALTER TABLE `passive_scan`
   ADD CONSTRAINT `passive_scan_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `user` (`id`);
 
@@ -302,11 +315,9 @@ ALTER TABLE `sent_email`
 ALTER TABLE `tasks`
   ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `user` (`id`);
 
-INSERT INTO `user` (`id`, `auth_key`, `password_hash`, `password_reset_token`, `email`, `status`, `rights`, `created_at`, `updated_at`, `scans_counter`, `scan_timeout`) VALUES
-(10, 'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A', '$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe', NULL, 'admin@admin.com', 10, 0, 1575122687, 1587303432, 0, 0);
-
-INSERT INTO `tools_amount` (`id`, `amass`, `nmap`, `vhosts`, `dirscan`, `googlescan`, `gitscan`) VALUES
-(1, 0, 0, 0, 0, 0, 0);
+ALTER TABLE `tasks` CHANGE `host` `host` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL; 
+ALTER TABLE `queue` CHANGE `dirscanUrl` `dirscanUrl` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL; 
+ALTER TABLE `queue` CHANGE `taskid` `taskid` INT(11) NULL DEFAULT NULL; 
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

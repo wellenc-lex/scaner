@@ -724,7 +724,7 @@ $this->registerJs($script, View::POS_READY);
                         <div class="dirscan">
                             <p align="center">URL for scanning with Dirscan:</p>
                             <?= $form->field($model, 'dirscanUrl', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "Scheme needed! https://example.com"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "https://example.com"])->label(false) ?>    
 
                             <?= $form->field($model, 'dirscanIp', [
                                 'inputTemplate' => '<div class="input-group"><span class="input-group-addon">IP</span>{input}</div>'])->textInput(['required' => false, 'placeholder' => "IP. Example: 8.8.8.8"])->label(false) ?>

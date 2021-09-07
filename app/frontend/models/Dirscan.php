@@ -13,6 +13,78 @@ class Dirscan extends ActiveRecord
         return 'tasks';
     }
 
+    public function savetodb($taskid, $hostname, $outputarray, $nuclei, $jsanalysis, $wayback_result)
+    {
+        if($jsanalysis=="c2VjcmV0ZmluZGVyIGVycm9yIG5vIGZpbGVsaW5rZmluZGVyIGVycm9yIG5vIGZpbGU=" && $outputarray=='["No file."]' && $nuclei=="null"){
+            return 1; //no need to save empty results
+        }
+
+        try{
+            Yii::$app->db->open();
+            global $usewordlist;
+
+            if($usewordlist==0){
+
+                $dirscan = Tasks::find()
+                    ->where(['taskid' => $taskid])
+                    ->limit(1)
+                    ->one();
+
+                if(!empty($dirscan)){ //if task exists in db
+
+                    $dirscan->dirscan_status = "Done.";
+                    $dirscan->dirscan = $outputarray;
+                    $dirscan->nuclei = $nuclei;
+                    $dirscan->js = $jsanalysis;
+                    $dirscan->wayback = $wayback_result;
+                    $dirscan->date = date("Y-m-d H-i-s");
+
+                    $dirscan->save();
+                    
+                } else {
+                    $dirscan = new Tasks();
+                    $dirscan->host = $hostname;
+                    $dirscan->dirscan_status = "Done.";
+                    $dirscan->dirscan = $outputarray;
+                    $dirscan->nuclei = $nuclei;
+                    $dirscan->js = $jsanalysis;
+                    $dirscan->wayback = $wayback_result;
+                    $dirscan->date = date("Y-m-d H-i-s");
+
+                    $dirscan->save();
+                }
+            } else {
+
+                $dirscan = new Tasks();
+                $dirscan->host = $hostname;
+                $dirscan->dirscan_status = "Done.";
+                $dirscan->dirscan = $outputarray;
+                $dirscan->nuclei = $nuclei;
+                $dirscan->js = $jsanalysis;
+                $dirscan->wayback = $wayback_result;
+                $dirscan->date = date("Y-m-d H-i-s");
+
+                $dirscan->save();
+            }
+            exec("sudo rm -r /ffuf/" . $randomid . "/");
+        } catch (\yii\db\Exception $exception) {
+
+            sleep(1000);
+            $dirscan = new Tasks();
+            $dirscan->taskid = $taskid;
+            $dirscan->host = $hostname;
+            $dirscan->dirscan_status = "Done.";
+            $dirscan->dirscan = $outputarray;
+            $dirscan->nuclei = $nuclei;
+            $dirscan->js = $jsanalysis;
+            $dirscan->wayback = $wayback_result;
+            $dirscan->date = date("Y-m-d H-i-s");
+
+            $dirscan->save();
+            return $exception.$outputarray.$nuclei.$jsanalysis.$wayback_result;
+        }    
+    }
+
     public function ParseHostname($url)
     {
         $url = strtolower($url);
@@ -40,26 +112,6 @@ class Dirscan extends ActiveRecord
         return $port[3]; //group  == port
     }
 
-    public function FindScheme($url)
-    {
-        //We need to find out which ports are alive to find virtual hosts on them
-        $schemes = ["http://", "https://"];
-        $returnscheme = array();
-
-        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
-
-        foreach ($schemes as $scheme){
-
-            $schemestatus = exec('curl --insecure --connection-timeout 30 -sL -w "%{http_code}\n" '. escapeshellarg($scheme . $domain[2]) .' -o /dev/null');
-
-            if($schemestatus != "000" && $schemestatus>1 && $schemestatus != "400"){
-                $returnscheme = $scheme;
-            }                 
-        }
-
-        return $returnscheme;
-    }
-
     public function ReadFFUFResult($filename, $localhost)
     {
         global $randomid;
@@ -83,9 +135,9 @@ class Dirscan extends ActiveRecord
                         if($localhost==1) $outputarray[$id]["localhost"] = 1;
 
                         if ($results["length"] < 350000 ){
-                            exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/");
+                            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-                            $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . ""));
+                            $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
                         }
                     }
                 }
@@ -116,209 +168,140 @@ class Dirscan extends ActiveRecord
         return $return; 
     }
 
-    public function savetodb($taskid, $hostname, $outputarray, $nuclei, $jsanalysis, $wayback_result)
-    {
-        if($jsanalysis=="c2VjcmV0ZmluZGVyIGVycm9yIG5vIGZpbGVsaW5rZmluZGVyIGVycm9yIG5vIGZpbGU=" && $outputarray=="" && $nuclei==""){
-            return 1; //no need to save empty results
-        }
-
-        try{
-            Yii::$app->db->open();
-            global $wordlist;
-
-            if($wordlist==0){
-
-                $dirscan = Tasks::find()
-                    ->where(['taskid' => $taskid])
-                    ->limit(1)
-                    ->one();
-
-                if(!empty($dirscan)){ //if task exists in db
-
-                    $dirscan->dirscan_status = "Done.";
-                    $dirscan->dirscan = $outputarray;
-                    $dirscan->nuclei = json_encode($nuclei);
-                    $dirscan->js = $jsanalysis;
-                    $dirscan->wayback = $wayback_result;
-                    $dirscan->date = date("Y-m-d H-i-s");
-
-                    $dirscan->save();
-                    
-                } else {
-                    $dirscan = new Tasks();
-                    $dirscan->host = $hostname;
-                    $dirscan->dirscan_status = "Done.";
-                    $dirscan->dirscan = $outputarray;
-                    $dirscan->nuclei = json_encode($nuclei);
-                    $dirscan->js = $jsanalysis;
-                    $dirscan->wayback = $wayback_result;
-                    $dirscan->date = date("Y-m-d H-i-s");
-
-                    $dirscan->save();
-                }
-            } else {
-
-                $dirscan = new Tasks();
-                $dirscan->host = $hostname;
-                $dirscan->dirscan_status = "Done.";
-                $dirscan->dirscan = $outputarray;
-                $dirscan->nuclei = json_encode($nuclei);
-                $dirscan->js = $jsanalysis;
-                $dirscan->wayback = $wayback_result;
-                $dirscan->date = date("Y-m-d H-i-s");
-
-                $dirscan->save();
-            }
-            exec("sudo rm -r /ffuf/" . $randomid . "/");
-        } catch (\yii\db\Exception $exception) {
-
-            sleep(1000);
-            $dirscan = new Tasks();
-            $dirscan->taskid = $taskid;
-            $dirscan->host = $hostname;
-            $dirscan->dirscan_status = "Done.";
-            $dirscan->dirscan = $outputarray;
-            $dirscan->nuclei = json_encode($nuclei);
-            $dirscan->js = $jsanalysis;
-            $dirscan->wayback = $wayback_result;
-            $dirscan->date = date("Y-m-d H-i-s");
-
-            $dirscan->save();
-            return $exception.$outputarray.$nuclei.$jsanalysis.$wayback_result;
-        }    
-    }
-
-
-    public function Wayback($url)
+    public function Gau($url, $randomid)
     {
         //Get subdomains from gau
         $name="/ffuf/" . $randomid . "/" . $randomid . "gau.txt";
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo docker run --cpu-shares 512 -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 10 -o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
-        $wayback_result = explode("\n", file_get_contents($name));
+        $gau_result = explode("\n", file_get_contents($name));
 
-        foreach ($wayback_result as $id => $result) {
+        foreach ($gau_result as $id => $result) {
             //wayback saves too much (js,images,xss payloads)
             if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
-                unset($wayback_result[$id]);
+                unset($gau_result[$id]);
             }
         }
 
-        $wayback_result = array_map('htmlentities', $wayback_result);
-        $wayback_result = json_encode($wayback_result, JSON_UNESCAPED_UNICODE);
+        $gau_result = array_map('htmlentities', $gau_result);
+        $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
 
-        return $wayback_result;
+        return $gau_result;
     }
 
     public static function dirscan($input)
     {
-        global $headers; $wordlist;
+        global $headers; global $usewordlist; global $randomid;
 
         $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
-        
-        $hostname = dirscan::ParseHostname($input["url"]);
 
-        $port = dirscan::ParsePort($input["url"]);
+        if( $input["url"] != "") $urls = explode(PHP_EOL, $input["url"]); else return 0; //no need to scan without supplied url
 
-        if ($port != "") $port = dirscan::ParsePort($input["url"]); else $port = "";
+        foreach ($urls as $currenturl){
 
-        $taskid = (int) $input["taskid"];
+            $hostname = dirscan::ParseHostname($currenturl);
 
-        $wordlist = (int) $input["wordlist"];
+            $port = dirscan::ParsePort($currenturl);
 
-        $randomid = $taskid;
+            $taskid = (int) $input["taskid"];
 
-        if (strpos($input["url"], 'https://') !== false) {
-            $scheme = "https://";
+            $usewordlist = $input["wordlist"];
+
+            $randomid = $taskid;
+
+            if (strpos($currenturl, 'https://') !== false) {
+                $scheme = "https://";
+            } else $scheme = "http://";
+
+            $hostname = trim($hostname, ' ');
+            $hostname = rtrim($hostname, '/');
+
+            $hostname = trim($hostname, ' ');
+            $port = trim($port, ' ');
+
+            $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
+
+            $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
+
+            if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
+
+            $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$hostname.",".$domainfull.",".$hostonly;
+
+            if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
+
+
+            exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
+
+            $output_ffuf = array();
+
+            $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
+            $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
+
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 2 ";
             
-            if (strpos($input["url"], 'http://') !== false) {
-                $scheme = "http://";
-            } else {
-                $scheme = dirscan::FindScheme($input["url"]);
+            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 30 -w /configs/dict.txt:FUZZ -r -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+
+            if (!isset($input["ip"])) {
+                $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
+                $gau_result = dirscan::gau($hostname, $randomid);
             }
-        }
 
-        $hostname = trim($hostname, ' ');
-        $hostname = rtrim($hostname, '/');
+            if (isset($input["ip"])) {
 
-        $hostname = trim($hostname, ' ');
-        $port = trim($port, ' ');
+                $ip = dirscan::ParseIP($input["ip"]);
 
-        $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
+                $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -H " . escapeshellarg('Host: ' . $hostname) . " -H 'CF-Connecting-IP: 127.0.0.1' -o " . $ffuf_output . "";
 
-        $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //hostname without subdomain and .com at the end
+                $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1' -o " . $ffuf_output_localhost . "";
 
-        if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
+                exec($start_dirscan_localhost);
+                $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1);
+            }
 
-        $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$hostname.",".$domainfull.",".$hostonly;
+            exec($start_dirscan);
 
-        if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
 
+            if($usewordlist="1"){
 
-        $output_ffuf = array();
+                //ffuf /site.com/subdomain.site.com/ from amass/gau wordlist
+                $task = Tasks::find()
+                        ->where(['taskid' => $taskid])
+                        ->limit(1)
+                        ->one();
 
-        $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
-        $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
+                Yii::$app->db->close();  
+                if($task){
+                    $vhostwordlist = json_decode($task->vhostwordlist, true);
 
-        $ffuf_string = "sudo mkdir /ffuf/" . $randomid . "/ && sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 2 ";
-        
-        $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 30 -w /configs/dict.txt:FUZZ -r -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+                    if (!empty($vhostwordlist)) {
+                        $hostsfile = "/ffuf/" . $randomid . "/" . $randomid . "domains.txt";
+                        file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
-        if (!isset($input["ip"])) {
-            $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
-            $wayback_result = dirscan::Wayback($hostname);
-        }
+                        $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
+                        exec($start_dirscan);
 
-        if (isset($input["ip"])) {
-
-            $ip = dirscan::ParseIP($input["ip"]);
-
-            $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -H " . escapeshellarg('Host: ' . $hostname) . " -H 'CF-Connecting-IP: 127.0.0.1' -o " . $ffuf_output . "";
-
-            $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1' -o " . $ffuf_output_localhost . "";
-
-            exec($start_dirscan_localhost);
-            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1);
-        }
-
-        exec($start_dirscan);
-        $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
-
-        if($wordlist==1){
-            //ffuf /site.com/subdomain.site.com/ from amass/gau wordlist
-            $task = Tasks::find()
-                    ->where(['taskid' => $taskid])
-                    ->limit(1)
-                    ->one();
-
-            Yii::$app->db->close();  
-            if($task){
-                $vhostwordlist = json_decode($task->vhostwordlist, true);
-
-                if (!empty($vhostwordlist)) {
-                    $hostsfile = "/ffuf/" . $randomid . "/" . $randomid . "domains.txt";
-                    file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
-
-                    $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
-                    $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
+                        $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
+                    }
                 }
             }
+
+            $output_ffuf = json_encode(array_unique($output_ffuf));
+
+            $nuclei = json_encode(Nuclei::Nucleiscan($scheme,$hostname,$port,$randomid)); //starts nuclei scan and stores result json into $nuclei
+
+            $jsanalysis = dirscan::jsa($scheme,$hostname,$port, $randomid);
+
+            dirscan::savetodb($taskid, $hostname, $output_ffuf, $nuclei, $jsanalysis, $gau_result);
+
+            Yii::$app->db->close();  
         }
         
-
-        $output_ffuf = json_encode(array_unique($output_ffuf));
-
-        $nuclei = Nuclei::Nucleiscan($scheme,$hostname,$port,$randomid); //starts nuclei scan and stores result json into $nuclei
-
-        $jsanalysis = dirscan::jsa($scheme,$hostname,$port, $randomid);
-
-        dirscan::savetodb($taskid, $hostname, $output_ffuf, $nuclei, $jsanalysis, $wayback_result);
-
         return 1;
     }
 

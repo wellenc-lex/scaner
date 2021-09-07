@@ -46,8 +46,8 @@ class Newscan extends Model
             [['amassDomain'], 'string', 'length' => [5, 255]],
             [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\:]+)$/'],
 
-            [['dirscanUrl'], 'string', 'length' => [5, 255]],
-            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\.\-\/\:]+)$/'],
+            [['dirscanUrl'], 'string'],
+            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\.:,\-\/\r\n]+)$/'],
 
             [['dirscanIp'], 'string', 'length' => [5, 255]],
             [['dirscanIp'], 'ip'],
@@ -71,7 +71,7 @@ class Newscan extends Model
             [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9,=  %&\.\-\/\:;]+)$/'],
 
             [['vhostDomain'], 'string'],
-            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.,\-\/\r\n]+)$/'],
+            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.:,\-\/\r\n]+)$/'],
 
             [['vhostIp'], 'string'],
             [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\r\n]+)$/'],

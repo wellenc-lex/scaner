@@ -111,6 +111,7 @@ class Amass extends ActiveRecord
         dev
         cloud
         */
+
         function splitting($input){
             global $wordlist;
             preg_match_all("/\w*\./", $input, $out);
@@ -125,60 +126,84 @@ class Amass extends ActiveRecord
         }
 
         $wordlist = array(); //all words from subdomain names
-        $subdomainwordlist = array(); //subdomains from gau and amass
+        $vhostswordlist = array(); //subdomains from gau and amass
 
         if($gau!=""){
             foreach($gau as $subdomain){
-                $subdomainwordlist[] = $subdomain;
+                $vhostswordlist[] = $subdomain;
             }
         }
 
         if(isset($amassoutput) && $amassoutput!=""){
 
+            $amassoutput = json_decode($amassoutput, true);
+
             //Get vhost names from amass scan & wordlist file + use only unique ones
-            foreach ($amassoutput as $json) {
+            foreach ($amassoutput as $amass) {
 
-                foreach ($json["name"] as $name) {
+                $name = $amass["name"];
 
-                    if (strpos($name, 'https://xn--') === false) {
+                if (strpos($name, 'https://xn--') === false) {
 
-                        $subdomainwordlist[] = $name;
+                    $vhostswordlist[] = $name;
 
-                        $queue = new Queue();
-                        $queue->taskid = $taskid;
-                        $queue->dirscanUrl = $name;
-                        $queue->instrument = 3;
-                        $queue->wordlist = 1;
-                        $queue->save();  
+                    splitting($name);
 
-                        splitting($name);
+                    preg_match_all("/\w*\./", $name, $matches);
 
-                        preg_match_all("/\w*\./", $name, $matches);
-
-                        foreach($matches[0] as $match){
-                            $wordlist[] = rtrim($match, ".");
-                        }
+                    foreach($matches[0] as $match){
+                        $wordlist[] = rtrim($match, ".");
                     }
                 }
             }
         }
-                    
-        $subdomainwordlist = array_unique(array_merge($wordlist,$subdomainwordlist));
+        
+        $vhostswordlist = array_unique(array_merge($wordlist,$vhostswordlist));
 
-        return json_encode($subdomainwordlist);
+        return $vhostswordlist;
+    }
+
+    public function httpxhosts($list, $taskid, $randomid)
+    {
+        $wordlist = "/dockerresults/" . $randomid . "hosts.txt";
+        $output = "/dockerresults/" . $randomid . "httpx.txt";
+        
+        file_put_contents($wordlist, implode( PHP_EOL, $list) );
+
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -silent -o ". $output ." -l ". $wordlist ."";
+        exec($httpx);
+
+        if (file_exists($output)) {
+            $alive = file_get_contents($output);
+            $alive = explode(PHP_EOL,$alive);
+
+            foreach($alive as $url) {
+
+                $queue = new Queue();
+                $queue->taskid = $taskid;
+                $queue->dirscanUrl = $url;
+                $queue->instrument = 3;
+                $queue->wordlist = 1;
+                $queue->save();
+            }
+        }
+        
+        return 1;
     }
 
     public function gauhosts($domain, $randomid, $gauoutputname)
     {
         //Get subdomains from gau
-        $name="/dockerresults/" .$randomid. "unique.txt";
+        $name="/dockerresults/" .$randomid. "gau.txt";
 
-        $gau = "sudo docker run --cpu-shares 512 -v dockerresults:/dockerresults 5631/gau gau -b eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,js -t 1 -subs -retries 10 -o ". $name ." " . escapeshellarg($domain) . " ";
+        $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
+
+        $gau = "sudo chmod -R 777 /dockerresults && sudo chmod -R 777 /dockerresults/ && sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 
         //filters url scheme and some unicode symbols
-        exec("cat ". $name ." | grep -vE '(https?:\/\/)xn\-\-*' -o | grep -E '(https?:\/\/).[^\/\:]*' -o | sed -nre 's~https?://~~p' | sort -u | tee -a ". $gauoutputname ."");
+        exec("cat ". $name ." | grep -vE '(https?:\/\/)xn\-\-*' | grep -E '(https?:\/\/).[^\/\:]*' -o | sed -nre 's~https?://~~p' | sort -u | tee -a ". $gauoutputname ."");
 
         if (file_exists($gauoutputname)) {
             $output = file_get_contents($gauoutputname);
@@ -187,7 +212,6 @@ class Amass extends ActiveRecord
         
         return $output;
     }
-
     
     public function aquatone($randomid)
     {
@@ -289,12 +313,13 @@ class Amass extends ActiveRecord
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
-
         $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass1.ini";
 
         //exec($command);
 
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -timeout 2000 -ip -config /configs/amass5.ini";
+        $jsonoutput = " -json /dockerresults/" . $randomid . "amass.json";
+
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 2000 -ip -config /configs/amass6.ini ";
 
         exec($command);
 
@@ -327,11 +352,15 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        $aquatoneoutput = amass::aquatone($randomid);
+        $aquatoneoutput = "[]";#amass::aquatone($randomid);
 
         $subtakeover = 0;
 
         $vhosts = amass::vhosts($amassoutput, $gau, $taskid);
+
+        amass::httpxhosts($vhosts, $taskid, $randomid); // dirscan domains found by amass+gau
+
+        $vhosts = json_encode($vhosts);
 
         amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
 

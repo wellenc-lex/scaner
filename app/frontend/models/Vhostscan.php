@@ -13,192 +13,18 @@ class Vhostscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function ParseHostname($url)
-    {
-        $url = strtolower($url);
-
-        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
-
-        foreach ($domains[2] as $domain) {
-            if ($domain != "") $hostname = $hostname." ".$domain; //??????????????????? null" "domain?????? P.S. it works but i really have no idea why
-        }
-        
-        return $hostname;
-    }
-
-    public function ReadFFUFResult($filename)
-    {
-        global $randomid;
-
-        if (file_exists($filename)) {
-            $output = json_decode(file_get_contents($filename), true);
-
-            $output_vhost_array = array();
-            $id=0;
-            $result_length = array();
-
-            if( isset($output["results"]) ) {
-                foreach ($output["results"] as $results) {
-                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
-                        $id++;
-                        $result_length[] = $results["length"];//so no duplicates gonna be added
-                        $output_vhost_array[$id]["url"] = $results["url"];
-                        $output_vhost_array[$id]["length"] = $results["length"];
-                        $output_vhost_array[$id]["status"] = $results["status"];
-                        $output_vhost_array[$id]["redirect"] = $results["redirectlocation"];
-                        $output_vhost_array[$id]["host"] = $results["host"];
-
-                        if ($results["length"] < 350000 ){
-                            exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/");
-
-                            $output_vhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . ""));
-                        }
-                    }
-                }
-            } else $output_vhost_array = "No file.";
-        } else $output_vhost_array = "No file.";
-        
-        return $output_vhost_array;
-    }
-
-    public function FindVhostsWithDomain($scheme, $ip, $port)
-    {
-        global $headers;
-        global $randomid;
-
-        $ip = trim($ip, ' ');
-        $port = trim($port, ' ');
-
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o /ffuf/vhost" . $randomid . "/" . $randomid . "domain.json -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -u ";
-
-        $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
-
-        //Asks Host:localhost.domain.com, dev.domain.com, etc
-        exec($ffuf_general_string . escapeshellarg($scheme . $ip .":". $port ."/" ) . " -H 'Host: FUZZ.HOSTS' -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS ");
-
-        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
-
-        //Asks localhost/domain.com/
-        exec($ffuf_general_string . escapeshellarg($scheme . $ip .":". $port ."/HOSTS/") . " -H 'Host: localhost' -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS ");
-
-        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
-
-        $output_vhost = array_unique($output_vhost);
-
-        return $output_vhost;
-    }
-
-    public function findVhostsNoDomain($scheme, $ip, $port)
-    {
-        global $headers;
-        global $randomid;
-
-        $ip = trim($ip, ' ');
-        $port = trim($port, ' ');
-
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o /ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -u ";
-
-        $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
+    public function ipCheck($IP, $CIDR){
             
-        //Asks Host:localhost, dev, etc
-        exec($ffuf_general_string . escapeshellarg($scheme. $ip .":". $port ."/") . " -H 'Host: FUZZ' ");
+        list ($net, $mask) = explode("/", $CIDR);
 
-        $output_vhosts[] = vhostscan::ReadFFUFResult($vhost_file_location);
+        $ip_net = ip2long($net);
+        $ip_mask = ~((1 << (32 - $mask)) - 1);
 
-        //Asks Host:admin.dev, asdf.dev
-        exec($ffuf_general_string . escapeshellarg($scheme . $ip .":". $port ."/") . " -H 'Host: FUZZ.dev' ");
+        $ip_ip = ip2long($IP);
 
-        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+        $ip_ip_net = $ip_ip & $ip_mask;
 
-        //Asks Host:admin.local, asdf.local
-        exec($ffuf_general_string . escapeshellarg($scheme . $ip .":". $port ."/") . " -H 'Host: FUZZ.local' ");
-
-        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
-
-        $output_vhost = array_unique($output_vhost);
-
-        return $output_vhosts;
-    }
-
-    public function amassAlivePort($ip,$url)
-    {
-        //We need to find out which ports are alive to find virtual hosts on them
-        $ports = ["80","443","8080","8443","8000"];
-        $schemes = ["http://", "https://"];
-        $aliveports = array();
-
-        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
-
-        foreach($ports as $port){
-
-            foreach ($schemes as $scheme){
-
-                static $id = 1;
-
-                $portstatus = exec('curl --insecure -sL --connection-timeout 30 -w "%{http_code}\n" '. $scheme . $domain[2] .':' . $port . ' -L --resolve ' . $domain[2] . ':' . $port . ':' . $ip . ' -o /dev/null');
-
-                if($portstatus != "000" && $portstatus>1 && $portstatus != "400"){
-                    if(($port!="443" && $scheme="http://") && ($port!="8443" && $scheme="http://") ){
-                        $aliveports[$id]["port"] = $port;
-                        $aliveports[$id]["scheme"] = $scheme;
-                    }
-                }
-                
-                $id++;                      
-            }
-        }
-        return $aliveports;
-    }
-
-    public function getVHosts($domains, $amassoutput, $vhostwordlist)
-    {
-        global $randomid; global $domains; global $vhostlist;
-
-        $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
-
-        if($amassoutput != 0){
-
-            $domains = array();
-
-            foreach ($amassoutput as $json) {
-                if (!in_array($json["name"], $vhostlist)) {
-                    //push full admin.something.com to the vhost domains list
-                    array_push($domains, $json["name"]);
-                }
-            }
-        }
-
-        foreach($domains as $domainarray){
-
-            $host = preg_replace("~https?://~", "", $domainarray);
-            $host = rtrim($host, '/');
-
-            $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
-
-            $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //something.com -> something
-
-            if ($domainfull == $hostonly) $hostonly = "";
-
-            if ($domainfull != "") {
-                array_push($vhostlist, $domainfull); //admin.something.com -> admin.something
-
-                if ($hostonly != "") {
-                    array_push($vhostlist, $hostonly); //admin.something.com -> admin
-                }
-            }
-
-            $domains[] = $host;
-        }
-
-        if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
-
-        $vhostlist = array_unique($vhostlist);
-        $domains = array_unique($domains);
-        
-        file_put_contents("/ffuf/vhost" . $randomid . "/wordlist.txt", implode( PHP_EOL, $vhostlist) ); //push wordlist on the disk so ffuf could use it
-        file_put_contents("/ffuf/vhost" . $randomid . "/domains.txt", implode( PHP_EOL, $domains) ); //to use domains supplied by user as FFUF wordlist
-
-        return 1;
+        return ($ip_ip_net == $ip_net);
     }
 
     public function saveToDB($taskid, $output, $nmapips)
@@ -210,6 +36,9 @@ class Vhostscan extends ActiveRecord
             try{
 
                 Yii::$app->db->open();
+
+                $nmapips = preg_replace('/(https?:\/\/)/ig', '', $nmapips);
+                $nmapips = preg_replace('/\:\d*/g', '', $nmapips);
 
                 //add ips for nmap scan to queue
                 $queue = new Queue();
@@ -263,6 +92,219 @@ class Vhostscan extends ActiveRecord
         }
     }
 
+    public function ParseHostname($url)
+    {
+        $url = strtolower($url);
+
+        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
+
+        foreach ($domains[2] as $domain) {
+            if ($domain != "") $hostname = $hostname." ".$domain; //??????????????????? null" "domain?????? P.S. it works but i really have no idea why
+        }
+        
+        return $hostname;
+    }
+
+    public function ReadFFUFResult($filename)
+    {
+        global $randomid;
+
+        if (file_exists($filename)) {
+            $output = json_decode(file_get_contents($filename), true);
+
+            $output_vhost_array = array();
+            $id=0;
+            $result_length = array();
+
+            if( isset($output["results"]) ) {
+                foreach ($output["results"] as $results) {
+                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
+                        $id++;
+                        $result_length[] = $results["length"];//so no duplicates gonna be added
+                        $output_vhost_array[$id]["url"] = $results["url"];
+                        $output_vhost_array[$id]["length"] = $results["length"];
+                        $output_vhost_array[$id]["status"] = $results["status"];
+                        $output_vhost_array[$id]["redirect"] = $results["redirectlocation"];
+                        $output_vhost_array[$id]["host"] = $results["host"];
+
+                        if ($results["length"] < 350000 ){
+                            exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/");
+
+                            $output_vhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . ""));
+                        }
+                    }
+                }
+            } else $output_vhost_array = "No file.";
+        } else $output_vhost_array = "No file.";
+        
+        return $output_vhost_array;
+    }
+
+    public function FindVhostsWithDomain($host)
+    {
+        global $headers;
+        global $randomid;
+
+        $host = trim($host, ' ');
+
+        $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
+
+        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -u ";
+
+        $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
+
+        //Asks Host:localhost.domain.com, dev.domain.com, etc
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.HOSTS' -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS ");
+
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+
+        //Asks localhost/domain.com/
+        exec($ffuf_general_string . escapeshellarg($host ."/HOSTS/") . " -H 'Host: localhost' -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS ");
+
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+
+        $output_vhost = array_unique($output_vhost);
+
+        return $output_vhost;
+    }
+
+    public function findVhostsNoDomain($host)
+    {
+        global $headers;
+        global $randomid;
+
+        $host = trim($host, ' ');
+
+        $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
+
+        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -u ";
+
+        $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
+            
+        //Asks Host:localhost, dev, etc
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ' ");
+
+        $output_vhosts[] = vhostscan::ReadFFUFResult($vhost_file_location);
+
+        //Asks Host:admin.dev, asdf.dev
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.dev' ");
+
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+
+        //Asks Host:admin.local, asdf.local
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.local' ");
+
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+
+        $output_vhost = array_unique($output_vhost);
+
+        return $output_vhosts;
+    }
+
+    public function httpxhosts($amassoutput)
+    {
+        global $iparray; $iparray = array();
+        global $randomid;
+
+        //Cloudflare ip ranges + private networks - no need to ffuf
+        $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
+            "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
+            "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
+            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24","23.74.0.0/23");
+
+        foreach($amassoutput as $json){
+            foreach ($json["addresses"] as $ip) {
+
+                if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
+
+                    if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
+
+                        $stop = 0;
+
+                        for ($n = 0; $n < count($masks); $n++) { 
+
+                            if (((vhostscan::ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
+                                $stop = 1;
+                                break;
+                            } else $stop = 0;
+
+                        }
+
+                        if ($stop == 0) { //if ip is allowed
+
+                            $iparray[] = $ip["ip"];
+                        }
+                    }
+                }
+            }
+        }
+
+        $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
+        $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
+        
+        file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
+
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -exclude-cdn -threads 20 -silent -o ". $output ." -l ". $wordlist ."";
+        exec($httpx);
+
+        if (file_exists($output)) {
+            $alive = file_get_contents($output);
+            $alive = explode(PHP_EOL,$alive);
+        } else $alive = [];
+        
+        return $alive;
+    }
+
+    public function getVHosts($domains, $amassoutput, $vhostwordlist)
+    {
+        global $randomid; global $domains; global $vhostlist;
+
+        $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
+
+        if($amassoutput != 0){
+
+            $domains = array();
+
+            foreach ($amassoutput as $json) {
+                if (!in_array($json["name"], $vhostlist)) {
+                    //push full admin.something.com to the vhost domains list
+                    array_push($domains, $json["name"]);
+                }
+            }
+        }
+
+        foreach($domains as $domainarray){
+
+            $host = preg_replace("~https?://~", "", $domainarray);
+            $host = rtrim($host, '/');
+
+            $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
+
+            $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //something.com -> something
+
+            if ($domainfull == $hostonly) $hostonly = "";
+
+            if ($domainfull != "") {
+                array_push($vhostlist, $domainfull); //admin.something.com -> admin.something
+
+                if ($hostonly != "") {
+                    array_push($vhostlist, $hostonly); //admin.something.com -> admin
+                }
+            }
+
+            $domains[] = $host;
+        }
+
+        if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
+
+        $vhostlist = array_unique($vhostlist);
+        $domains = array_unique($domains);
+        
+        file_put_contents("/ffuf/vhost" . $randomid . "/wordlist.txt", implode( PHP_EOL, $vhostlist) ); //push wordlist on the disk so ffuf could use it
+        file_put_contents("/ffuf/vhost" . $randomid . "/domains.txt", implode( PHP_EOL, $domains) ); //to use domains supplied by user as FFUF wordlist
+
+        return 1;
+    }
 
     public static function vhostscan($input)
     {
@@ -270,21 +312,7 @@ class Vhostscan extends ActiveRecord
         global $headers;
         global $randomid;
 
-        $headers = " -p 1 -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' "; //-H 'CF-Connecting-IP: 127.0.0.1'
-
-        function ipCheck($IP, $CIDR){
-            
-            list ($net, $mask) = explode("/", $CIDR);
-
-            $ip_net = ip2long($net);
-            $ip_mask = ~((1 << (32 - $mask)) - 1);
-
-            $ip_ip = ip2long($IP);
-
-            $ip_ip_net = $ip_ip & $ip_mask;
-
-            return ($ip_ip_net == $ip_net);
-        }
+        $headers = " -p 0.5 -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' ";
 
         if( isset( $input["taskid"]) ) {
             $randomid = (int) $input["taskid"]; 
@@ -317,10 +345,10 @@ class Vhostscan extends ActiveRecord
                         $scheme = "https://";
                     } else $scheme = "http://";
 
-                    $output[] = vhostscan::findVhostsNoDomain($scheme, $currentIP, $currentport);
+                    $output[] = vhostscan::findVhostsNoDomain($scheme . $currentIP . ":" . $currentport);
 
                     if( isset( $domains ) ){
-                        $output[] = vhostscan::findVhostsWithDomain($scheme, $currentIP, $currentport);
+                        $output[] = vhostscan::findVhostsWithDomain($scheme . $currentIP . ":" . $currentport);
                     }
                 }
             }
@@ -331,11 +359,6 @@ class Vhostscan extends ActiveRecord
 
         if ((isset($input["taskid"]) && $input["taskid"] != "") && (!isset($input["ip"]))) {
 
-            //Cloudflare ip ranges + private networks - no need to ffuf
-            $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
-                "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22",
-                "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
-                "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24","23.74.0.0/23");
 
             $taskid = (int) $input["taskid"];
 
@@ -352,60 +375,25 @@ class Vhostscan extends ActiveRecord
 
             $maindomain = $amassoutput[0]["domain"];
 
-            $checkedips = array();
             $output = array();
-            static $ipsqueue;
 
             vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
             if(isset($amassoutput)){
 
-                //Get vhost names from amass scan & wordlist file + use only unique ones
-                foreach ($amassoutput as $json) {
+                $alive = vhostscan::httpxhosts($amassoutput);
 
-                    foreach ($json["addresses"] as $ip) {
+                foreach($alive as $host) {
 
-                        if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
-
-                            if (strpos($ip["ip"], '127.0.0.1') === false) {
-
-                                if (!in_array($ip["ip"], $checkedips)) { //if ip wasnt called earlier - then call it
-
-                                    $stop = 0;
-
-                                    for ($n = 0; $n < count($masks); $n++) { 
-
-                                        if (((ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
-                                            $stop = 1;
-                                            break;
-                                        } else $stop = 0;
-                                    }
-
-                                    if ($stop == 0) { //if ip is allowed
-
-                                        $ipsqueue = $ipsqueue." ".$ip["ip"];
-
-                                        $curlalive = vhostscan::amassAlivePort($ip["ip"],$maindomain);
-
-                                        foreach ($curlalive as $id=>$value){
-
-                                            //http://127.0.0.18080
-
-                                            $output[] = vhostscan::findVhostsWithDomain($curlalive[$id]["scheme"], $ip["ip"], $curlalive[$id]["port"]);
-                                            $output[] = vhostscan::findVhostsNoDomain($curlalive[$id]["scheme"], $ip["ip"], $curlalive[$id]["port"]);
-
-                                        }
-
-                                        $checkedips[] = $ip["ip"]; //Mark IP as checked out
-                                    }
-                                }
-                            }    
-                        }
+                    if($host!=""){
+                        $output[] = vhostscan::findVhostsWithDomain($host);
+                        $output[] = vhostscan::findVhostsNoDomain($host);
                     }
                 }
             } else return "NO AMASS RESULTS or NO PORTS";
 
-            vhostscan::saveToDB($taskid, $output, $ipsqueue);
+            vhostscan::saveToDB($taskid, $output, implode( " ", $alive) );
+            
             return 1;
         }
     }

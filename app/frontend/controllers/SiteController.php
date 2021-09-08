@@ -340,25 +340,35 @@ class SiteController extends Controller
 
                     if (isset($url["amassDomain"]) and $url["amassDomain"] != "") {
 
-                        $tasks->host = $url["amassDomain"];
-                        $tasks->amass_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "2";
-                        $amass = 1;
+                        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url["amassDomain"], $domain); 
+                        
+                        $DomainsAlreadyinDB = Tasks::find()
+                            ->andWhere(['userid' => Yii::$app->user->id])
+                            ->andWhere(['=', 'host', $url["amassDomain"]])
+                            ->exists(); 
 
-                        $queue = new Queue();
-                        $queue->amassdomain = $url["amassDomain"];
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 2;
-                        $queue->save();
+                        if($DomainsAlreadyinDB = 0){
+                            $url["amassDomain"] = $domain[2][0];
+                            $tasks->host = $url["amassDomain"];
+                            $tasks->amass_status = "Working";
+                            $tasks->notify_instrument = $tasks->notify_instrument . "2";
+                            $amass = 1;
 
-                        //adds the domain to scan it later continiously
-                        if ($url["passive"] == 1) {
-                            $passive = new PassiveScan();
-                            $passive->userid = Yii::$app->user->id;
-                            $passive->notifications_enabled = 1;
-                            $passive->amassDomain = $url["amassDomain"];
-                            $passive->scanday = rand(1, 28);
-                            $passive->save();
+                            $queue = new Queue();
+                            $queue->amassdomain = $url["amassDomain"];
+                            $queue->taskid = $tasks->taskid;
+                            $queue->instrument = 2;
+                            $queue->save();
+
+                            //adds the domain to scan it later continiously
+                            if ($url["passive"] == 1) {
+                                $passive = new PassiveScan();
+                                $passive->userid = Yii::$app->user->id;
+                                $passive->notifications_enabled = 1;
+                                $passive->amassDomain = $url["amassDomain"];
+                                $passive->scanday = rand(1, 28);
+                                $passive->save();
+                            }
                         }
                     }
 

@@ -66,7 +66,7 @@ class Dirscan extends ActiveRecord
 
                 $dirscan->save();
             }
-            exec("sudo rm -r /ffuf/" . $randomid . "/");
+           
         } catch (\yii\db\Exception $exception) {
 
             sleep(1000);
@@ -89,9 +89,9 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.\/]*)/", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
         
-        return $domain[2]; //group 2 == domain name
+        return $domain[2][0]; //group 2 == domain name
     }
 
     public function ParseIP($ip)
@@ -107,7 +107,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d*)/", $url, $port); //get hostname only
+        preg_match("/(https?:\/\/)([a-z\:-\d\.]*)(:\d*)/", $url, $port); //get hostname only
         
         return $port[3]; //group  == port
     }
@@ -137,7 +137,11 @@ class Dirscan extends ActiveRecord
                         if ($results["length"] < 350000 ){
                             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-                            $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
+                            $resultfilename = "/ffuf/" . $randomid . "/" . $results["resultfile"] . "";
+
+                            if (file_exists($resultfilename)) {
+                                $outputarray[$id]["resultfile"] = base64_encode(file_get_contents($resultfilename));
+                            }
                         }
                     }
                 }
@@ -179,18 +183,23 @@ class Dirscan extends ActiveRecord
 
         exec($gau);
 
-        $gau_result = explode("\n", file_get_contents($name));
+        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ &");
+        exec("sudo rm ".$name);
 
-        foreach ($gau_result as $id => $result) {
-            //wayback saves too much (js,images,xss payloads)
-            if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
-                unset($gau_result[$id]);
+        if( file_exists($name) ){
+            $gau_result = explode("\n", file_get_contents($name));
+
+            foreach ($gau_result as $id => $result) {
+                //wayback saves too much (js,images,xss payloads)
+                if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
+                    unset($gau_result[$id]);
+                }
             }
-        }
 
-        $gau_result = array_map('htmlentities', $gau_result);
-        $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
-
+            $gau_result = array_map('htmlentities', $gau_result);
+            $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
+        } else $gau_result="";
+        
         return $gau_result;
     }
 
@@ -236,13 +245,14 @@ class Dirscan extends ActiveRecord
 
 
             exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
+            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ &");
 
             $output_ffuf = array();
 
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 2 ";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 0.5 ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 30 -w /configs/dict.txt:FUZZ -r -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -283,7 +293,7 @@ class Dirscan extends ActiveRecord
                         $hostsfile = "/ffuf/" . $randomid . "/" . $randomid . "domains.txt";
                         file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
-                        $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
+                        $start_dirscan = $ffuf_string . " -mc all -timeout 20 -r -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
                         exec($start_dirscan);
 
                         $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
@@ -302,7 +312,7 @@ class Dirscan extends ActiveRecord
             Yii::$app->db->close();  
         }
         
-        return 1;
+        return exec("sudo rm -r /ffuf/" . $randomid . "/");;
     }
 
 }

@@ -37,15 +37,6 @@ class Vhostscan extends ActiveRecord
 
                 Yii::$app->db->open();
 
-                $nmapips = preg_replace('/(https?:\/\/)/ig', '', $nmapips);
-                $nmapips = preg_replace('/\:\d*/g', '', $nmapips);
-
-                //add ips for nmap scan to queue
-                $queue = new Queue();
-                $queue->nmap = $nmapips;
-                $queue->instrument = 1;
-                $queue->save();
-
                 $decrement = ToolsAmount::find()
                         ->where(['id' => 1])
                         ->one();
@@ -60,7 +51,7 @@ class Vhostscan extends ActiveRecord
                 $decrement->save();
 
                 $task = new Tasks();
-                        
+                
                 $task->vhost_status = "Done.";
                 $task->notify_instrument = $task->notify_instrument."7";
                 $task->vhost = $output;
@@ -68,6 +59,15 @@ class Vhostscan extends ActiveRecord
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save();
+
+                $nmapips = preg_replace('/(https?:\/\/)/i', '', $nmapips);
+                $nmapips = preg_replace('/\:\d*/', '', $nmapips);
+
+                //add ips for nmap scan to queue
+                $queue = new Queue();
+                $queue->nmap = $nmapips;
+                $queue->instrument = 1;
+                $queue->save();
 
                 exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
                 
@@ -96,9 +96,9 @@ class Vhostscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
+        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domains); 
 
-        foreach ($domains[2] as $domain) {
+        foreach ($domains[2][0] as $domain) {
             if ($domain != "") $hostname = $hostname." ".$domain; //??????????????????? null" "domain?????? P.S. it works but i really have no idea why
         }
         

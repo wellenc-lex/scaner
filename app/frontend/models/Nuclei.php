@@ -61,9 +61,9 @@ class Nuclei extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)?([a-zA-Z-\d\.]*)/", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
         
-        return $domain[2]; //group 2 == domain name
+        return $domain[2][0]; //group 2 == domain name
     }
 
     public function ParseIP($ip)
@@ -79,7 +79,7 @@ class Nuclei extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-z-\d\.]*)(:\d*)/", $url, $port); //get hostname only
+        preg_match("/(https?:\/\/)([a-z\:-\d\.]*)(:\d*)/", $url, $port); //get hostname only
         
         return $port[3]; //group  == port
     }

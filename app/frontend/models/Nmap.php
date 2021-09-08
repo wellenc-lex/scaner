@@ -31,12 +31,14 @@ class Nmap extends ActiveRecord
 
         $randomid = $taskid;
 
-        //sudo nohup sudo nmap -sX -T2 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC -oA /root/scan1 --stylesheet /root/project/docker/conf/configs/nmap.xsl --script http-open-proxy --script=ftp-* --script=rsync-list-modules --script=mysql-* --script=smb-os-discovery --script=nfs-ls --script-args='brute.delay=2,brute.firstonly=1' --script smb-enum* --script smb-ls --script smb-os-discovery -g 22 --script smb-s* --script smb-vuln* --script http-default-accounts --script=ms-sql-brute --script=redis-brute --script=pgsql-brute -sC --script-args http-default-accounts.fingerprintfile=/root/project/docker/conf/configs/nmap-fingerprints.lua > /root/nmap1.txt &
+        //sudo nohup sudo nmap -sS -T3 -p- -A --host-timeout 4000m --source-port 22 --script-timeout 1500m -sC -oA /root/scan2 --stylesheet /root/project/docker/conf/configs/nmap.xsl --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script-args='brute.delay=2,brute.firstonly=1' --script smb-enum* --script smb-ls --script smb-os-discovery  --script smb-s* --script smb-vuln* --script http-default-accounts --script ms-sql-brute --script redis-brute --script pgsql-brute --script smb-protocols -sC --script-args http-default-accounts.fingerprintfile=/root/project/docker/conf/configs/nmap-fingerprints.lua > /root/nmap2.txt & 
+
+        //-g 22
         
         //sudo /usr/bin/xsltproc -o /root/scan1.html /root/project/docker/conf/configs/nmap.xsl /root/scan1.xml
                 
-        $scripts = " --script http-open-proxy --script=ftp-* --script=rsync-list-modules --script=mysql-* --script=smb-os-discovery --script=nfs-ls --script=redis-brute".
-                    "--script-args='brute.delay=2,brute.firstonly=1' --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script=ms-sql-brute --script=pgsql-brute -sC";
+        $scripts = " --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute".
+                    "--script-args='brute.delay=2,brute.firstonly=1' --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC";
 
 
         //" . escapeshellarg($url) . " Gives Failed to resolve " $url ". , don't know how to fix, left it as is.

@@ -6,3 +6,4 @@ app/protected/data/*.db
 app/themes/classic/views/
 docker/database/*
 todo
+commands

@@ -4,6 +4,8 @@ namespace frontend\models;
 
 use Yii;
 use yii\db\ActiveRecord;
+use frontend\models\Nuclei;
+use frontend\models\Queue;
 require_once 'Nuclei.php';
 
 class Dirscan extends ActiveRecord
@@ -66,6 +68,15 @@ class Dirscan extends ActiveRecord
 
                 $dirscan->save();
             }
+
+            $queue = Queue::find()
+                ->where(['taskid' => $taskid])
+                ->andwhere(['=', 'instrument', '3'])
+                ->limit(1)
+                ->one();
+
+            $queue->todelete = 1;
+            $queue->save();
            
         } catch (\yii\db\Exception $exception) {
 
@@ -81,6 +92,16 @@ class Dirscan extends ActiveRecord
             $dirscan->date = date("Y-m-d H-i-s");
 
             $dirscan->save();
+
+            $queue = Queue::find()
+                ->where(['taskid' => $taskid])
+                ->andwhere(['=', 'instrument', '3'])
+                ->limit(1)
+                ->one();
+
+            $queue->todelete = 1;
+            $queue->save();
+            
             return $exception.$outputarray.$nuclei.$jsanalysis.$wayback_result;
         }    
     }
@@ -89,9 +110,10 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
         
         return $domain[2][0]; //group 2 == domain name
+
     }
 
     public function ParseIP($ip)
@@ -107,9 +129,11 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)([a-z\:-\d\.]*)(:\d*)/", $url, $port); //get hostname only
+        preg_match("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url, $port); //get hostname only
+
+        if(isset($port[2][1]) && $port[2][1]!="") $port = ":".$port[2][1]; else $port = "";
         
-        return $port[3]; //group  == port
+        return $port; //group  == port
     }
 
     public function ReadFFUFResult($filename, $localhost)
@@ -124,6 +148,7 @@ class Dirscan extends ActiveRecord
             $result_length = array();
 
             if( isset($output["results"]) ) {
+                exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
                 foreach ($output["results"] as $results) {
                     if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
                         $id++;
@@ -135,7 +160,6 @@ class Dirscan extends ActiveRecord
                         if($localhost==1) $outputarray[$id]["localhost"] = 1;
 
                         if ($results["length"] < 350000 ){
-                            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
                             $resultfilename = "/ffuf/" . $randomid . "/" . $results["resultfile"] . "";
 
@@ -155,7 +179,7 @@ class Dirscan extends ActiveRecord
     public function jsa($scheme,$url,$port, $randomid)
     {
 
-        $command = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$url.$port) . " " . $randomid . " ";
+        $command = "sudo docker run --cpu-shares 128 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$url.$port) . " " . $randomid . " ";
 
         exec($command);
 
@@ -179,7 +203,7 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 25 -o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 

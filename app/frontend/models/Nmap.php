@@ -3,6 +3,8 @@
 namespace frontend\models;
 
 use yii\db\ActiveRecord;
+use frontend\models\Dirscan;
+require_once 'Dirscan.php';
 
 class Nmap extends ActiveRecord
 {
@@ -11,22 +13,9 @@ class Nmap extends ActiveRecord
         return 'tasks';
     }
 
-    public function ParseHostname($url)
-    {
-        $url = strtolower($url);
-
-        preg_match_all("/(https?:\/\/)*([\w\:\.]*)/i", $url, $domains); 
-
-        foreach ($domains[2] as $domain) {
-            if ($domain != "") $hostname = $hostname." ".$domain;
-        }
-        
-        return $hostname;
-    }
-
     public static function scanhost($input)
     {
-        $url = nmap::ParseHostname($input["url"]);
+        $url = dirscan::ParseHostname($input["url"]);
         $taskid = (int) $input["taskid"];
 
         $randomid = $taskid;

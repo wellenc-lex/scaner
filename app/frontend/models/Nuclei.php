@@ -3,6 +3,8 @@
 namespace frontend\models;
 
 use yii\db\ActiveRecord;
+use frontend\models\Dirscan;
+require_once 'Dirscan.php';
 
 class Nuclei extends ActiveRecord
 {
@@ -57,39 +59,12 @@ class Nuclei extends ActiveRecord
         return $output_json;
     }
 
-    public function ParseHostname($url)
-    {
-        $url = strtolower($url);
-
-        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
-        
-        return $domain[2][0]; //group 2 == domain name
-    }
-
-    public function ParseIP($ip)
-    {
-        $ip = strtolower($ip);
-
-        preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $ip); //get ip only //weird regex because IP parses throguht regexp earlier - when form submits
-      
-        return $ip[0]; //everything thats inside regex
-    }
-
-    public function ParsePort($url)
-    {
-        $url = strtolower($url);
-
-        preg_match("/(https?:\/\/)([a-z\:-\d\.]*)(:\d*)/", $url, $port); //get hostname only
-        
-        return $port[3]; //group  == port
-    }
-
     public static function nuclei($input)
     {
         
-        $url = nuclei::ParseHostname($input["url"]);
+        $url = dirscan::ParseHostname($input["url"]);
 
-        $port = nuclei::ParsePort($input["url"]);
+        $port = dirscan::ParsePort($input["url"]);
 
         $taskid = (int) $input["taskid"];
 

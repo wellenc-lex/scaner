@@ -243,7 +243,6 @@ class VerifyController extends Controller
                             if ($tools_amount->nmap < 10) {
 
                                 $results->working = 1;
-                                $results->todelete = 1;
 
                                 $nmapurl = $results->nmap;
 
@@ -260,7 +259,6 @@ class VerifyController extends Controller
                             if ($tools_amount_amass < 1 && $tools_amount_jsa <=10) {
 
                                 $results->working  = 1;
-                                $results->todelete = 1;
 
                                 $url = $results->amassdomain;
 
@@ -274,10 +272,9 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ($tools_amount_ffuf < 55 && $tools_amount_amass < 1) || ($tools_amount_ffuf < 40 && $tools_amount_jsa <=10) ) {
+                            if ( ($tools_amount_ffuf < 35 && $tools_amount_amass < 1) || ($tools_amount_ffuf < 25 && $tools_amount_jsa <=8) ) {
 
                                 $results->working = 1;
-                                $results->todelete = 1;
 
                                 $dirscanurl = $results->dirscanUrl;
                                 $dirscanip = $results->dirscanIP;
@@ -302,7 +299,6 @@ class VerifyController extends Controller
                                     if ($tools_amount_ffuf < 20 && $tools_amount_jsa <=10) {
 
                                         $results->working  = 1;
-                                        $results->todelete = 1;
 
                                         exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
 
@@ -316,10 +312,9 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "7") !== false) {
 
-                            if ($tools_amount_ffuf < 50 && $tools_amount_jsa <=15 && $tools_amount_amass < 1) {
+                            if ($tools_amount_ffuf < 45 && $tools_amount_jsa <=10 && $tools_amount_amass < 1) {
 
                                 $results->working = 1;
-                                $results->todelete = 1;
 
                                 if ($results->vhostport != "" && $results->vhostdomain != "" && $results->vhostip != ""){
                                     if ( $results->vhostssl == 1 ) $ssl = "1"; else $ssl = "0";
@@ -344,7 +339,6 @@ class VerifyController extends Controller
                                 if ($tools_amount->nmap < 0) { //turned off
 
                                     $results->working = 1;
-                                    $results->todelete = 1;
 
                                     exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/nmap > /dev/null 2>/dev/null &');
 
@@ -359,7 +353,6 @@ class VerifyController extends Controller
                                 if ($tools_amount_amass < 0) { //turned off
 
                                     $results->working  = 1;
-                                    $results->todelete = 1;
 
                                     exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/passive/amass > /dev/null 2>/dev/null &');
 
@@ -374,7 +367,6 @@ class VerifyController extends Controller
                                 if ($tools_amount_ffuf < 0) {
 
                                     $results->working = 1;
-                                    $results->todelete = 1;
 
                                     if ($dirscanip != "") {
 
@@ -454,7 +446,7 @@ class VerifyController extends Controller
 
     private function sendslack($scanid, $diff)
     {
-        $slack_url = getenv('SLACK_WEBHOOK_URL', 'https://hooks.slack.com/services/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');
+        $slack_url = getenv('SLACK_WEBHOOK_URL', '');
 
         $text = "Your scan with ID: " . $scanid . " was successfully done and waiting for you in your profile!";
 
@@ -466,7 +458,7 @@ class VerifyController extends Controller
 
     private function sendPassiveSlack($scanid, $diff)
     {
-        $slack_url = getenv('SLACK_WEBHOOK_URL', 'https://hooks.slack.com/services/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');
+        $slack_url = getenv('SLACK_WEBHOOK_URL', '');
 
         $text = "PASSIVE SCAN ID: " . $scanid . " DIFF:" . json_encode($diff);
 

@@ -340,15 +340,17 @@ class SiteController extends Controller
 
                     if (isset($url["amassDomain"]) and $url["amassDomain"] != "") {
 
-                        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url["amassDomain"], $domain); 
+                        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url["amassDomain"], $domain); 
+
+                        $url["amassDomain"] = $domain[2][0];
                         
                         $DomainsAlreadyinDB = Tasks::find()
                             ->andWhere(['userid' => Yii::$app->user->id])
                             ->andWhere(['=', 'host', $url["amassDomain"]])
                             ->exists(); 
 
-                        if($DomainsAlreadyinDB = 0){
-                            $url["amassDomain"] = $domain[2][0];
+                        if($DomainsAlreadyinDB == 0){
+
                             $tasks->host = $url["amassDomain"];
                             $tasks->amass_status = "Working";
                             $tasks->notify_instrument = $tasks->notify_instrument . "2";
@@ -402,7 +404,7 @@ class SiteController extends Controller
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
-                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
                     }
 
                     if (isset($url["reverseip"]) and $url["reverseip"] != "") {
@@ -410,7 +412,7 @@ class SiteController extends Controller
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
                         $reverseip = 1;
-                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
                     }
 
                     if (isset($url["ips"]) and $url["ips"] != "") {
@@ -418,7 +420,7 @@ class SiteController extends Controller
                         $tasks->ips_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "6";
                         $ips = 1;
-                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
                     }
 
                     if ((isset($url["vhostDomain"]) and $url["vhostDomain"] != "") && (isset($url["vhostIp"]) and $url["vhostIp"] != "")) {
@@ -441,7 +443,6 @@ class SiteController extends Controller
                                 $queue->vhostssl = 1;
                                 $queue->save();
 
-                                //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& ssl=1& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             } else {
 
                                 $queue->vhostdomain = $url["vhostDomain"];
@@ -449,8 +450,6 @@ class SiteController extends Controller
                                 $queue->vhostport = $url["vhostPort"];
                                 $queue->vhostssl = 0;
                                 $queue->save();
-                                
-                                //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& port=' . $url["vhostPort"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                             }
 
                         } else {
@@ -460,8 +459,6 @@ class SiteController extends Controller
                             $queue->vhostport = "80";
                             $queue->vhostssl = 0;
                             $queue->save();
-
-                            //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["vhostDomain"] . '& ip=' . $url["vhostIp"] . '& taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
                         }
 
                     }
@@ -511,7 +508,20 @@ class SiteController extends Controller
                     if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0) {
                         $tasks->delete();
                         Yii::$app->session->setFlash('failure', 'You provided empty instrument\'s parameters. Please try again.');
-                        return $this->redirect(['/site/newscan']);
+                        
+
+
+
+
+
+                        //return $this->redirect(['/site/newscan']);
+
+
+
+
+
+
+                        
                     }
 
                     $tasks->save();

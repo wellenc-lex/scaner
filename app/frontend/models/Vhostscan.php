@@ -4,7 +4,8 @@ namespace frontend\models;
 use yii\db\ActiveRecord;
 use Yii;
 use frontend\models\Queue;
-set_time_limit(0);
+use frontend\models\Dirscan;
+require_once 'Dirscan.php';
 
 class Vhostscan extends ActiveRecord
 {
@@ -60,6 +61,15 @@ class Vhostscan extends ActiveRecord
 
                 $task->save();
 
+                $queue = Queue::find()
+                    ->where(['taskid' => $taskid])
+                    ->andwhere(['=', 'instrument', '7'])
+                    ->limit(1)
+                    ->one();
+
+                $queue->todelete = 1;
+                $queue->save();
+
                 $nmapips = preg_replace('/(https?:\/\/)/i', '', $nmapips);
                 $nmapips = preg_replace('/\:\d*/', '', $nmapips);
 
@@ -90,19 +100,6 @@ class Vhostscan extends ActiveRecord
                 return $exception.json_encode(array_unique($output));
             }
         }
-    }
-
-    public function ParseHostname($url)
-    {
-        $url = strtolower($url);
-
-        preg_match_all("/(https?:\/\/)?([a-zA-Z\-\d\.][^\/\:]+)/i", $url, $domains); 
-
-        foreach ($domains[2][0] as $domain) {
-            if ($domain != "") $hostname = $hostname." ".$domain; //??????????????????? null" "domain?????? P.S. it works but i really have no idea why
-        }
-        
-        return $hostname;
     }
 
     public function ReadFFUFResult($filename)

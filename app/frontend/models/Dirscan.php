@@ -17,6 +17,18 @@ class Dirscan extends ActiveRecord
 
     public function savetodb($taskid, $hostname, $outputarray, $nuclei, $jsanalysis, $wayback_result)
     {
+
+        $queue = Queue::find()
+            ->where(['taskid' => $taskid])
+            ->andwhere(['=', 'instrument', '3'])
+            ->limit(1)
+            ->one();
+
+        if($queue!=""){
+            $queue->todelete = 1;
+            $queue->save();
+        }
+
         if($jsanalysis=="c2VjcmV0ZmluZGVyIGVycm9yIG5vIGZpbGVsaW5rZmluZGVyIGVycm9yIG5vIGZpbGU=" && $outputarray=='["No file."]' && $nuclei=="null"){
             return 1; //no need to save empty results
         }
@@ -68,15 +80,6 @@ class Dirscan extends ActiveRecord
 
                 $dirscan->save();
             }
-
-            $queue = Queue::find()
-                ->where(['taskid' => $taskid])
-                ->andwhere(['=', 'instrument', '3'])
-                ->limit(1)
-                ->one();
-
-            $queue->todelete = 1;
-            $queue->save();
            
         } catch (\yii\db\Exception $exception) {
 
@@ -129,9 +132,11 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url, $port); //get hostname only
 
-        if(isset($port[2][1]) && $port[2][1]!="") $port = ":".$port[2][1]; else $port = "";
+        if(isset($port[2][1]) && $port[2][1]!="") {
+            $port = ":".$port[2][1]; 
+        } else $port = "";
         
         return $port; //group  == port
     }
@@ -301,7 +306,7 @@ class Dirscan extends ActiveRecord
 
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
 
-            if($usewordlist="1"){
+            if($usewordlist=="1"){
 
                 //ffuf /site.com/subdomain.site.com/ from amass/gau wordlist
                 $task = Tasks::find()

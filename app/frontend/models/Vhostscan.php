@@ -32,6 +32,17 @@ class Vhostscan extends ActiveRecord
     {
         $output = json_encode(array_unique($output));
 
+        $queue = Queue::find()
+            ->where(['taskid' => $taskid])
+            ->andwhere(['=', 'instrument', '7'])
+            ->limit(1)
+            ->one();
+
+        if($queue!=""){
+            $queue->todelete = 1;
+            $queue->save();
+        }
+        
         if($output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
 
             try{
@@ -60,15 +71,6 @@ class Vhostscan extends ActiveRecord
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save();
-
-                $queue = Queue::find()
-                    ->where(['taskid' => $taskid])
-                    ->andwhere(['=', 'instrument', '7'])
-                    ->limit(1)
-                    ->one();
-
-                $queue->todelete = 1;
-                $queue->save();
 
                 $nmapips = preg_replace('/(https?:\/\/)/i', '', $nmapips);
                 $nmapips = preg_replace('/\:\d*/', '', $nmapips);

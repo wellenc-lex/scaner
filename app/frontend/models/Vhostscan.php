@@ -157,7 +157,7 @@ class Vhostscan extends ActiveRecord
         //Asks Host:localhost, dev, etc
         exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ' ");
 
-        $output_vhosts[] = vhostscan::ReadFFUFResult($vhost_file_location);
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
 
         //Asks Host:admin.dev, asdf.dev
         exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.dev' ");
@@ -171,7 +171,7 @@ class Vhostscan extends ActiveRecord
 
         $output_vhost = array_unique($output_vhost);
 
-        return $output_vhosts;
+        return $output_vhost;
     }
 
     public function httpxhosts($amassoutput)

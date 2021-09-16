@@ -31,7 +31,8 @@ class Amass extends ActiveRecord
 
                     $amass->amass_status = 'Done.';
                     $amass->amass = $amassoutput;
-                    $amass->amass_intel = $intelamass;  
+                    $amass->amass_intel = $intelamass;
+                    $amass->notify_instrument = $amass->notify_instrument."2";
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
                     $amass->subtakeover = $subtakeover;
@@ -46,6 +47,7 @@ class Amass extends ActiveRecord
                     $amass->amass_status = 'Done.';
                     $amass->amass = $amassoutput;
                     $amass->amass_intel = $intelamass;  
+                    $amass->notify_instrument = $amass->notify_instrument."2";
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
                     $amass->subtakeover = $subtakeover;

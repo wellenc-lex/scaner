@@ -107,8 +107,8 @@ class Vhostscan extends ActiveRecord
                         }
                     }
                 }
-            } else $output_vhost_array = "No file.";
-        } else $output_vhost_array = "No file.";
+            } else $output_vhost_array = "";
+        } else $output_vhost_array = "";
         
         return $output_vhost_array;
     }

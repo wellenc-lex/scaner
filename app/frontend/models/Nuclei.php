@@ -4,6 +4,7 @@ namespace frontend\models;
 
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
+use frontend\models\Queue;
 require_once 'Dirscan.php';
 
 class Nuclei extends ActiveRecord
@@ -20,7 +21,7 @@ class Nuclei extends ActiveRecord
 
         $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
 
-        $exclude = " -exclude /configs/nuclei-templates/helpers -exclude /configs/nuclei-templates/dns -exclude /configs/nuclei-templates/takeovers -exclude /configs/nuclei-templates/miscellaneous -exclude /configs/nuclei-templates/exposed-tokens/generic -exclude /configs/nuclei-templates/technologies/tech-detect.yaml -exclude /configs/nuclei-templates/technologies/waf-detect.yaml ";
+        $exclude = " -exclude-templates /configs/nuclei-templates/helpers -exclude-templates /configs/nuclei-templates/dns -exclude-templates /configs/nuclei-templates/takeovers -exclude-templates /configs/nuclei-templates/miscellaneous -exclude-templates /configs/nuclei-templates/exposed-tokens/generic -exclude-templates /configs/nuclei-templates/technologies/tech-detect.yaml -exclude-templates /configs/nuclei-templates/technologies/waf-detect.yaml -exclude-templates /configs/nuclei-templates/misconfiguration/http-missing-security-headers.yaml";
 
         $output = "/ffuf/" . $randomid . "/" . $randomid . "nuclei.json";
 
@@ -28,8 +29,8 @@ class Nuclei extends ActiveRecord
 
         exec($nuclei_start); 
 
-        if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "nuclei.json")) {
-            $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "nuclei.json");
+        if (file_exists($output)) {
+            $output = file_get_contents($output);
                     
             $output = str_replace("}
 {", "},{", $output);
@@ -40,9 +41,9 @@ class Nuclei extends ActiveRecord
             $id=0;
             foreach ($output as $results) {
                 $id++;
-                $output_json[$id]["template"] = $results["template"];
+                $output_json[$id]["template"] = $results["templateID"];
                 $output_json[$id]["matched"] = $results["matched"];
-                $output_json[$id]["severity"] = $results["severity"];
+                $output_json[$id]["severity"] = $results["info"]["severity"];
 
                 if ( isset( $results["extracted_results"] ) ){
                     $output_json[$id]["regexp"] = $results["extracted_results"];
@@ -66,9 +67,9 @@ class Nuclei extends ActiveRecord
 
         $port = dirscan::ParsePort($input["url"]);
 
-        $taskid = (int) $input["taskid"];
+        $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1010;
 
-        $randomid = $taskid;
+        $randomid = rand(1,10000000);
 
         if (strpos($input["url"], 'https://') !== false) {
                 $scheme = "https://";
@@ -79,16 +80,17 @@ class Nuclei extends ActiveRecord
 
         $nuclei = nuclei::Nucleiscan($scheme,$url,$port,$randomid); //starts nuclei scan and stores result json into $nuclei
         
-        if(json_encode($nuclei) != "{}"){
+        if($nuclei!=="null" && $nuclei!=""){
 
             $task = Tasks::find()
             ->where(['taskid' => $taskid])
             ->limit(1)
             ->one();
 
-            if(!empty($task)){ //if task exists in db
+            if(!empty($task) && ($task->nuclei="") ){ //if task exists in db and nuclei result is empty
 
                 $task->dirscan_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."8";
                 $task->nuclei = json_encode($nuclei);
                 $task->date = date("Y-m-d H-i-s");
 
@@ -99,6 +101,7 @@ class Nuclei extends ActiveRecord
                 $task = new Tasks();
                 $task->host = $url;
                 $task->dirscan_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."8";
                 $task->nuclei = json_encode($nuclei);
                 $task->date = date("Y-m-d H-i-s");
 
@@ -106,9 +109,9 @@ class Nuclei extends ActiveRecord
             }
         }
 
-        exec("sudo rm -r /ffuf/" . $randomid . "/");
+        dirscan::queuedone($input["queueid"]);
 
-        return 1;
+        return exec("sudo rm -r /ffuf/" . $randomid . "/");
     }
 
 }

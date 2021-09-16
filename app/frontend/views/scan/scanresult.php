@@ -164,11 +164,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#aquatone">Aquatone
                                 Results</a></li> <?php endif; ?>
 
-                    <?php if ($nuclei != "" && $nuclei != "null"): ?>
+                    <?php if ($nuclei != "" && $nuclei[0] != "null"): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#nuclei">Nuclei
                                 Results</a></li> <?php endif; ?>            
 
-                    <?php if ($dirscan != "" && $dirscan != "No file."): ?>
+                    <?php if ($dirscan != "" && $dirscan[0] != '["No file."]'): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#dirscan">Dirscan
                                 Results</a></li> <?php endif; ?>
                                             
@@ -197,7 +197,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 scan
                                 Results</a></li> <?php endif; ?>
 
-                    <?php if ($wayback != ""): ?>
+                    <?php if ($wayback[0] != ""): ?>
                         <li style="text-align: center;  float: none; display: inline-block;"><a href="#wayback">Wayback
                                 Results</a></li> <?php endif; ?>
 
@@ -510,7 +510,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
     <?php endif; ?>
 
     <?php if ($nuclei != ""): ?>
-        <?php if ($nuclei != "null"): ?>
+        <?php if ($nuclei[0] != "null"): ?>
 
         <style>
             .response-headers-container {
@@ -568,7 +568,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                         <?php foreach ($nuclei as $scan) { ?>
                                     <tr>
                                         
-                                        <td style=" width: 300px">
+                                        <td style=" width='35%'">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
@@ -579,7 +579,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                             </ul>
                                         </td>
 
-                                        <td style=" width: 350px;">
+                                        <td style=" width='25%'">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
@@ -591,12 +591,12 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                             </ul>
                                         </td>
 
-                                        <td style="width: 100px;">
+                                        <td style="width='15%'">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["severity"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo $scan["severity"]; echo("\n".$scan["regexp"][0]); ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -682,7 +682,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
 
     <?php if ($dirscan != ""): ?>
-        <?php if ($dirscan != "No file."): ?>
+        <?php if ($dirscan[0] != '["No file."]' && $dirscan[0] != "No file."): ?>
 
         <style>
             .response-headers-container {
@@ -741,7 +741,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                         </thead>
 
                         <tbody>
-                        <?php foreach ($dirscan as $scan) { ?>
+                        <?php foreach ($dirscan as $scanid) { foreach($scanid as $scan){ ?>
                                 <?php if ($scan["status"] != "20") { ?>
                                     <tr>
                                         <td style=" width: 350px;">
@@ -820,7 +820,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                         </td>
                                     </tr>
 
-                                <?php } ?>
+                                <?php } }?>
                             <?php } ?>
                         
                         </tbody>
@@ -849,7 +849,8 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-dirscan').DataTable({"pageLength": 100});
+                    $('#table-dirscan').DataTable({"pageLength": 1000, "order": [[ 2, "desc" ]]});
+
                 });
 
                 $( window ).on( "load", function() {
@@ -1128,7 +1129,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php endif; ?>
 
-    <?php if ($wayback != ""): ?>
+    <?php if ($wayback[0] != ""): ?>
         <h3 style="text-align:center; color: rgb(68, 68, 68);" id="wayback">Wayback output</h3>
 
         <div class="panel panel-default">
@@ -1204,7 +1205,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
     <?php endif; ?>
 
-    <?php if ($dirscan == "" && $nuclei == "" && $amass == "" && $gitscan == "" && $nmap == "" && $ipscan == "" && $vhosts == "" && $js == "" && $reverseip == "" && $wayback == ""): ?>
+    <?php if ($dirscan[0] == "" && $nuclei[0] == "" && $amass == "" && $gitscan == "" && $nmap == "" && $ipscan == "" && $vhosts[0] == "" && $js == "" && $reverseip == "" && $wayback[0] == ""): ?>
 
         <h1 style="text-align:center; vertical-align: center;">No content yet! Please wait some time for results.</h1>
 

@@ -26,6 +26,9 @@ class Newscan extends Model
     public $vhostSsl;
     public $reverseip;
 
+    public $nucleiDomain;
+    public $jsaDomain;
+
     public $ips;
 
     public $activescan;
@@ -41,13 +44,19 @@ class Newscan extends Model
         return [
 
             [['nmapDomain'], 'string', 'length' => [5, 5555]],
-            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\:]+)$/'],
+            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \.\-\/\:]+)$/'],
 
             [['amassDomain'], 'string', 'length' => [5, 255]],
-            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\:]+)$/'],
+            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:]+)$/'],
 
             [['dirscanUrl'], 'string'],
-            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\.:,\-\/\r\n]+)$/'],
+            [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
+
+            [['nucleiDomain'], 'string'],
+            [['nucleiDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
+
+            [['jsaDomain'], 'string'],
+            [['jsaDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['dirscanIp'], 'string', 'length' => [5, 255]],
             [['dirscanIp'], 'ip'],
@@ -68,16 +77,16 @@ class Newscan extends Model
             [['raceHeaders'], 'match', 'pattern' => '/^([a-zA-Z0-9= ,_ %\.\-\/\:;\-/().]+)$/'],
 
             [['raceBody'], 'string', 'length' => [3, 20000]],
-            [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9,=  %&\.\-\/\:;]+)$/'],
+            [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9\,\=\ \%\&\.\-\/\:;]+)$/'],
 
             [['vhostDomain'], 'string'],
-            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\.:,\-\/\r\n]+)$/'],
+            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\-\/\r\n]+)$/'],
 
             [['vhostIp'], 'string'],
-            [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9, \.\-\/\r\n]+)$/'],
+            [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9\,\ \.\-\/\r\n]+)$/'],
 
             [['vhostPort'], 'string'],
-            [['vhostPort'], 'match', 'pattern' => '/^([0-9\.\:\r\n]+)$/'],
+            [['vhostPort'], 'match', 'pattern' => '/^([0-9\ \.\:\r\n]+)$/'],
 
             [['vhostSsl'], 'boolean'],
 

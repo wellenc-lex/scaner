@@ -368,7 +368,7 @@ class SiteController extends Controller
                                 $passive->userid = Yii::$app->user->id;
                                 $passive->notifications_enabled = 1;
                                 $passive->amassDomain = $url["amassDomain"];
-                                $passive->scanday = rand(1, 28);
+                                $passive->scanday = rand(1, 30);
                                 $passive->save();
                             }
                         }
@@ -463,6 +463,32 @@ class SiteController extends Controller
 
                     }
 
+                    if ((isset($url["nucleiDomain"]) and $url["nucleiDomain"] != "") ) {
+
+                        $tasks->vhost_status = "Working";
+                        $tasks->notify_instrument = $tasks->notify_instrument . "8";
+                        $nuclei = 1;
+
+                        $queue = new Queue();
+                        $queue->taskid = $tasks->taskid;
+                        $queue->instrument = 8;
+                        $queue->dirscanUrl = $url["nucleiDomain"];
+                        $queue->save();
+                    }
+
+                    if ((isset($url["jsaDomain"]) and $url["jsaDomain"] != "") ) {
+
+                        $tasks->vhost_status = "Working";
+                        $tasks->notify_instrument = $tasks->notify_instrument . "9";
+                        $nuclei = 1;
+
+                        $queue = new Queue();
+                        $queue->taskid = $tasks->taskid;
+                        $queue->instrument = 9;
+                        $queue->dirscanUrl = $url["jsaDomain"];
+                        $queue->save();
+                    }
+
                     /*if (isset($url["raceUrl"]) and $url["raceUrl"] != "") {
                         $race = 1;
 
@@ -505,7 +531,7 @@ class SiteController extends Controller
                         }
                     }*/
 
-                    if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0) {
+                    if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0 && $nuclei == 0 && $jsa == 0) {
                         $tasks->delete();
                         Yii::$app->session->setFlash('failure', 'You provided empty instrument\'s parameters. Please try again.');
                         

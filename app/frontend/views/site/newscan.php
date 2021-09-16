@@ -735,6 +735,34 @@ $this->registerJs($script, View::POS_READY);
                 </div>
             </div>
 
+            <div class="nucleiclass" style="display: none; margin-top= 2em;">
+                <div class="col-lg-12">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="dirscan">
+                            <p align="center">URL for scanning with Nuclei:</p>
+                            <?= $form->field($model, 'nucleiDomain', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "https://example.com"])->label(false) ?>    
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                </div>
+            </div>
+
+            <div class="jsaclass" style="display: none; margin-top= 2em;">
+                <div class="col-lg-12">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="dirscan">
+                            <p align="center">URL for searching secrets in javascript files at URL:</p>
+                            <?= $form->field($model, 'jsaDomain', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "https://example.com"])->label(false) ?>    
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                </div>
+            </div>
+
             <div class="gitscanclass" style="display: none; margin-top= 2em;">
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>

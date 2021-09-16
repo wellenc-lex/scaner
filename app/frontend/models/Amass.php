@@ -5,6 +5,8 @@ namespace frontend\models;
 use Yii;
 use frontend\models\Queue;
 use yii\db\ActiveRecord;
+use frontend\models\Dirscan;
+require_once 'Dirscan.php';
 
 class Amass extends ActiveRecord
 {
@@ -20,19 +22,6 @@ class Amass extends ActiveRecord
             try{
                 Yii::$app->db->open();
 
-                $decrement = ToolsAmount::find()
-                    ->where(['id' => 1])
-                    ->one();
-
-                $value = $decrement->amass;
-                
-                if ($value <= 1) {
-                    $value=0;
-                } else $value = $value-1;
-
-                $decrement->amass=$value;
-                $decrement->save();
-
                 $amass = Tasks::find()
                     ->where(['taskid' => $taskid])
                     ->limit(1)
@@ -46,6 +35,7 @@ class Amass extends ActiveRecord
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
                     $amass->subtakeover = $subtakeover;
+                    $amass->hidden = 1;
                     $amass->date = date("Y-m-d H-i-s");
 
                     $amass->save(); 
@@ -59,6 +49,7 @@ class Amass extends ActiveRecord
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
                     $amass->subtakeover = $subtakeover;
+                    $amass->hidden = 1;
                     $amass->date = date("Y-m-d H-i-s");
 
                     $amass->save(); 
@@ -92,6 +83,7 @@ class Amass extends ActiveRecord
                 $amass->aquatone = $aquatoneoutput;
                 $amass->vhostwordlist = $vhosts;
                 $amass->subtakeover = $subtakeover;
+                $amass->hidden = 1;
                 $amass->date = date("Y-m-d H-i-s");
 
                 $amass->save(); 
@@ -179,12 +171,15 @@ class Amass extends ActiveRecord
 
             foreach($alive as $url) {
 
-                $queue = new Queue();
-                $queue->taskid = $taskid;
-                $queue->dirscanUrl = $url;
-                $queue->instrument = 3;
-                $queue->wordlist = 1;
-                $queue->save();
+                if($url!=""){
+
+                    $queue = new Queue();
+                    $queue->taskid = $taskid;
+                    $queue->dirscanUrl = $url;
+                    $queue->instrument = 3;
+                    $queue->wordlist = 1;
+                    $queue->save();
+                }
             }
         }
         
@@ -281,7 +276,7 @@ class Amass extends ActiveRecord
     {
 
         $url = $input["url"];
-        $taskid = (int) $input["taskid"];
+        $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1030;
 
         $url = trim($url, ' ');
         $url = rtrim($url, '/');
@@ -306,20 +301,25 @@ class Amass extends ActiveRecord
 
         $url = rtrim($url, '/');
 
-        $randomid = $taskid;
+        $randomid = rand(1,100000000);
         htmlspecialchars($url);
-
 
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
-        $command = "sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass1.ini";
-
-        //exec($command);
+        //exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass1.ini");
 
         $jsonoutput = " -json /dockerresults/" . $randomid . "amass.json";
 
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 1000 -ip -config /configs/amass6.ini ";
+        //$amassconfig = "/configs/amass". rand(1,6). ".ini";
+
+        $amassconfig = "/configs/amass7.ini";
+
+        if( !file_exists($amassconfig) ){
+            $amassconfig = "/configs/amass1.ini";
+        }
+
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 800 -ip -config ".$amassconfig;
 
         exec($command);
 
@@ -364,7 +364,9 @@ class Amass extends ActiveRecord
 
         amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
 
-        return 1;
+        dirscan::queuedone($input["queueid"]);
+
+        return exec("sudo rm -r /dockerresults/" . $randomid . "");
     }
 
 }
@@ -381,5 +383,21 @@ class Amass extends ActiveRecord
         }
 
         else */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

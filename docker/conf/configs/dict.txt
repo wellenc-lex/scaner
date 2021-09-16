@@ -20,6 +20,7 @@ __clockwork
 content/.json
 logi
 web.config.old
+.htpasswda
 logi.%EXT%
 lk
 lk.%EXT%

@@ -5,12 +5,8 @@ namespace frontend\controllers;
 use frontend\models\Amass;
 use frontend\models\Dirscan;
 
-
-
-
-
 use frontend\models\Nuclei;
-
+use frontend\models\Jsa;
 
 use frontend\models\Gitscan;
 use frontend\models\Ipscan;
@@ -19,6 +15,7 @@ use frontend\models\PassiveScan;
 use frontend\models\Reverseip;
 use frontend\models\Tasks;
 use frontend\models\Vhostscan;
+
 use Yii;
 use yii\web\Controller;
 
@@ -292,6 +289,19 @@ class ScanController extends Controller
 
         if ($secretIN === $secret) {
             return $model::nuclei(Yii::$app->request->post());
+        }
+
+    }
+
+    public function actionJsa()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new jsa();
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::jsa(Yii::$app->request->post());
         }
 
     }

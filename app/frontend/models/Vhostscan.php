@@ -31,36 +31,12 @@ class Vhostscan extends ActiveRecord
     public function saveToDB($taskid, $output, $nmapips)
     {
         $output = json_encode(array_unique($output));
-
-        $queue = Queue::find()
-            ->where(['taskid' => $taskid])
-            ->andwhere(['=', 'instrument', '7'])
-            ->limit(1)
-            ->one();
-
-        if($queue!=""){
-            $queue->todelete = 1;
-            $queue->save();
-        }
         
         if($output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
 
             try{
 
                 Yii::$app->db->open();
-
-                $decrement = ToolsAmount::find()
-                        ->where(['id' => 1])
-                        ->one();
-
-                $value = $decrement->vhosts;
-                        
-                if ($value <= 1) {
-                    $value=0;
-                } else $value = $value-1;
-
-                $decrement->vhosts=$value;
-                $decrement->save();
 
                 $task = new Tasks();
                 
@@ -73,15 +49,13 @@ class Vhostscan extends ActiveRecord
                 $task->save();
 
                 $nmapips = preg_replace('/(https?:\/\/)/i', '', $nmapips);
-                $nmapips = preg_replace('/\:\d*/', '', $nmapips);
+                $nmapips = preg_replace('/\:\d*/', '', $nmapips); //replace port in ips
 
                 //add ips for nmap scan to queue
                 $queue = new Queue();
                 $queue->nmap = $nmapips;
                 $queue->instrument = 1;
                 $queue->save();
-
-                exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
                 
                 return 1;
 
@@ -238,6 +212,8 @@ class Vhostscan extends ActiveRecord
             }
         }
 
+        $iparray = array_unique($iparray);
+
         $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
         $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
         
@@ -260,9 +236,9 @@ class Vhostscan extends ActiveRecord
 
         $vhostlist = explode("\n", file_get_contents("/configs/vhostwordlist.txt"));
 
-        if($amassoutput != 0){
+        $domains = array();
 
-            $domains = array();
+        if($amassoutput != 0){
 
             foreach ($amassoutput as $json) {
                 if (!in_array($json["name"], $vhostlist)) {
@@ -272,27 +248,30 @@ class Vhostscan extends ActiveRecord
             }
         }
 
-        foreach($domains as $domainarray){
+        if($domains!=""){
+            foreach($domains as $domainarray){
 
-            $host = preg_replace("~https?://~", "", $domainarray);
-            $host = rtrim($host, '/');
+                $host = preg_replace("~https?://~", "", $domainarray);
+                $host = rtrim($host, '/');
 
-            $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
+                $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
 
-            $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //something.com -> something
+                $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //something.com -> something
 
-            if ($domainfull == $hostonly) $hostonly = "";
+                if ($domainfull == $hostonly) $hostonly = "";
 
-            if ($domainfull != "") {
-                array_push($vhostlist, $domainfull); //admin.something.com -> admin.something
+                if ($domainfull != "") {
+                    array_push($vhostlist, $domainfull); //admin.something.com -> admin.something
 
-                if ($hostonly != "") {
-                    array_push($vhostlist, $hostonly); //admin.something.com -> admin
+                    if ($hostonly != "") {
+                        array_push($vhostlist, $hostonly); //admin.something.com -> admin
+                    }
                 }
-            }
 
-            $domains[] = $host;
+                $domains[] = $host;
+            }
         }
+        
 
         if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
 
@@ -313,9 +292,7 @@ class Vhostscan extends ActiveRecord
 
         $headers = " -p 0.5 -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'CF-Connecting-IP: 127.0.0.1' ";
 
-        if( isset( $input["taskid"]) ) {
-            $randomid = (int) $input["taskid"]; 
-        } else $randomid = rand(1,100000);
+        $randomid = rand(3000,100000000);
 
         exec("sudo mkdir /ffuf/vhost" . $randomid . " &");
         exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/ &");
@@ -353,13 +330,15 @@ class Vhostscan extends ActiveRecord
             }
 
             vhostscan::saveToDB($taskid, $output);
+            dirscan::queuedone($input["queueid"]);
+
+            exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
             return 1;
         }
 
         if ((isset($input["taskid"]) && $input["taskid"] != "") && (!isset($input["ip"]))) {
 
-
-            $taskid = (int) $input["taskid"];
+            $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1020;
 
             $task = Tasks::find()
                 ->where(['taskid' => $taskid])
@@ -368,32 +347,37 @@ class Vhostscan extends ActiveRecord
 
             Yii::$app->db->close();  
 
-            $vhostwordlist = json_decode($task->vhostwordlist, true);
+            if($task!=""){
 
-            $amassoutput = json_decode($task->amass, true);
+                $vhostwordlist = json_decode($task->vhostwordlist, true);
 
-            $maindomain = $amassoutput[0]["domain"];
+                $amassoutput = json_decode($task->amass, true);
 
-            $output = array();
+                $maindomain = $amassoutput[0]["domain"];
 
-            vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
+                $output = array();
 
-            if(isset($amassoutput)){
+                vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
-                $alive = vhostscan::httpxhosts($amassoutput);
+                if(isset($amassoutput)){
 
-                foreach($alive as $host) {
+                    $alive = vhostscan::httpxhosts($amassoutput);
 
-                    if($host!=""){
-                        $output[] = vhostscan::findVhostsWithDomain($host);
-                        $output[] = vhostscan::findVhostsNoDomain($host);
+                    foreach($alive as $host) {
+
+                        if($host!=""){
+                            $output[] = vhostscan::findVhostsWithDomain($host);
+                            $output[] = vhostscan::findVhostsNoDomain($host);
+                        }
                     }
-                }
-            } else return "NO AMASS RESULTS or NO PORTS";
+                } else return "NO AMASS RESULTS or NO PORTS";
 
-            vhostscan::saveToDB($taskid, $output, implode( " ", $alive) );
-            
-            return 1;
+                vhostscan::saveToDB($taskid, $output, implode( " ", $alive) );
+            }
+
+            dirscan::queuedone($input["queueid"]); //no amass results - maybe task been already deleted
+
+            return exec("sudo rm -r /ffuf/vhost" . $randomid . "/");
         }
     }
 }

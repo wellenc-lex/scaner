@@ -148,7 +148,7 @@ class Gitscan extends ActiveRecord
         exec("sudo chmod 777 /dockerresults/ -R && sudo chmod 777 /dockerresults -R");
 
             $tasks = Tasks::find()
-                ->where(['>','taskid','8000']) //gitscan results not null check in Db
+                ->where(['>','taskid','1']) //gitscan results not null check in Db
                 ->andWhere(['!=','amass','[]'])
                 ->andWhere(['IS NOT', 'amass', null])
                 ->all();

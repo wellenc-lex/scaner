@@ -224,18 +224,13 @@ class VerifyController extends Controller
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->orderBy(['passivescan' => SORT_ASC])
-                ->orderBy(['id' => SORT_ASC])
-                ->limit(500)
+                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC])
+                ->limit(400)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
-            
-            static $tools_amount_amass;
-            static $tools_amount_ffuf;
-            static $tools_amount_jsa;
 
             $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
@@ -267,7 +262,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < 3 && $tools_amount_jsa <=20) {
+                            if ($tools_amount_amass < 4 && $tools_amount_jsa <=10) {
 
                                 $results->working  = 1;
 
@@ -283,7 +278,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ($tools_amount_ffuf < 65 && $tools_amount_amass < 5) || ($tools_amount_ffuf < 75 && $tools_amount_jsa <=10) ) {
+                            if ( ($tools_amount_ffuf < 65 && $tools_amount_amass < 6) || ($tools_amount_ffuf < 35 && $tools_amount_jsa <=10) ) {
 
                                 $results->working = 1;
 
@@ -323,7 +318,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "7") !== false) {
 
-                            if ($tools_amount_ffuf < 80 && $tools_amount_amass < 6) {
+                            if ($tools_amount_ffuf < 60 && $tools_amount_amass < 6) {
 
                                 $results->working = 1;
 
@@ -346,7 +341,7 @@ class VerifyController extends Controller
 
                             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-                            if ($tools_amount_nuclei < 10 && $tools_amount_amass < 5) {
+                            if ($tools_amount_nuclei < 8 && $tools_amount_amass < 6) {
 
                                 $results->working = 1;
 
@@ -367,7 +362,7 @@ class VerifyController extends Controller
 
                             $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');   
 
-                            if ($tools_amount_jsa < 6 && $tools_amount_amass < 5) {
+                            if ($tools_amount_jsa < 5 && $tools_amount_amass < 6) {
 
                                 $results->working = 1;
 

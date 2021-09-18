@@ -63,12 +63,13 @@ class Amass extends ActiveRecord
                 $queue->instrument = 7;
                 $queue->save();
 
-
+                /*
                 //add git scan to queue
                 $queue = new Queue();
                 $queue->taskid = $taskid;
                 $queue->instrument = 4;
                 $queue->save();
+                */
                 
                 return 1;
 

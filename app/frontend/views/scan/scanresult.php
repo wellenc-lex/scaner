@@ -2,6 +2,7 @@
 
 use yii\web\JqueryAsset;
 use frontend\models\Dirscan;
+ini_set('max_execution_time', 0);
 
 $this->registerJsFile(Yii::$app->request->baseUrl . '/js/scanresult.js', [
     'depends' => [
@@ -783,7 +784,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["status"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo $scan["status"]; if(isset($scan["localhost"])) echo ('localhost: '.$scan["localhost"]); ?></b>
                                                     </div>
                                                 </li>
                                             </ul>

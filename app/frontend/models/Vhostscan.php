@@ -7,6 +7,8 @@ use frontend\models\Queue;
 use frontend\models\Dirscan;
 require_once 'Dirscan.php';
 
+ini_set('max_execution_time', 0);
+
 class Vhostscan extends ActiveRecord
 {
     public static function tableName()

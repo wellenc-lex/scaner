@@ -42,7 +42,7 @@ class VerifyController extends Controller
             $results = Tasks::find()
                 ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
                 ->where(['!=', 'status', 'Done.'])
-                ->limit(1000)
+                ->limit(2000)
                 ->all();
 
             if ($results != NULL) {
@@ -56,8 +56,6 @@ class VerifyController extends Controller
                     $gitscan = 0;
                     $ips = 0;
                     $reverseip = 0;
-                    $nulcei=0;
-                    $jsa = 0;
 
                     if (($pos1 = strpos($result->notify_instrument, "1")) !== false) {
                         if ($result->nmap_status === "Done.") $nmap = 1;
@@ -67,40 +65,34 @@ class VerifyController extends Controller
                         if ($result->amass_status === "Done.") $amass = 1;
                     } else $amass = 1;
 
-                    if ($pos = strpos($result->notify_instrument, "3") !== false) {
+                    if (strpos($result->notify_instrument, "3") !== false) {
                         if ($result->dirscan_status === "Done.") $dirscan = 1;
                     } else $dirscan = 1;
 
-                    if ($pos = strpos($result->notify_instrument, "4") !== false) {
+                    if ($result->dirscan_status === "Done.") $dirscan = 1;
+
+                    if (strpos($result->notify_instrument, "4") !== false) {
                         if ($result->gitscan_status === "Done.") $gitscan = 1;
                     } else $gitscan = 1;
 
-                    if ($pos = strpos($result->notify_instrument, "5") !== false) {
+                    if (strpos($result->notify_instrument, "5") !== false) {
                         if ($result->reverseip_status === "Done.") $reverseip = 1;
                     } else $reverseip = 1;
 
-                    if ($pos = strpos($result->notify_instrument, "6") !== false) {
+                    if (strpos($result->notify_instrument, "6") !== false) {
                         if ($result->ips_status === "Done.") $ips = 1;
                     } else $ips = 1;
 
-                    if ($pos = strpos($result->notify_instrument, "7") !== false) {
+                    if (strpos($result->notify_instrument, "7") !== false) {
                         if ($result->vhost_status === "Done.") $vhost = 1;
                     } else $vhost = 1;
-
-                    if ($pos = strpos($result->notify_instrument, "8") !== false) {
-                        if ($result->dirscan_status === "Done.") $nuclei = 1;
-                    } else $nuclei = 1;
-
-                    if ($pos = strpos($result->notify_instrument, "9") !== false) {
-                        if ($result->dirscan_status === "Done.") $jsa = 1;
-                    } else $jsa = 1;
 
                     if ($result->notify_instrument == "3") {
                         Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'taskid' => $result->taskid]);
                         Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'taskid' => $result->taskid]);
                     }
 
-                    if ($nmap == 1 && $amass == 1 && $dirscan == 1 && $gitscan == 1 && $vhost == 1 && $ips == 1 && $reverseip == 1 && $nulcei == 1 && $jsa == 1) {
+                    if ($nmap == 1 && $amass == 1 && $dirscan == 1 && $gitscan == 1 && $vhost == 1 && $ips == 1 && $reverseip == 1) {
 
                         if ($result->notified == 0 && $result->notification_enabled == 1) {
 
@@ -225,7 +217,7 @@ class VerifyController extends Controller
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
                 ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC])
-                ->limit(400)
+                ->limit(2000)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
@@ -262,7 +254,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < 4 && $tools_amount_jsa <=10) {
+                            if ($tools_amount_amass < 3 && $tools_amount_jsa <=10) {
 
                                 $results->working  = 1;
 
@@ -341,7 +333,7 @@ class VerifyController extends Controller
 
                             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-                            if ($tools_amount_nuclei < 8 && $tools_amount_amass < 6) {
+                            if ($tools_amount_nuclei < 10 && $tools_amount_amass < 6) {
 
                                 $results->working = 1;
 

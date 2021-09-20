@@ -22,6 +22,7 @@ logi
 web.config.old
 .htpasswda
 logi.%EXT%
+ecosystem.config.js
 lk
 lk.%EXT%
 config

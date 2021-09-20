@@ -8,6 +8,8 @@ use frontend\models\Nuclei;
 use frontend\models\Queue;
 require_once 'Nuclei.php';
 
+ini_set('max_execution_time', 0);
+
 class Dirscan extends ActiveRecord
 {
     public static function tableName()
@@ -34,7 +36,7 @@ class Dirscan extends ActiveRecord
     public function savetodb($taskid, $hostname, $outputarray, $gau_result, $scanurl)
     {
 
-        if($outputarray[0]='No file.' || $outputarray = '["No file."]'){
+        if( empty($outputarray) || $outputarray == '{}'){
             return 1; //no need to save empty results
         }
 
@@ -49,7 +51,7 @@ class Dirscan extends ActiveRecord
                     ->limit(1)
                     ->one();
 
-                if(!empty($dirscan) && ($dirscan->dirscan="")) { //if task exists in db
+                if(!empty($dirscan) && ($dirscan->dirscan == "")) { //if task exists in db
 
                     $dirscan->dirscan_status = "Done.";
                     $dirscan->dirscan = $outputarray;
@@ -58,7 +60,7 @@ class Dirscan extends ActiveRecord
                     $dirscan->date = date("Y-m-d H-i-s");
 
                     $dirscan->save();
-                    
+
                 } else {
                     $dirscan = new Tasks();
                     $dirscan->host = $hostname;
@@ -119,7 +121,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $domain); //get hostname only
         
         return $domain[2][0]; //group 2 == domain name
 
@@ -138,7 +140,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:\&]+)/i", $url, $port); //get hostname only
 
         if(isset($port[2][1]) && $port[2][1]!="") {
             $port = ":".$port[2][1]; 
@@ -180,8 +182,8 @@ class Dirscan extends ActiveRecord
                         }
                     }
                 }
-            } else $outputarray = "No file.";
-        } else $outputarray = "No file.";
+            } else $outputarray = "";
+        } else $outputarray = "";
 
         
         return $outputarray;
@@ -259,7 +261,7 @@ class Dirscan extends ActiveRecord
 
 
             exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
-            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ &");
+            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ ");
 
             $output_ffuf = array();
 
@@ -268,7 +270,7 @@ class Dirscan extends ActiveRecord
 
             $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
             
-            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 30 -w /configs/dict.txt:FUZZ -r -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 20 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
             if (!isset($input["ip"])) {
                 $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
@@ -307,7 +309,7 @@ class Dirscan extends ActiveRecord
                         $hostsfile = "/ffuf/" . $randomid . "/" . $randomid . "domains.txt";
                         file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
-                        $start_dirscan = $ffuf_string . " -mc all -timeout 20 -r -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
+                        $start_dirscan = $ffuf_string . " -mc all -timeout 20 -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
                         exec($start_dirscan);
 
                         $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);

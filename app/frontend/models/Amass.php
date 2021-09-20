@@ -8,6 +8,8 @@ use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 require_once 'Dirscan.php';
 
+ini_set('max_execution_time', 0);
+
 class Amass extends ActiveRecord
 {
     public static function tableName()
@@ -125,7 +127,7 @@ class Amass extends ActiveRecord
 
         if($gau!=""){
             foreach($gau as $subdomain){
-                $vhostswordlist[] = $subdomain;
+                $vhostswordlist[] = dirscan::ParseHostname($subdomain);
             }
         }
 
@@ -316,7 +318,7 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass7.ini";
+        $amassconfig = "/configs/amass5.ini";
 
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini";

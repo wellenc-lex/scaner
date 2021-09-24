@@ -1066,7 +1066,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-vhost').DataTable();
+                    $('#table-vhost').DataTable({"pageLength": 1000, "order": [[ 0, "desc" ]]});
                 });
 
                 $(document).ready(function () {

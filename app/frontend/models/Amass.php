@@ -167,16 +167,18 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $list) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443 -silent -o ". $output ." -l ". $wordlist ."";
         exec($httpx);
 
         if (file_exists($output)) {
             $alive = file_get_contents($output);
             $alive = explode(PHP_EOL,$alive);
 
+            $alive = array_unique($alive);
+
             foreach($alive as $url) {
 
-                if($url!=""){
+                if($url!="" && (strpos($currenturl, 'google') === false) && (strpos($currenturl, 'medium') === false) ){
 
                     $queue = new Queue();
                     $queue->taskid = $taskid;
@@ -198,7 +200,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo chmod -R 777 /dockerresults && sudo chmod -R 777 /dockerresults/ && sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "sudo chmod -R 777 /dockerresults && sudo chmod -R 777 /dockerresults/ && sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau timeout 10000 gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 
@@ -312,9 +314,9 @@ class Amass extends ActiveRecord
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
-        //exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o /dockerresults/" . $randomid . "amassINTEL.txt -active -config /configs/amass1.ini");
-
         $jsonoutput = " -json /dockerresults/" . $randomid . "amass.json";
+
+        $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
@@ -324,14 +326,14 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini";
         }
 
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 800 -ip -config ".$amassconfig;
+        exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 800 -ip -config ".$amassconfig);
 
-        exec($command);
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -ip -config ".$amassconfig);
 
-        if (file_exists("/dockerresults/" . $randomid . "amassINTEL.txt")) {
-            $intelamass = file_get_contents("/dockerresults/" . $randomid . "amassINTEL.txt");
+        if (file_exists($inteloutput)) {
+            $intelamass = file_get_contents($inteloutput);
 
-            $intelamass = json_encode(explode(PHP_EOL,$intelamass));
+            $intelamass = json_encode(array_unique(explode(PHP_EOL,$intelamass)));
         } else {
             $intelamass = NULL;
         }

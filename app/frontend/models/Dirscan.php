@@ -36,7 +36,7 @@ class Dirscan extends ActiveRecord
     public function savetodb($taskid, $hostname, $outputarray, $gau_result, $scanurl)
     {
 
-        if( empty($outputarray) || $outputarray == '{}'){
+        if( empty($outputarray) || $outputarray == '{}' || $outputarray == '[""]'){
             return 1; //no need to save empty results
         }
 
@@ -163,7 +163,7 @@ class Dirscan extends ActiveRecord
             if( isset($output["results"]) ) {
                 exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
                 foreach ($output["results"] as $results) {
-                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" && $results["status"] != "429"){
+                    if ( $results["length"] >= 0 && !in_array($results["length"], $result_length) ){
                         $id++;
                         $result_length[] = $results["length"];//so no duplicates gonna be added
                         $outputarray[$id]["url"] = $results["url"];
@@ -182,10 +182,9 @@ class Dirscan extends ActiveRecord
                         }
                     }
                 }
-            } else $outputarray = "";
-        } else $outputarray = "";
+            } 
+        } 
 
-        
         return $outputarray;
     }
 
@@ -205,17 +204,16 @@ class Dirscan extends ActiveRecord
         if( file_exists($name) ){
             $gau_result = explode("\n", file_get_contents($name));
 
-            foreach ($gau_result as $id => $result) {
+            /*foreach ($gau_result as $id => $result) {
                 //wayback saves too much (js,images,xss payloads)
                 if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
                     unset($gau_result[$id]);
                 }
-            }
+            } */
 
             $gau_result = array_map('htmlentities', $gau_result);
             $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
-        } else $gau_result="";
-        
+        }
         return $gau_result;
     }
 
@@ -223,7 +221,7 @@ class Dirscan extends ActiveRecord
     {
         global $headers; global $usewordlist; global $randomid;
 
-        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
+        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' ";
 
         if( $input["url"] != "") $urls = explode(PHP_EOL, $input["url"]); else return 0; //no need to scan without supplied url
 
@@ -268,7 +266,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 20000 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 70000 -s -fc 404,429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 20 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -321,14 +319,17 @@ class Dirscan extends ActiveRecord
 
             $scanurl = $scheme.$hostname.$port;
 
+            exec("sudo rm -r /ffuf/" . $randomid . "/");
+
             dirscan::savetodb($taskid, $hostname, $output_ffuf, $gau_result, $scanurl);
 
             dirscan::queuedone($input["queueid"]);
 
             Yii::$app->db->close();  
+
         }
         
-        return exec("sudo rm -r /ffuf/" . $randomid . "/");;
+        return 1;
     }
 
 }

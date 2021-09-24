@@ -270,7 +270,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ($tools_amount_ffuf < 65 && $tools_amount_amass < 6) || ($tools_amount_ffuf < 35 && $tools_amount_jsa <=10) ) {
+                            if ( ($tools_amount_ffuf < 70 && $tools_amount_amass < 6) || ($tools_amount_ffuf < 35 && $tools_amount_jsa <=8) ) {
 
                                 $results->working = 1;
 
@@ -333,7 +333,7 @@ class VerifyController extends Controller
 
                             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-                            if ($tools_amount_nuclei < 10 && $tools_amount_amass < 6) {
+                            if ($tools_amount_nuclei < 15 && $tools_amount_amass < 6) {
 
                                 $results->working = 1;
 

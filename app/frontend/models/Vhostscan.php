@@ -124,7 +124,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
-        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -u ";
+        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -maxtime-job 60000 -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
@@ -152,7 +152,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -r -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -u ";
+        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime-job 60000 -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
             
@@ -221,12 +221,13 @@ class Vhostscan extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -exclude-cdn -threads 20 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443 -threads 20 -silent -o ". $output ." -l ". $wordlist ."";
         exec($httpx);
 
         if (file_exists($output)) {
             $alive = file_get_contents($output);
             $alive = explode(PHP_EOL,$alive);
+            $alive = array_unique($alive);
         } else $alive = [];
         
         return $alive;
@@ -374,12 +375,14 @@ class Vhostscan extends ActiveRecord
                     }
                 } else return "NO AMASS RESULTS or NO PORTS";
 
+                exec("sudo rm -r /ffuf/vhost" . $randomid . "/");
+
                 vhostscan::saveToDB($taskid, $output, implode( " ", $alive) );
             }
 
             dirscan::queuedone($input["queueid"]); //no amass results - maybe task been already deleted
 
-            return exec("sudo rm -r /ffuf/vhost" . $randomid . "/");
+            return 1;
         }
     }
 }

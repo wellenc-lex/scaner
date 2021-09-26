@@ -124,7 +124,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
-        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -maxtime-job 60000 -u ";
+        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -maxtime-job 20000 -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
@@ -152,7 +152,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime-job 60000 -u ";
+        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 100000 -maxtime-job 20000 -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
             
@@ -377,7 +377,8 @@ class Vhostscan extends ActiveRecord
 
                 exec("sudo rm -r /ffuf/vhost" . $randomid . "/");
 
-                vhostscan::saveToDB($taskid, $output, implode( " ", $alive) );
+                vhostscan::saveToDB($taskid, array_filter($output), implode( " ", $alive) );
+                //filter empty elemts from output, use alive IPS for later nmap purposes
             }
 
             dirscan::queuedone($input["queueid"]); //no amass results - maybe task been already deleted

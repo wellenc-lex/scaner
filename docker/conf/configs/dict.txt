@@ -27,6 +27,9 @@ lk
 lk.%EXT%
 config
 config.%EXT%
+swagger.json
+v2/swagger.json
+openapi.json
 ks.json
 static/shards/html
 yaml.log
@@ -96,7 +99,6 @@ static/api/swagger.yaml
 swagger-resources
 swagger-ui
 swagger-ui.html
-swagger.json
 swagger.yaml
 swagger/api-docs
 swagger/index.html

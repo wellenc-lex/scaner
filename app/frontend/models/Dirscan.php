@@ -35,6 +35,7 @@ class Dirscan extends ActiveRecord
 
     public function savetodb($taskid, $hostname, $outputarray, $gau_result, $scanurl)
     {
+        global $randomid;
 
         if( empty($outputarray) || $outputarray == '{}' || $outputarray == '[""]'){
             return 1; //no need to save empty results
@@ -98,7 +99,7 @@ class Dirscan extends ActiveRecord
 
             $dirscan->save();
             
-            return $exception.$outputarray.$gau_result;
+            return file_put_contents("/ffuf/error".$randomid, $exception.$outputarray.$gau_result);
         }
 
         if( $scanurl != "" ){
@@ -204,12 +205,12 @@ class Dirscan extends ActiveRecord
         if( file_exists($name) ){
             $gau_result = explode("\n", file_get_contents($name));
 
-            /*foreach ($gau_result as $id => $result) {
+            foreach ($gau_result as $id => $result) {
                 //wayback saves too much (js,images,xss payloads)
                 if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a)/i", $result) === 1 ){
                     unset($gau_result[$id]);
                 }
-            } */
+            }
 
             $gau_result = array_map('htmlentities', $gau_result);
             $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
@@ -266,7 +267,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime-job 70000 -s -fc 404,429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -maxtime-job 20000 -s -fc 429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 20 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

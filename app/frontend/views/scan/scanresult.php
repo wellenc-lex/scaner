@@ -622,7 +622,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                                     <tbody>
                                                                         <tr>   
                                                                             <td style="word-wrap: break-word; max-width: 100px;">
-                                                                                <?php echo(nl2br(htmlspecialchars($scan["response"]))); ?>   
+                                                                                <?php echo(nl2br(htmlspecialchars(base64_decode($scan["response"])))); ?>   
                                                                             </td>
                                                                         </tr> 
                                                                     </tbody>

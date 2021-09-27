@@ -80,7 +80,7 @@ class jsa extends ActiveRecord
             exec("sudo mkdir /ffuf/jsa" . $randomid . "/ "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/jsa" . $randomid . "/ &");
 
-            exec("timeout -k 80500 80400 sudo docker run --cpu-shares 128 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " " . $randomid . " ");
+            exec("timeout 80400 sudo docker run --cpu-shares 128 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " " . $randomid . " ");
 
             if (file_exists("/ffuf/jsa" . $randomid . "/secretfinder.html")) {
                 $secretfinder = file_get_contents("/ffuf/jsa" . $randomid . "/secretfinder.html");

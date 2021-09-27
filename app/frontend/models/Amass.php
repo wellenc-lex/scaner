@@ -125,12 +125,6 @@ class Amass extends ActiveRecord
         $wordlist = array(); //all words from subdomain names
         $vhostswordlist = array(); //subdomains from gau and amass
 
-        if($gau!=""){
-            foreach($gau as $subdomain){
-                $vhostswordlist[] = dirscan::ParseHostname($subdomain);
-            }
-        }
-
         if(isset($amassoutput) && $amassoutput!=""){
 
             $amassoutput = json_decode($amassoutput, true);
@@ -139,6 +133,8 @@ class Amass extends ActiveRecord
             foreach ($amassoutput as $amass) {
 
                 $name = $amass["name"];
+
+                $maindomain = $amass["domain"];
 
                 if (strpos($name, 'https://xn--') === false) {
 
@@ -151,6 +147,18 @@ class Amass extends ActiveRecord
                     foreach($matches[0] as $match){
                         $wordlist[] = rtrim($match, ".");
                     }
+                }
+            }
+        }
+
+        if($gau!=""){
+            
+            foreach($gau as $subdomain){
+                
+                if (strpos($subdomain, $maindomain) !== false) {
+
+                    $vhostswordlist[] = dirscan::ParseHostname($subdomain);
+                
                 }
             }
         }

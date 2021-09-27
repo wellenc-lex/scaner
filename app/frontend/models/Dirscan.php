@@ -147,7 +147,7 @@ class Dirscan extends ActiveRecord
             $port = ":".$port[2][1]; 
         } else $port = "";
         
-        return $port; //group  == port
+        return $port; // :8443
     }
 
     public function ReadFFUFResult($filename, $localhost)
@@ -247,6 +247,14 @@ class Dirscan extends ActiveRecord
 
             $hostname = trim($hostname, ' ');
             $port = trim($port, ' ');
+
+            if( $scheme=="http://" && ($port==":443" || $port==":8443") ){
+
+                dirscan::queuedone($input["queueid"]);
+                return 1; //scanning 443 with http:// is pointless
+            
+            }
+
 
             $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
 

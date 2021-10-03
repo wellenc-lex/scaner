@@ -100,6 +100,8 @@ class Amass extends ActiveRecord
 
     public function vhosts($amassoutput, $gau, $taskid)
     {
+        //get subdomain names from amass and gau to use it as virtual hosts wordlist
+
         /*
         app.dev.cloud.google.com ->
         app.dev.cloud
@@ -155,7 +157,7 @@ class Amass extends ActiveRecord
             
             foreach($gau as $subdomain){
                 
-                if (strpos($subdomain, $maindomain) !== false) {
+                if (strpos($subdomain, $maindomain) !== false && strpos($subdomain, "sentry") === false ) {
 
                     $vhostswordlist[] = dirscan::ParseHostname($subdomain);
                 
@@ -168,15 +170,18 @@ class Amass extends ActiveRecord
         return $vhostswordlist;
     }
 
-    public function httpxhosts($list, $taskid, $randomid)
+    public function httpxhosts($vhostslist, $taskid, $randomid)
     {
         $wordlist = "/dockerresults/" . $randomid . "hosts.txt";
         $output = "/dockerresults/" . $randomid . "httpx.txt";
         
-        file_put_contents($wordlist, implode( PHP_EOL, $list) );
+        file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443 -silent -o ". $output ." -l ". $wordlist ."";
+        
         exec($httpx);
+
+        $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
         if (file_exists($output)) {
             $alive = file_get_contents($output);
@@ -186,14 +191,21 @@ class Amass extends ActiveRecord
 
             foreach($alive as $url) {
 
-                if($url!="" && (strpos($currenturl, 'google') === false) && (strpos($currenturl, 'medium') === false) ){
+                if($url != ""){
 
-                    $queue = new Queue();
-                    $queue->taskid = $taskid;
-                    $queue->dirscanUrl = $url;
-                    $queue->instrument = 3;
-                    $queue->wordlist = 1;
-                    $queue->save();
+                    $currenthost = dirscan::ParseHostname($url).dirscan::ParsePort($url);
+
+                    if(!in_array($currenthost, $hostnames)){
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $url;
+                        $queue->instrument = 3;
+                        $queue->wordlist = 1;
+                        $queue->save();
+
+                        $hostnames[] = $currenthost;
+                    }
                 }
             }
         }
@@ -322,37 +334,43 @@ class Amass extends ActiveRecord
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
-        $jsonoutput = " -json /dockerresults/" . $randomid . "amass.json";
+        $enumoutput = " /dockerresults/" . $randomid . "amass.json";
 
         $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass5.ini";
+        $amassconfig = "/configs/amass4.ini";
 
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini";
         }
 
-        exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " " . $jsonoutput . " -active -brute -timeout 800 -ip -config ".$amassconfig);
+        $command = exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1200 -ip -config ".$amassconfig);
 
-        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -ip -config ".$amassconfig);
+        exec($command);
+
+        if (file_exists($enumoutput)) {
+            $fileamass = file_get_contents($enumoutput);
+        } else {
+            sleep(1800);
+            exec($command);
+            $fileamass = file_get_contents($enumoutput);
+        }
+
+        
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
 
         if (file_exists($inteloutput)) {
             $intelamass = file_get_contents($inteloutput);
 
-            $intelamass = json_encode(array_unique(explode(PHP_EOL,$intelamass)));
+            $intelamass = array_unique(explode(PHP_EOL,$intelamass));
+
+            $intelamass = json_encode($intelamass);
         } else {
             $intelamass = NULL;
         }
 
-        if (file_exists("/dockerresults/" . $randomid . "amass.json")) {
-            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
-        } else {
-            sleep(1800);
-            exec($command);
-            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
-        }
 
         $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
@@ -367,7 +385,7 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        $aquatoneoutput = "[]";#amass::aquatone($randomid);
+        $aquatoneoutput = "[]"; #amass::aquatone($randomid);
 
         $subtakeover = 0;
 

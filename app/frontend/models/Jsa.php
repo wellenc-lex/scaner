@@ -77,18 +77,18 @@ class jsa extends ActiveRecord
             $hostname = trim($hostname, ' ');
             $port = trim($port, ' ');
 
-            exec("sudo mkdir /ffuf/jsa" . $randomid . "/ "); //create dir for ffuf scan results
-            exec("sudo chmod -R 777 /ffuf/jsa" . $randomid . "/ &");
+            exec("sudo mkdir /jsa/" . $randomid . "/ "); //create dir for ffuf scan results
+            exec("sudo chmod -R 777 /jsa/" . $randomid . "/ &");
 
-            exec("timeout 80400 sudo docker run --cpu-shares 128 --rm -v ffuf:/ffuf 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " " . $randomid . " ");
+            exec("timeout 80400 sudo docker run --cpu-shares 128 --rm -v jsa:/jsa 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " " . $randomid . " ");
 
-            if (file_exists("/ffuf/jsa" . $randomid . "/secretfinder.html")) {
-                $secretfinder = file_get_contents("/ffuf/jsa" . $randomid . "/secretfinder.html");
+            if (file_exists("/jsa/" . $randomid . "/secretfinder.html")) {
+                $secretfinder = file_get_contents("/jsa/" . $randomid . "/secretfinder.html");
             } else $secretfinder="secretfinder error no file";
 
             $jsa_output = base64_encode($secretfinder); //htmls encoded so there will be no error with inserting into db
 
-            exec("sudo rm -r /ffuf/jsa" . $randomid . "/");;
+            exec("sudo rm -r /jsa/" . $randomid . "/");;
     
             jsa::savetodb($taskid, $hostname, $jsa_output);
 

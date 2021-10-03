@@ -37,7 +37,7 @@ class Dirscan extends ActiveRecord
     {
         global $randomid;
 
-        if( empty($outputarray) || $outputarray == '{}' || $outputarray == '[""]'){
+        if( empty($outputarray) || $outputarray == '{}' || $outputarray == '[""]' || $outputarray == '[null]' ){
             return 1; //no need to save empty results
         }
 
@@ -141,7 +141,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:\&]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $port); //get hostname only
 
         if(isset($port[2][1]) && $port[2][1]!="") {
             $port = ":".$port[2][1]; 
@@ -248,11 +248,11 @@ class Dirscan extends ActiveRecord
             $hostname = trim($hostname, ' ');
             $port = trim($port, ' ');
 
-            if( $scheme=="http://" && ($port==":443" || $port==":8443") ){
+            if( $scheme=="http://" && ($port==":443" || $port==":8443" || $port==":4443") ){
+                //$scheme="https://"; //httpx cant find accurate scheme. cant be both http and SSL
 
                 dirscan::queuedone($input["queueid"]);
                 return 1; //scanning 443 with http:// is pointless
-            
             }
 
 
@@ -275,13 +275,14 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -maxtime-job 20000 -s -fc 429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2.5 ";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -s -fc 429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2 -r";
             
-            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 20 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 10 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
             if (!isset($input["ip"])) {
                 $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
-                $gau_result = dirscan::gau($hostname, $randomid);
+                
+                if ( $port == "" ) $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
             }
 
             if (isset($input["ip"])) {

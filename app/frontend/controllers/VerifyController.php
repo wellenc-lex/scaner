@@ -228,7 +228,13 @@ class VerifyController extends Controller
 
             $tools_amount_ffuf = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
 
-            $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');   
+            $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');
+
+            $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
+
+            $max_amass = 1; $max_ffuf = 85; $max_vhost = $max_ffuf+15; $max_jsa = 4; $max_nuclei = 5; 
+
+            //$max_amass = -20; $max_ffuf = -20; $max_vhost = -20; $max_jsa = -20; $max_nuclei = -20; 
 
             foreach ($allresults as $results) {
 
@@ -254,7 +260,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < 3 && $tools_amount_jsa <=10) {
+                            if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa) {
 
                                 $results->working  = 1;
 
@@ -270,7 +276,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ($tools_amount_ffuf < 70 && $tools_amount_amass < 6) || ($tools_amount_ffuf < 35 && $tools_amount_jsa <=8) ) {
+                            if ( ($tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass ) || ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa < $max_jsa ) ) {
 
                                 $results->working = 1;
 
@@ -294,7 +300,7 @@ class VerifyController extends Controller
 
                                 if ($tools_amount_amass < 1) {
 
-                                    if ($tools_amount_ffuf < 35 && $tools_amount_jsa <=5) {
+                                    if ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa ) {
 
                                         $results->working  = 1;
 
@@ -310,7 +316,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "7") !== false) {
 
-                            if ($tools_amount_ffuf < 60 && $tools_amount_amass < 6) {
+                            if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass ) {
 
                                 $results->working = 1;
 
@@ -324,16 +330,16 @@ class VerifyController extends Controller
                                 } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
                                 $results->save();
-                                $tools_amount->vhosts = $tools_amount->vhosts+1;                   
+                                $tools_amount->vhosts = $tools_amount->vhosts+1;  
+
+                                $tools_amount_ffuf++;                 
                             }
 
                         } 
 
                         if (strpos($results->instrument, "8") !== false) {
 
-                            $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
-
-                            if ($tools_amount_nuclei < 15 && $tools_amount_amass < 6) {
+                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass ) {
 
                                 $results->working = 1;
 
@@ -347,14 +353,11 @@ class VerifyController extends Controller
 
                                 $tools_amount_nuclei++;
                             }
-
                         } 
 
-                        if (strpos($results->instrument, "9") !== false) {
+                        if (strpos($results->instrument, "9") !== false) { 
 
-                            $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');   
-
-                            if ($tools_amount_jsa < 5 && $tools_amount_amass < 6) {
+                            if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass ) {
 
                                 $results->working = 1;
 
@@ -368,7 +371,6 @@ class VerifyController extends Controller
 
                                 $tools_amount_jsa++;
                             }
-
                         } 
                     }
 

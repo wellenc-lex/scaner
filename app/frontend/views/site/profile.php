@@ -112,7 +112,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                         <td style="text-align: center; height: 50px; min-height: 50px; max-width: 450px; min-width: 450px; width: 450px;">
                                             <div style="text-align: center; overflow:auto;  white-space:nowrap; resize: none;   ">
-                                                <?= "<b style='vertical-align: middle; overflow: hidden'>$scan->host</b>" ?>
+                                                <?= "<a href=". $scan->host ." style='vertical-align: middle; overflow: hidden'>$scan->host</a>" ?>
                                             </div>
                                         </td>
 

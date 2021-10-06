@@ -87,10 +87,10 @@ class VerifyController extends Controller
                         if ($result->vhost_status === "Done.") $vhost = 1;
                     } else $vhost = 1;
 
-                    if ($result->notify_instrument == "3") {
-                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'taskid' => $result->taskid]);
-                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'taskid' => $result->taskid]);
-                    }
+                    /*if ($result->notify_instrument == "3") {
+                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
+                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
+                    }*/
 
                     if ($nmap == 1 && $amass == 1 && $dirscan == 1 && $gitscan == 1 && $vhost == 1 && $ips == 1 && $reverseip == 1) {
 
@@ -217,12 +217,14 @@ class VerifyController extends Controller
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
                 ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC])
-                ->limit(2000)
+                ->limit(2500)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
+
+            $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array();
 
             $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
@@ -232,9 +234,11 @@ class VerifyController extends Controller
 
             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-            $max_amass = 1; $max_ffuf = 85; $max_vhost = $max_ffuf+15; $max_jsa = 4; $max_nuclei = 5; 
+            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 50;
 
-            //$max_amass = -20; $max_ffuf = -20; $max_vhost = -20; $max_jsa = -20; $max_nuclei = -20; 
+            //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+15; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
+
+            $max_amass = 7; $max_ffuf = 10; $max_vhost = $max_ffuf+15; $max_jsa = 0; $max_nuclei = 1; $max_nuclei_in_task = 20;
 
             foreach ($allresults as $results) {
 
@@ -244,7 +248,7 @@ class VerifyController extends Controller
                     
                         if (strpos($results->instrument, "1") !== false) {
 
-                            if ($tools_amount->nmap < 10) {
+                            if ($tools_amount->nmap < $max_nmap) {
 
                                 $results->working = 1;
 
@@ -260,7 +264,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "2") !== false) {
 
-                            if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa) {
+                            if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa && $tools_amount_nuclei <= $max_nuclei ) {
 
                                 $results->working  = 1;
 
@@ -276,7 +280,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( ($tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass ) || ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa < $max_jsa ) ) {
+                            if ( (($tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass ) || ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa )) && ($tools_amount_nuclei <= $max_nuclei) ) {
 
                                 $results->working = 1;
 
@@ -316,7 +320,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "7") !== false) {
 
-                            if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass ) {
+                            if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
                                 $results->working = 1;
 
@@ -339,25 +343,23 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "8") !== false) {
 
-                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass ) {
+                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
 
                                 $results->working = 1;
 
-                                $url = $results->dirscanUrl;
+                                $nucleiurls[] = $results->dirscanUrl;
 
-                                if ($url != "") {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url . '&queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret 
-                                        . '" https://dev.localhost.soft/scan/nuclei > /dev/null 2>/dev/null &');
-                                }
+                                $queues_array[] = $results->id;
+
                                 $results->save();
 
-                                $tools_amount_nuclei++;
+                                $nuclei_in_task++;
                             }
                         } 
 
                         if (strpos($results->instrument, "9") !== false) { 
 
-                            if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass ) {
+                            if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
                                 $results->working = 1;
 
@@ -425,14 +427,22 @@ class VerifyController extends Controller
                                 }
                             }
                     }
-
-                    if ($results->working = 1) sleep(1); // give os some time to properly create process
                 }
             } 
 
             $tools_amount->amass = $tools_amount_amass;
 
             $tools_amount->dirscan = $tools_amount_ffuf;
+
+            
+            if ( !empty($nucleiurls) ) {
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . ' &queueid=' . implode( PHP_EOL, $queues_array )
+                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/nuclei >/dev/null 2>/dev/null &');
+
+                $tools_amount_nuclei++;
+
+                //first we get a lot of nuclei results into one big list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
+            }
 
             $tools_amount->save();    
         } else return Yii::$app->response->statusCode = 403;

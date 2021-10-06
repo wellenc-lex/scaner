@@ -44,7 +44,7 @@ class Newscan extends Model
         return [
 
             [['nmapDomain'], 'string', 'length' => [5, 5555]],
-            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \.\-\/\:]+)$/'],
+            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['amassDomain'], 'string', 'length' => [5, 255]],
             [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:]+)$/'],
@@ -80,10 +80,10 @@ class Newscan extends Model
             [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9\,\=\ \%\&\.\-\/\:;]+)$/'],
 
             [['vhostDomain'], 'string'],
-            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\-\/\r\n]+)$/'],
+            [['vhostDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['vhostIp'], 'string'],
-            [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9\,\ \.\-\/\r\n]+)$/'],
+            [['vhostIp'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['vhostPort'], 'string'],
             [['vhostPort'], 'match', 'pattern' => '/^([0-9\ \.\:\r\n]+)$/'],
@@ -91,7 +91,7 @@ class Newscan extends Model
             [['vhostSsl'], 'boolean'],
 
             [['ips'], 'string', 'length' => [5, 255]],
-            [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\.\-\/\:]+)$/'],
+            [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['reverseip'], 'ip'],
 

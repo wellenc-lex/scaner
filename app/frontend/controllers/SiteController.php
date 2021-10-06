@@ -13,6 +13,7 @@ use frontend\models\Queue;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\Tasks;
+use frontend\models\Dirscan;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\data\Pagination;
@@ -320,12 +321,12 @@ class SiteController extends Controller
                     $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
                     //checks if at least 1 instrument exists
 
-                    if (isset($url["notify"]) and $url["notify"] == 1)
+                    if (isset($url["notify"]) && $url["notify"] == 1)
                         $tasks->notification_enabled = 1;
                     else
                         $tasks->notification_enabled = 0;
 
-                    if (isset($url["nmapDomain"]) and $url["nmapDomain"] != "") {
+                    if (isset($url["nmapDomain"]) && $url["nmapDomain"] != "") {
                         $nmap = 1;
                         $tasks->host = rtrim($url["nmapDomain"], ',');
                         $tasks->nmap_status = "Working";
@@ -338,9 +339,9 @@ class SiteController extends Controller
                         $queue->save();
                     }
 
-                    if (isset($url["amassDomain"]) and $url["amassDomain"] != "") {
+                    if (isset($url["amassDomain"]) && $url["amassDomain"] != "") {
 
-                        preg_match_all("/(https?:\/\/)?([\w\-\d\.][^\/\:]+)/i", $url["amassDomain"], $domain); 
+                        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url["amassDomain"], $domain);
 
                         $url["amassDomain"] = $domain[2][0];
                         
@@ -374,40 +375,34 @@ class SiteController extends Controller
                         }
                     }
 
-                    if (isset($url["dirscanUrl"]) and $url["dirscanUrl"] != "") {
+                    if (isset($url["dirscanUrl"]) && $url["dirscanUrl"] != "") {
                         $dirscan = 1;
-                        $pos = strpos($url["dirscanUrl"], "http");
-                        $pos1 = strpos($url["dirscanUrl"], "https");
 
-                        if ($pos !== false || $pos1 !== false) {
-                            $tasks->host = $url["dirscanUrl"];
-                        } else {
-                            $tasks->host = "http://" . $url["dirscanUrl"];
-                        }
+                        $tasks->host = $url["dirscanUrl"];
 
                         $queue = new Queue();
                         $queue->taskid = $tasks->taskid;
                         $queue->instrument = 3;
 
-                        if (isset($url["dirscanIp"]) and $url["dirscanIp"] != "") {
+                        if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
                             $queue->dirscanIP = $url["dirscanIp"];
                         }
 
-                        $queue->dirscanUrl = $url["dirscanUrl"];
+                        $queue->dirscanUrl = $url["dirscanUrl"]; //slice #? and other stuff
                         $queue->save();
 
                         $tasks->dirscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "3";
                     }
 
-                    if (isset($url["gitUrl"]) and $url["gitUrl"] != "") {
+                    if (isset($url["gitUrl"]) && $url["gitUrl"] != "") {
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
                         //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
                     }
 
-                    if (isset($url["reverseip"]) and $url["reverseip"] != "") {
+                    if (isset($url["reverseip"]) && $url["reverseip"] != "") {
                         $tasks->host = $url["reverseip"];
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
@@ -415,7 +410,7 @@ class SiteController extends Controller
                         //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
                     }
 
-                    if (isset($url["ips"]) and $url["ips"] != "") {
+                    if (isset($url["ips"]) && $url["ips"] != "") {
                         $tasks->host = $url["ips"];
                         $tasks->ips_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "6";
@@ -423,7 +418,7 @@ class SiteController extends Controller
                         //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
                     }
 
-                    if ((isset($url["vhostDomain"]) and $url["vhostDomain"] != "") && (isset($url["vhostIp"]) and $url["vhostIp"] != "")) {
+                    if ((isset($url["vhostDomain"]) && $url["vhostDomain"] != "") && (isset($url["vhostIp"]) && $url["vhostIp"] != "")) {
 
                         $tasks->vhost_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "7";
@@ -433,9 +428,9 @@ class SiteController extends Controller
                         $queue->taskid = $tasks->taskid;
                         $queue->instrument = 7;
 
-                        if ((isset($url["vhostPort"]) and $url["vhostPort"] != "")) {
+                        if ((isset($url["vhostPort"]) && $url["vhostPort"] != "")) {
 
-                            if (isset($url["vhostSsl"]) and $url["vhostSsl"] === 1) {
+                            if (isset($url["vhostSsl"]) && $url["vhostSsl"] === 1) {
 
                                 $queue->vhostdomain = $url["vhostDomain"];
                                 $queue->vhostip = $url["vhostIp"];
@@ -463,7 +458,7 @@ class SiteController extends Controller
 
                     }
 
-                    if ((isset($url["nucleiDomain"]) and $url["nucleiDomain"] != "") ) {
+                    if ((isset($url["nucleiDomain"]) && $url["nucleiDomain"] != "") ) {
 
                         $tasks->vhost_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "8";
@@ -476,7 +471,7 @@ class SiteController extends Controller
                         $queue->save();
                     }
 
-                    if ((isset($url["jsaDomain"]) and $url["jsaDomain"] != "") ) {
+                    if ((isset($url["jsaDomain"]) && $url["jsaDomain"] != "") ) {
 
                         $tasks->vhost_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "9";
@@ -489,7 +484,7 @@ class SiteController extends Controller
                         $queue->save();
                     }
 
-                    /*if (isset($url["raceUrl"]) and $url["raceUrl"] != "") {
+                    /*if (isset($url["raceUrl"]) && $url["raceUrl"] != "") {
                         $race = 1;
 
                         $cookies = $url["raceCookies"];
@@ -500,7 +495,7 @@ class SiteController extends Controller
                         $body = str_replace(",", '&', $body);
                         $body = str_replace(";", '&', $body);
 
-                        if (isset($url["raceHeaders"]) and $url["raceHeaders"] != "")
+                        if (isset($url["raceHeaders"]) && $url["raceHeaders"] != "")
                             $headers = $url["raceHeaders"];
                         else
                             $headers = "";
@@ -585,19 +580,19 @@ class SiteController extends Controller
                         else
                             $passive->notifications_enabled = 0;
 
-                        if (isset($url["nmapDomain"]) and $url["nmapDomain"] != "") {
+                        if (isset($url["nmapDomain"]) && $url["nmapDomain"] != "") {
                             $passive->nmapDomain = $url["nmapDomain"];
                             $passive->scanday = rand(1, 28);
                             $nmap = 1;
                         }
 
-                        if (isset($url["amassDomain"]) and $url["amassDomain"] != "") {
+                        if (isset($url["amassDomain"]) && $url["amassDomain"] != "") {
                             $passive->amassDomain = $url["amassDomain"];
                             $passive->scanday = rand(1, 28);
                             $amass = 1;
                         }
 
-                        if (isset($url["dirscanUrl"]) and $url["dirscanUrl"] != "") {
+                        if (isset($url["dirscanUrl"]) && $url["dirscanUrl"] != "") {
                             $passive->dirscanUrl = $url["dirscanUrl"];
                             $passive->scanday = rand(1, 28);
                             $dirscan = 1;

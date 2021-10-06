@@ -241,6 +241,19 @@ class ScanController extends Controller
 
     }
 
+    public function actionAmassrestore()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new Amass();
+
+        $secretIN = Yii::$app->request->get('secret');
+
+        if ($secretIN === $secret) {
+            return $model::RestoreAmass(Yii::$app->request->get('randomid'));
+        }
+
+    }
+
     public function actionGitscan()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');

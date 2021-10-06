@@ -305,7 +305,7 @@ $this->registerJs($script, View::POS_READY);
                                         </div>
 
                                         <div class="modal-body">
-                                            <p>Dirscan is tool created for scanning your hosts for secret/configuration
+                                            <p>Dirscan is a tool created for scanning your hosts for secret/configuration
                                                 files, which could lead to risks.</p>
                                         </div>
                                         <div class="modal-footer">
@@ -336,7 +336,7 @@ $this->registerJs($script, View::POS_READY);
                                             </div>
 
                                             <div class="modal-body">
-                                                <p>Vhost scan is tool created for scanning your servers for virtual
+                                                <p>Vhost scan is a tool created for scanning your servers for virtual
                                                     hostnames like "admin.example.com, db.example.com", which could lead
                                                     to big problems.</p>
                                             </div>
@@ -377,21 +377,20 @@ $this->registerJs($script, View::POS_READY);
 
                         <div class="col-xs-6">
                             <div class="passivescanclass">
-                                <a data-toggle="modal" data-target="#googlescanModal" href="#" style="margin-left:4.5%;">Googlescan</a>
+                                <a data-toggle="modal" data-target="#nucleiModal" href="#" style="margin-left:7.5%;">Nuclei</a>
 
-                                <div id="googlescanModal" class="modal fade" role="dialog">
+                                <div id="nucleiModal" class="modal fade" role="dialog">
                                     <div class="modal-dialog">
 
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal">&times;
                                                 </button>
-                                                <h4 class="modal-title">What is Googlescan?</h4>
+                                                <h4 class="modal-title">What is nuclei?</h4>
                                             </div>
 
                                             <div class="modal-body">
-                                                <p>Googlescan is tool created for searching
-                                                    valuable information like Passwords/Pages/Files on the domain with google dorks.</p>
+                                                <p>nuclei is a tool created for searching misconfigurations / vulnerable software with predefined requests rules</p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">
@@ -442,8 +441,8 @@ $this->registerJs($script, View::POS_READY);
 
                         <div class="passivescanclass">
                             <div class="col-xs-6">
-                                <label class="switch" style="margin-left:0.8%;" id="googlescan">
-                                    <input type="checkbox" id="googlescanbox">
+                                <label class="switch" style="margin-left:0.8%;" id="nuclei">
+                                    <input type="checkbox" id="nucleibox">
                                     <span class="slider round"></span>
                                 </label>
                             </div>
@@ -479,7 +478,7 @@ $this->registerJs($script, View::POS_READY);
                                             </div>
 
                                             <div class="modal-body">
-                                                <p>Gitscan is tool created for scanning your git repositories for
+                                                <p>Gitscan is a tool created for scanning your git repositories for
                                                     valuable information like Passwords/AWS Keys/etc.</p>
                                             </div>
                                             <div class="modal-footer">
@@ -739,10 +738,13 @@ $this->registerJs($script, View::POS_READY);
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">
-                        <div class="dirscan">
-                            <p align="center">URL for scanning with Nuclei:</p>
+                        <div class="nuclei">
+
+                            <p align="center">Enter URL or domains separated by newline:</p>
+
                             <?= $form->field($model, 'nucleiDomain', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "https://example.com"])->label(false) ?>    
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+
                         </div>
                     </div>
                     <div class="col-lg-2"></div>
@@ -753,7 +755,7 @@ $this->registerJs($script, View::POS_READY);
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">
-                        <div class="dirscan">
+                        <div class="jsa">
                             <p align="center">URL for searching secrets in javascript files at URL:</p>
                             <?= $form->field($model, 'jsaDomain', [
                                 'inputTemplate' => '<div class="input-group"><span class="input-group-addon">URL</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "https://example.com"])->label(false) ?>    
@@ -883,16 +885,16 @@ $this->registerJs($script, View::POS_READY);
                 </div>
             </div>
 
-            <div class="googlescanclass" style="display: none; margin-top= 2em;">
+            <div class="newtoolclass" style="display: none; margin-top= 2em;">
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">
-                        <div class="findips">
+                        <div class="newtool">
 
-                            <p align="center">Enter URL for googling dorks:</p>
+                            <p align="center">Enter URL or domains separated by newline:</p>
 
-                            <?= $form->field($model, 'ips', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+                            <?= $form->field($model, 'gitUrl', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
 
                         </div>
                     </div>

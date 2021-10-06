@@ -307,6 +307,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
 
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://dehashed.com/search?query=<?php echo $amass[0]["domain"]; ?>" rel="noreferrer"> https://dehashed.com/search?query=<?php echo $amass[0]["domain"]; ?> </a>  
+        </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
                 href='https://github.com/search?p=1&s=indexed&q="<?php echo $amass[0]["domain"] ?>"&type=Code' rel="noreferrer"> https://github.com/search?p=1&q=<?php echo $amass[0]["domain"]; ?>&type=Code&s=indexed </a>  
         </div>
 

@@ -118,6 +118,15 @@ class Dirscan extends ActiveRecord
   
     }
 
+    public function ParseScheme($url)
+    {
+        $url = strtolower($url);
+
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $domain); //get hostname only
+        
+        return $domain[1][0]; //group 1 == scheme
+    }
+
     public function ParseHostname($url)
     {
         $url = strtolower($url);
@@ -249,12 +258,8 @@ class Dirscan extends ActiveRecord
             $port = trim($port, ' ');
 
             if( $scheme=="http://" && ($port==":443" || $port==":8443" || $port==":4443") ){
-                //$scheme="https://"; //httpx cant find accurate scheme. cant be both http and SSL
-
-                dirscan::queuedone($input["queueid"]);
-                return 1; //scanning 443 with http:// is pointless
+                $scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
-
 
             $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
 

@@ -211,7 +211,7 @@ CREATE TABLE `tools_amount` (
 
 LOCK TABLES `tools_amount` WRITE;
 /*!40000 ALTER TABLE `tools_amount` DISABLE KEYS */;
-INSERT INTO `tools_amount` VALUES (0,0,0,0,0,0,0);
+INSERT INTO `tools_amount` VALUES (1,0,0,0,0,0,0);
 /*!40000 ALTER TABLE `tools_amount` ENABLE KEYS */;
 UNLOCK TABLES;
 

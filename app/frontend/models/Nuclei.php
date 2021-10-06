@@ -16,18 +16,18 @@ class Nuclei extends ActiveRecord
         return 'tasks';
     }
 
-    public function Nucleiscan($scheme,$url,$port,$randomid)
+    public function Nucleiscan($list)
     {
-
-        exec("sudo mkdir /ffuf/nuclei" . $randomid . "/ && sudo chmod 777 /ffuf/nuclei" . $randomid . "/ -R && sudo chmod 777 /ffuf/nuclei" . $randomid . " -R && sudo chmod 777 /root/nuclei-templates/ -R");
 
         $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1' -H 'Forwarded-For: 127.0.0.1' -H 'Forwarded: 127.0.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1' -H 'X-Forwarded-By: 127.0.0.1' -H 'X-Forwarded: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CF_CONNECTING_IP: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1' -H 'X_IMFORWARDS: 127.0.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'Connection: close, X-Real-IP' ";
 
-        $exclude = " -exclude-templates /root/nuclei-templates/helpers -exclude-templates /root/nuclei-templates/dns -exclude-templates /root/nuclei-templates/takeovers -exclude-templates /root/nuclei-templates/miscellaneous -exclude-templates /root/nuclei-templates/exposed-tokens/generic -exclude-templates /root/nuclei-templates/technologies/tech-detect.yaml -exclude-templates /root/nuclei-templates/technologies/waf-detect.yaml -exclude-templates /root/nuclei-templates/misconfiguration/http-missing-security-headers.yaml -exclude-templates /root/nuclei-templates/misconfiguration/cloudflare-image-ssrf.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2018-15473.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/cors-misconfig.yaml -exclude-templates /root/nuclei-templates/exposures/tokens/generic/ -etags xss ";//-exclude-severity info
+        $exclude = " -exclude-templates /root/nuclei-templates/helpers -exclude-templates /root/nuclei-templates/dns -exclude-templates /root/nuclei-templates/takeovers -exclude-templates /root/nuclei-templates/miscellaneous -exclude-templates /root/nuclei-templates/exposed-tokens/generic -exclude-templates /root/nuclei-templates/technologies/tech-detect.yaml -exclude-templates /root/nuclei-templates/technologies/waf-detect.yaml -exclude-templates /root/nuclei-templates/misconfiguration/http-missing-security-headers.yaml -exclude-templates /root/nuclei-templates/misconfiguration/cloudflare-image-ssrf.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2018-15473.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/cors-misconfig.yaml -exclude-templates /root/nuclei-templates/exposures/tokens/generic/ -etags xss -exclude-templates /root/nuclei-templates/token-spray/ ";//-exclude-severity info
 
-        $output = "/ffuf/nuclei" . $randomid . "/" . $randomid . "nuclei.json";
+        $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -ud /root/nuclei-templates/ -target " . escapeshellarg($scheme.$url.$port."/") . " " . $headers . "   -stats -o " . $output . " -json -irr -nut -timeout 20 -rl 1 -c 1 ".$exclude;
+        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -timeout 15 -rl 3 " . $exclude . $headers;
+
+        //-nut
 
         exec($nuclei_start); 
 
@@ -64,27 +64,30 @@ class Nuclei extends ActiveRecord
 
     public static function nuclei($input)
     {
-        
-        $url = dirscan::ParseHostname($input["url"]);
-
-        $port = dirscan::ParsePort($input["url"]);
+        if( $input["url"] != "") $unparsedurls = explode(PHP_EOL, $input["url"]); else return 0; //no need to scan without supplied url
 
         $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1010;
 
         $randomid = rand(1,100000000);
 
-        if (strpos($input["url"], 'https://') !== false) {
-                $scheme = "https://";
-        } else $scheme = "http://";
+        foreach ($unparsedurls as $currenturl){
+            $currenturl = trim($currenturl, ' ');
+            $currenturl = rtrim($currenturl, '/');
 
-        $url = trim($url, ' ');
-        $url = rtrim($url, '/');
+            if (preg_match("/https?:\/\//i", $currenturl) === 0) $currenturl = "http://".$currenturl;
 
-        $nuclei = nuclei::Nucleiscan($scheme,$url,$port,$randomid); //starts nuclei scan and stores result json into $nuclei
-        
+            $urls[] = $currenturl;
+        }
+
+        exec("sudo mkdir /nuclei/" . $randomid . "/ && sudo chmod 777 /nuclei/" . $randomid . "/ -R && sudo chmod 777 -R /nuclei/" . $randomid . " ");
+
+        $urllist = "/nuclei/" . $randomid . "/" . $randomid . "urllist.txt";;
+
+        file_put_contents($urllist, implode( PHP_EOL, $urls) );
+
+        $nuclei = nuclei::Nucleiscan($urllist); //starts nuclei scan and stores result json into $nuclei
+            
         if($nuclei!=="null" && $nuclei!=""){
-
-            exec("sudo rm -r /ffuf/nuclei" . $randomid . "/");
 
             $task = Tasks::find()
             ->where(['taskid' => $taskid])
@@ -99,7 +102,7 @@ class Nuclei extends ActiveRecord
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save();
-                
+                    
             } else {
 
                 $task = new Tasks();
@@ -113,7 +116,13 @@ class Nuclei extends ActiveRecord
             }
         }
 
-        dirscan::queuedone($input["queueid"]);
+        if( isset($input["queueid"]) ) $queues = explode(PHP_EOL, $input["queueid"]); 
+
+        foreach($queues as $queue){
+            dirscan::queuedone($queue);
+        }
+
+        //exec("sudo rm -r /nuclei/" . $randomid . "*");
 
         return 1;
     }

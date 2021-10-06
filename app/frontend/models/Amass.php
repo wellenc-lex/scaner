@@ -17,6 +17,60 @@ class Amass extends ActiveRecord
         return 'tasks';
     }
 
+    public function bannedwords($in)
+    {
+        return preg_match("/img|cdn|sentry|support/i", $in);
+    }
+
+    //scans again after error
+    public function RestoreAmass($randomid)
+    {   
+        $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
+        //we need to store vhosts somewhere + httpx needs taskid.
+        $tasks = new Tasks();
+        $tasks->hidden = 1;
+        $tasks->amass_status = 'Working';
+        $tasks->save();
+
+        $taskid = $tasks->taskid;
+
+        Yii::$app->db->close();  
+
+        $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
+
+        $fileamass = str_replace("}
+{\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
+
+        $fileamass = str_replace("} {", "},{", $fileamass);
+
+        $fileamass = str_replace("}
+{", "},{", $fileamass);
+
+        $fileamass = str_replace("}
+{\"name\"", "},{\"name\"", $fileamass);
+
+        $amassoutput = '[' . $fileamass . ']';
+
+        $aquatoneoutput = "[]"; #amass::aquatone($randomid);
+
+        $subtakeover = 0;
+
+        if (file_exists($gauoutputname)) {
+            $gau = file_get_contents($gauoutputname);
+            $gau = explode(PHP_EOL,$gau);
+        } else $gau="[]";
+
+        $vhosts = amass::vhosts($amassoutput, $gau, $taskid);
+
+        amass::httpxhosts($vhosts, $taskid, $randomid); // dirscan domains found by amass+gau
+
+        $vhosts = json_encode($vhosts);
+
+        amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+
+        return exec("sudo rm -r /dockerresults/" . $randomid . "");
+    }
+
     public function saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts)
     {
         if($amassoutput != "[]" && $amassoutput != '"No file."'){
@@ -100,6 +154,7 @@ class Amass extends ActiveRecord
 
     public function vhosts($amassoutput, $gau, $taskid)
     {
+        global $maindomain;
         //get subdomain names from amass and gau to use it as virtual hosts wordlist
 
         /*
@@ -157,7 +212,7 @@ class Amass extends ActiveRecord
             
             foreach($gau as $subdomain){
                 
-                if (strpos($subdomain, $maindomain) !== false && strpos($subdomain, "sentry") === false ) {
+                if (strpos($subdomain, $maindomain) !== false && amass::bannedwords($subdomain) === 0 ) {
 
                     $vhostswordlist[] = dirscan::ParseHostname($subdomain);
                 
@@ -172,12 +227,14 @@ class Amass extends ActiveRecord
 
     public function httpxhosts($vhostslist, $taskid, $randomid)
     {
+        global $maindomain;
+
         $wordlist = "/dockerresults/" . $randomid . "hosts.txt";
         $output = "/dockerresults/" . $randomid . "httpx.txt";
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443,6443,10250 -silent -o ". $output ." -l ". $wordlist ."";
         
         exec($httpx);
 
@@ -187,24 +244,28 @@ class Amass extends ActiveRecord
             $alive = file_get_contents($output);
             $alive = explode(PHP_EOL,$alive);
 
-            $alive = array_unique($alive);
+            $alive = array_unique($alive); 
+
+            rsort($alive); //rsort so https:// will be first and we get less invalid duplicates below
 
             foreach($alive as $url) {
 
-                if($url != ""){
+                if($url != "" && strpos($url, $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
 
                     $currenthost = dirscan::ParseHostname($url).dirscan::ParsePort($url);
 
-                    if(!in_array($currenthost, $hostnames)){
+                    if( !in_array($currenthost, $hostnames ) ){
 
-                        $queue = new Queue();
-                        $queue->taskid = $taskid;
-                        $queue->dirscanUrl = $url;
-                        $queue->instrument = 3;
-                        $queue->wordlist = 1;
-                        $queue->save();
+                        if( amass::bannedwords($subdomain) === 0 ){
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
+                            $queue->instrument = 3;
+                            $queue->wordlist = 1;
+                            $queue->save();
 
-                        $hostnames[] = $currenthost;
+                            $hostnames[] = $currenthost;
+                        }    
                     }
                 }
             }
@@ -334,7 +395,7 @@ class Amass extends ActiveRecord
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
-        $enumoutput = " /dockerresults/" . $randomid . "amass.json";
+        $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
         $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
@@ -346,7 +407,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini";
         }
 
-        $command = exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1200 -ip -config ".$amassconfig);
+        $command = exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1600 -ip -config ".$amassconfig);
 
         exec($command);
 

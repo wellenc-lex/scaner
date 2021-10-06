@@ -30,6 +30,12 @@ config.%EXT%
 swagger.json
 v2/swagger.json
 openapi.json
+nuxt.config.js
+ts/nuxt.config.js
+js/nuxt.config.js
+static/nuxt.config.js
+static/ts/nuxt.config.js
+static/js/nuxt.config.js
 ks.json
 static/shards/html
 yaml.log
@@ -40,6 +46,8 @@ protected/config/
 protected
 yarn-debug.log
 yarn-error.log
+api/v1/pods
+kustomization.yml
 rdweb
 ws_ftp.ini
 wstats

@@ -204,7 +204,7 @@ class VerifyController extends Controller
     public function actionQueue()
     {
 
-        //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips, 7=vhost, 8=nuclei
+        //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips, 7=vhost, 8=nuclei, 9=jsa
 
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
@@ -216,7 +216,7 @@ class VerifyController extends Controller
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC])
+                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC, 'instrument' => SORT_ASC]) //asc
                 ->limit(2500)
                 ->all();
 
@@ -238,7 +238,7 @@ class VerifyController extends Controller
 
             //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+15; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
 
-            $max_amass = 7; $max_ffuf = 10; $max_vhost = $max_ffuf+15; $max_jsa = 0; $max_nuclei = 1; $max_nuclei_in_task = 20;
+            $max_amass = 6; $max_ffuf = 50; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nuclei_in_task = 50;
 
             foreach ($allresults as $results) {
 

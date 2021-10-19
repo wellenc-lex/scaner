@@ -184,7 +184,7 @@ class SiteController extends Controller
                 ->all();
 
             $taskspages = new Pagination([
-                'defaultPageSize' => 50,
+                'defaultPageSize' => 10,
                 'totalCount' => $tasks->count(),
             ]);
 
@@ -376,23 +376,31 @@ class SiteController extends Controller
                     }
 
                     if (isset($url["dirscanUrl"]) && $url["dirscanUrl"] != "") {
-                        $dirscan = 1;
+                        
+                        $DomainsAlreadyinDB = Tasks::find()
+                            ->andWhere(['userid' => Yii::$app->user->id])
+                            ->andWhere(['=', 'host', $url["dirscanUrl"]])
+                            ->exists(); 
 
-                        $tasks->host = $url["dirscanUrl"];
+                        if($DomainsAlreadyinDB == 0){
+                            $dirscan = 1;
 
-                        $queue = new Queue();
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 3;
+                            $tasks->host = $url["dirscanUrl"];
 
-                        if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
-                            $queue->dirscanIP = $url["dirscanIp"];
+                            $queue = new Queue();
+                            $queue->taskid = $tasks->taskid;
+                            $queue->instrument = 3;
+
+                            if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
+                                $queue->dirscanIP = $url["dirscanIp"];
+                            }
+
+                            $queue->dirscanUrl = $url["dirscanUrl"]; //slice #? and other stuff
+                            $queue->save();
+
+                            $tasks->dirscan_status = "Working";
+                            $tasks->notify_instrument = $tasks->notify_instrument . "3";
                         }
-
-                        $queue->dirscanUrl = $url["dirscanUrl"]; //slice #? and other stuff
-                        $queue->save();
-
-                        $tasks->dirscan_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "3";
                     }
 
                     if (isset($url["gitUrl"]) && $url["gitUrl"] != "") {

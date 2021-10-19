@@ -19,7 +19,7 @@ class Amass extends ActiveRecord
 
     public function bannedwords($in)
     {
-        return preg_match("/img|cdn|sentry|support/i", $in);
+        return preg_match("/img|cdn|sentry|support|^ws|websocket|socket/i", $in);
     }
 
     //scans again after error
@@ -234,7 +234,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443,6443,10250 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,9999,10000,4443,6443,10250 -silent -o ". $output ." -l ". $wordlist ."";
         
         exec($httpx);
 
@@ -401,13 +401,13 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass4.ini";
+        $amassconfig = "/configs/amass2.ini";
 
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini";
         }
 
-        $command = exec("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1600 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1600 -ip -config ".$amassconfig);
 
         exec($command);
 
@@ -460,7 +460,7 @@ class Amass extends ActiveRecord
 
         dirscan::queuedone($input["queueid"]);
 
-        return exec("sudo rm -r /dockerresults/" . $randomid . "");
+        return exec("sudo rm /dockerresults/" . $randomid . "*");
     }
 
 }

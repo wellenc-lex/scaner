@@ -1,3 +1,4 @@
+#
 static../main.py
 .sql
 .bash_history
@@ -25,9 +26,19 @@ logi.%EXT%
 ecosystem.config.js
 lk
 lk.%EXT%
+srvadm
 config
 config.%EXT%
 swagger.json
+Telerik.Web.UI.WebResource.axd
+api.html
+sw/swagger-ui.html
+api/swagger-ui.html
+java/
+java/monitor
+template/swagger-ui.html
+spring-security-rest/api/swagger-ui.html
+spring-security-oauth-resource/swagger-ui.html
 v2/swagger.json
 openapi.json
 nuxt.config.js
@@ -1275,7 +1286,6 @@ _www
 !.htaccess
 !.htpasswd
 !=
-#
 #'-alert(document.domain)-'
 #3ooo<ul>HI</ul>%25
 %20../
@@ -2720,7 +2730,6 @@ api-doc
 api.log
 api/error_log
 api/login.json
-api/swagger-ui.html
 api/swagger.yml
 app.php
 app/

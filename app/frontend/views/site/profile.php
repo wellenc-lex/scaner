@@ -112,7 +112,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                                         <td style="text-align: center; height: 50px; min-height: 50px; max-width: 450px; min-width: 450px; width: 450px;">
                                             <div style="text-align: center; overflow:auto;  white-space:nowrap; resize: none;   ">
-                                                <?= "<a href=". $scan->host ." style='vertical-align: middle; overflow: hidden'>$scan->host</a>" ?>
+                                                <?= "<a href=//". $scan->host ." style='vertical-align: middle; overflow: hidden'>$scan->host</a>" ?>
                                             </div>
                                         </td>
 
@@ -228,7 +228,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
 
                         </div>
 
-                        <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $runningpages]) ?></div>
+                        <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $donepages]) ?></div>
                         
 
                     </div>

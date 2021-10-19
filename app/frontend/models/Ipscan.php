@@ -2,7 +2,11 @@
 
 namespace frontend\models;
 
+use Yii;
+use frontend\models\Queue;
 use yii\db\ActiveRecord;
+use frontend\models\Dirscan;
+require_once 'Dirscan.php';
 
 class Ipscan extends ActiveRecord
 {
@@ -11,45 +15,104 @@ class Ipscan extends ActiveRecord
         return 'tasks';
     }
 
+    public function savetodb($hostname, $output)
+    {
+        global $randomid;
+
+        if( empty($outputarray) ){
+            return 1; //no need to save empty results
+        }
+
+        try{
+            
+            $task = new Tasks();
+            $task->host = $hostname;
+            $task->ips_status = "Done.";
+            $task->notify_instrument = $task->notify_instrument."5";
+            $task->ips = $output;
+            $task->date = date("Y-m-d H-i-s");
+
+            $task->save();
+           
+        } catch (\yii\db\Exception $exception) {
+
+            sleep(2000);
+            Yii::$app->db->open();
+            $task = new Tasks();
+            $task->host = $hostname;
+            $task->ips_status = "Done.";
+            $task->notify_instrument = $task->notify_instrument."5";
+            $task->ips = $output;
+            $task->date = date("Y-m-d H-i-s");
+
+            $task->save();
+            
+            return file_put_contents("/ffuf/error".$randomid, $exception.$output);
+        }
+
+        if( $output != "" ){
+            
+
+            /* nmap scan for found ips
+            $queue = new Queue();
+            $queue->dirscanUrl = $scanurl;
+            $queue->instrument = 1; //jsa
+            $queue->save();
+            */
+
+            //nmap save as OG + parse + httpx + dirscan automatically
+        }
+  
+    }
+
     public static function ipscan($input)
     {
+        global $randomid;
+        
+        $parsed_queries = array();
 
-        $url = $input["url"];
-        $taskid = $input["taskid"];
+        if( $input["query"] != "") $queries = explode(PHP_EOL, $input["query"]); else return 0; //no need to scan without supplied url
 
-        $url = str_replace("http://", "", $url);
-        $url = str_replace("https://", "", $url);
-        $url = str_replace(",", " ", $url);
-        $url = str_replace("\r", " ", $url);
-        $url = str_replace("\n", " ", $url);
-        $url = escapeshellarg($url);
+        $randomid = rand(100000, 1000000000);
 
-        $randomid = rand(1, 100000);
+        $queriesfile = "/ffuf/" . $randomid . "/" . $randomid . "queries.txt";
 
-        $command = "/usr/bin/python2.7 /var/www/soft/ipscan/censyssearch.py -s /var/www/output/ipscan/scan" . $randomid . ".json -q " . $url . " ";
+        $outputfile = "/ffuf/" . $randomid . "/" . $randomid . "ipscanoutput.txt";
 
-        $command2 = "sudo /usr/bin/find /var/www/output/ipscan/ -name 'scan$randomid.*' -delete &";
+        $apikeysfile = "/configs/ipscanapikeys.json";
 
-        $escaped_command = ($command);
+        foreach ($queries as $query){
 
-        system($escaped_command, $ips_returncode);
+            //we assume that we get clear amass root domain (without any subdomains) in format google.com so queries will be google.com and google
+            $hostname = dirscan::ParseHostname($query);
+            preg_match("/^[\w\-\_\d=]+/i", $query, $hostonly);
 
-        $output = file_get_contents("/var/www/output/ipscan/scan" . $randomid . ".json");
+            if($hostname != $hostonly[0]){
+                
+                $parsed_queries[] = $hostname;
+                $parsed_queries[] = $hostonly[0];
 
-        $date_end = date("Y-m-d H-i-s");
+            }
 
-        $ips = Tasks::find()
-            ->where(['taskid' => $taskid])
-            ->limit(1)
-            ->one();
+        }
 
-        $ips->ips_status = "Done.";
-        $ips->ips = $output;
-        $ips->date = $date_end;
+        exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
+        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ ");
 
-        system($command2);
+        file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 
-        return $ips->save();
+
+        exec("sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
+            . " -a " . $apikeysfile . " -o " . $outputfile);
+            
+
+        $output = implode( ' ', array_unique( file_get_contents( $outputfile ) ) );
+
+        ipscan::savetodb($hostname, $output);
+
+        dirscan::queuedone($input["queueid"]);
+
+        return exec("sudo rm -r /ffuf/" . $randomid . "/");
     }
 
 }

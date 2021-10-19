@@ -667,7 +667,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-nuclei').DataTable();
+                    $('#table-nuclei').DataTable({"pageLength": 1000, "order": [[ 2, "desc" ]]});
                 });
 
                 $( window ).on( "load", function() {

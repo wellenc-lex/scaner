@@ -37,9 +37,11 @@ class Dirscan extends ActiveRecord
     {
         global $randomid;
 
-        if( empty($outputarray) || $outputarray == '{}' || $outputarray == '[""]' || $outputarray == '[null]' ){
+        if( empty($outputarray) || $outputarray == 'null' || $outputarray == '[null]' || ( count($outputarray) == 1 && $outputarray[0]["status"] == "400" ) ){
             return 1; //no need to save empty results
         }
+
+        $outputarray = json_encode($outputarray);
 
         try{
             Yii::$app->db->open();
@@ -150,7 +152,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:]+)/i", $url, $port); //get hostname only
 
         if(isset($port[2][1]) && $port[2][1]!="") {
             $port = ":".$port[2][1]; 
@@ -257,7 +259,13 @@ class Dirscan extends ActiveRecord
             $hostname = trim($hostname, ' ');
             $port = trim($port, ' ');
 
-            if( $scheme=="http://" && ($port==":443" || $port==":8443" || $port==":4443") ){
+            if( $scheme=="http://" && ($port==":443") ){
+                dirscan::queuedone($input["queueid"]);
+                return 1; //pointless scan https port with http scheme
+                //$scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
+            }
+
+            if( $scheme=="http://" && ($port==":8443" || $port==":4443") ){
                 $scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
 
@@ -280,7 +288,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -s -fc 429 -fs 612 -recursion -recursion-depth 1 -t 1 -p 2 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -s -fc 429 -fs 612 -maxtime-job 40000 -recursion -recursion-depth 1 -t 1 -p 2 -r";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 10 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -330,7 +338,7 @@ class Dirscan extends ActiveRecord
                 }
             }
 
-            $output_ffuf = json_encode(array_unique($output_ffuf));
+            $output_ffuf = array_unique($output_ffuf);
 
             $scanurl = $scheme.$hostname.$port;
 

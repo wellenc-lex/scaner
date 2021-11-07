@@ -246,6 +246,9 @@ CREATE TABLE `user` (
 --
 -- Dumping data for table `user`
 --
+ALTER TABLE `queue` ADD `ipscan` TEXT NULL DEFAULT NULL AFTER `nmap`; 
+ALTER TABLE `tasks` ADD `aquatone_status` VARCHAR(20) NULL DEFAULT NULL AFTER `amass_status`;
+ALTER TABLE `tasks` ADD `whatweb` MEDIUMTEXT NULL DEFAULT NULL AFTER `js`; 
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;

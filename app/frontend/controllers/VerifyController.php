@@ -42,7 +42,7 @@ class VerifyController extends Controller
             $results = Tasks::find()
                 ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
                 ->where(['!=', 'status', 'Done.'])
-                ->limit(2000)
+                ->limit(2500)
                 ->all();
 
             if ($results != NULL) {
@@ -204,7 +204,7 @@ class VerifyController extends Controller
     public function actionQueue()
     {
 
-        //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 6=ips, 7=vhost, 8=nuclei, 9=jsa
+        //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 5=whatweb, 6=ips, 7=vhost, 8=nuclei, 9=jsa
 
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
@@ -216,15 +216,15 @@ class VerifyController extends Controller
             $allresults = Queue::find()
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
-                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_ASC, 'instrument' => SORT_ASC]) //asc
-                ->limit(2500)
+                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC, 'instrument' => SORT_ASC]) //asc
+                ->limit(3000)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
 
-            $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array();
+            $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array(); $whatweburls = array(); $nmapips = array();
 
             $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
@@ -232,13 +232,21 @@ class VerifyController extends Controller
 
             $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');
 
+            $tools_amount_ips = (int) exec('sudo docker ps | grep "passive" | wc -l');
+
             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
+
+            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');   
+
+            $tools_amount_nmap = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
 
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 50;
 
-            //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+15; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
+            //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+10; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
 
-            $max_amass = 6; $max_ffuf = 50; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nuclei_in_task = 50;
+            $max_amass = 2; $max_ffuf = 130; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
+
+            $max_nmap = 1; $max_nmap_in_task = 10;
 
             foreach ($allresults as $results) {
 
@@ -248,17 +256,21 @@ class VerifyController extends Controller
                     
                         if (strpos($results->instrument, "1") !== false) {
 
-                            if ($tools_amount->nmap < $max_nmap) {
+                            if ($tools_amount->nmap < $max_nmap && count($nmapips) < $max_nmap_in_task) {
 
                                 $results->working = 1;
 
-                                $nmapurl = $results->nmap;
+                                $nmapintask = explode(" ", $results->nmap);
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $nmapurl . ' &queueid=' . $results->id . '& taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/nmap > /dev/null 2>/dev/null &');
+                                foreach($nmapintask as $id){
+                                    $nmapips[] = $id;
+                                }
+
+                                $nmapips = array_unique($nmapips);
+
+                                $queues_array_nmap[] = $results->id;
 
                                 $results->save();
-
-                                $tools_amount->nmap = $tools_amount->nmap+1;
                             }
                         }
 
@@ -280,7 +292,7 @@ class VerifyController extends Controller
 
                         if (strpos($results->instrument, "3") !== false) {
 
-                            if ( (($tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass ) || ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa )) && ($tools_amount_nuclei <= $max_nuclei) ) {
+                            if ( $tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
                                 $results->working = 1;
 
@@ -318,6 +330,38 @@ class VerifyController extends Controller
                             }
                         }
 
+                        if (strpos($results->instrument, "5") !== false) {
+
+                            if ($tools_amount_whatweb < $max_whatweb && $whatweb_in_task <= $max_whatweb_in_task ) {
+
+                                $results->working = 1;
+
+                                $whatweburls[] = $results->dirscanUrl;
+
+                                $queues_array_whatweb[] = $results->id;
+
+                                $results->save();
+
+                                $whatweb_in_task++;
+                            }
+                        } 
+
+                        if (strpos($results->instrument, "6") !== false) {
+
+                            if ($tools_amount_ips < $max_ips && $tools_amount_amass <= $max_amass ) {
+
+                                $results->working  = 1;
+
+                                $query = $results->ipscan;
+
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "query=' . $query . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
+
+                                $results->save();
+
+                                $tools_amount_ips++;
+                            }
+                        } 
+
                         if (strpos($results->instrument, "7") !== false) {
 
                             if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
@@ -349,7 +393,7 @@ class VerifyController extends Controller
 
                                 $nucleiurls[] = $results->dirscanUrl;
 
-                                $queues_array[] = $results->id;
+                                $queues_array_nuclei[] = $results->id;
 
                                 $results->save();
 
@@ -436,12 +480,28 @@ class VerifyController extends Controller
 
             
             if ( !empty($nucleiurls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . ' &queueid=' . implode( PHP_EOL, $queues_array )
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . ' &queueid=' . implode( PHP_EOL, $queues_array_nuclei )
                     . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/nuclei >/dev/null 2>/dev/null &');
 
                 $tools_amount_nuclei++;
 
                 //first we get a lot of nuclei results into one big list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
+            }
+
+            if ( !empty($whatweburls) ) {
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . ' &queueid=' . implode( PHP_EOL, $queues_array_whatweb )
+                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/whatweb >/dev/null 2>/dev/null &');
+
+                $tools_amount_whatweb++;
+
+                //first we get a lot of whatweb results into one big list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
+            }
+
+            if ( !empty($nmapips) ) {
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . ' &queueid=' . implode( PHP_EOL, $queues_array_nmap )
+                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &');
+
+                $tools_amount_nmap++;
             }
 
             $tools_amount->save();    

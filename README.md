@@ -18,7 +18,7 @@ How to install:
 
 Install docker on your machine.
 
-git clone https://github.com/ultras5631/scaner/
+git clone https://github.com/wellenc-lex/scaner/
 
 Rename docker-compose.yml.example into docker-compose.yml
 

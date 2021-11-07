@@ -1,4 +1,6 @@
 #
+
+/
 static../main.py
 .sql
 .bash_history
@@ -17,25 +19,32 @@ js
 app_dev.php/_profiler/
 scripts
 .env.local
+srvadm
 __clockwork
 content/.json
+java/monitor
+monitor
+ci
+cicd
+gocd
 logi
 web.config.old
+config/getuser?index=0
 .htpasswda
+%2e/WEB-INF/web.xml
 logi.%EXT%
 ecosystem.config.js
 lk
 lk.%EXT%
-srvadm
 config
 config.%EXT%
 swagger.json
 Telerik.Web.UI.WebResource.axd
 api.html
+frame/ueditorUpload
 sw/swagger-ui.html
 api/swagger-ui.html
 java/
-java/monitor
 template/swagger-ui.html
 spring-security-rest/api/swagger-ui.html
 spring-security-oauth-resource/swagger-ui.html
@@ -201,7 +210,6 @@ capistrano
 cassandra
 checkstyle
 chef
-ci
 clearquest
 clickhouse
 cloud
@@ -1216,7 +1224,6 @@ _www
 .svn/entries
 .svnignore
 .sw
-.swf
 .swo
 .swp
 .synthquota
@@ -2052,7 +2059,6 @@ mail2
 mail3
 mailgate
 main
-monitor
 mssql
 mta
 mx
@@ -2888,7 +2894,6 @@ backups/
 bak/
 bamb/
 bamboo/
-banner.swf
 banneradmin/
 base/
 bb-admin/
@@ -2962,7 +2967,6 @@ blog/wp-content/backups/
 blog/wp-login
 blog/wp-login.php
 blogindex/
-bookContent.swf
 boot.php
 bootstrap/data
 bootstrap/tmp
@@ -3013,7 +3017,6 @@ cassandra/
 catalog.wci
 CATKIN_IGNORE
 cbx-portal/
-cbx-portal/js/zeroclipboard/ZeroClipboard.swf
 cc-errors.txt
 cc-log.txt
 ccbill.log
@@ -3525,8 +3528,6 @@ encode_explorer_32/
 engine.tar.gz
 engine.zip
 engine/
-engine/classes/swfupload/swfupload.swf
-engine/classes/swfupload/swfupload_f9.swf
 engine/log.txt
 env.bak/
 env.js
@@ -3606,7 +3607,6 @@ ext/mkinstalldirs
 ext/modules/
 ext/run-tests.php
 extjs/
-extjs/resources//charts.swf
 extras/documentation
 ezsqliteadmin/
 fabric/
@@ -3668,7 +3668,6 @@ fileadmin/user_upload/
 filedump/
 filemanager
 filemanager/
-filemanager/views/js/ZeroClipboard.swf
 filerun.php
 filerun/
 files.md5
@@ -3686,9 +3685,6 @@ Files/user.lock
 fileupload/
 filezilla.xml
 findbugs/
-flash/
-flash/ZeroClipboard.swf
-flashFXP.ini
 fluent.conf
 fluent_aggregator.conf
 flyway
@@ -3810,8 +3806,6 @@ html.tar.gz
 html.zip
 html/
 html/config.rb
-html/js/misc/swfupload/swfupload.swf
-html/js/misc/swfupload/swfupload_f9.swf
 htmlcov/
 htpasswd
 htpasswd.bak
@@ -3874,8 +3868,6 @@ includes/fckeditor/editor/filemanager/upload/asp/upload.asp
 includes/fckeditor/editor/filemanager/upload/aspx/upload.aspx
 includes/fckeditor/editor/filemanager/upload/php/upload.php
 includes/js/tiny_mce/
-includes/swfupload/swfupload.swf
-includes/swfupload/swfupload_f9.swf
 includes/tiny_mce/
 includes/tinymce/
 index-bak
@@ -3961,7 +3953,6 @@ invoker/
 invoker/JMXInvokerServlet
 invoker/readonly/JMXInvokerServlet
 invoker/restricted/JMXInvokerServlet
-io.swf
 iOSInjectionProject/
 ipch/
 irc-macadmin/
@@ -4003,13 +3994,8 @@ js/prepod.js
 js/prod.js
 js/qa.js
 js/routing
-js/swfupload/swfupload.swf
-js/swfupload/swfupload_f9.swf
 js/tiny_mce/
 js/tinymce/
-js/yui/uploader/assets/uploader.swf
-js/ZeroClipboard.swf
-js/ZeroClipboard10.swf
 jscripts/
 jscripts/tiny_mce/
 jscripts/tiny_mce/plugins/ajaxfilemanager/ajaxfilemanager.php
@@ -4203,8 +4189,6 @@ magmi/conf/magmi.ini
 mail.log
 mail/
 mailer/.env
-mailman/
-mailman/listinfo
 main.mdb
 main/
 main/login
@@ -4444,7 +4428,6 @@ old_files
 old_site/
 oldfiles
 opa-debug-js
-open-flash-chart.swf?get-data=xss
 OpenCover/
 openshift/
 openstack/
@@ -4527,7 +4510,6 @@ passwords.mdb
 passwords.sqlite
 passwords.txt
 path/
-path/dataTables/extras/TableTools/media/swf/ZeroClipboard.swf
 pause
 pause.json
 payment.log
@@ -4796,7 +4778,6 @@ pinfo.php
 pip-delete-this-directory.txt
 pip-log.txt
 piwigo/
-piwigo/extensions/UserCollections/template/ZeroClipboard.swf
 pkg/
 planning/cfg
 planning/docs
@@ -4804,7 +4785,6 @@ planning/src
 platz_login/
 play-cache
 play-stash
-player.swf
 playground.xcworkspace
 plugin.xml
 plugins
@@ -4812,8 +4792,6 @@ plugins.log
 plugins/
 plugins/editors/fckeditor
 plugins/fckeditor
-plugins/sfSWFUploadPlugin/web/sfSWFUploadPlugin/swf/swfupload.swf
-plugins/sfSWFUploadPlugin/web/sfSWFUploadPlugin/swf/swfupload_f9.swf
 plugins/tiny_mce/
 plugins/tinymce/
 plugins/upload.php
@@ -5170,7 +5148,6 @@ SVN/
 swagger/swagger-ui.html
 swfobject.js
 swfupload
-swfupload.swf
 Sym.php
 sYm.php
 Symlink.php
@@ -8487,7 +8464,6 @@ Saved/
 sbt/
 scalyr/
 script/
-script/jqueryplugins/dataTables/extras/TableTools/media/swf/ZeroClipboard.swf
 scripts/
 searchreplacedb2.php
 searchreplacedb2cli.php
@@ -8525,8 +8501,6 @@ stylesheets/bundles
 sub-login/
 supe.php
 surgemail/
-surgemail/mtemp/surgeweb/tpl/shared/modules/swfupload.swf
-surgemail/mtemp/surgeweb/tpl/shared/modules/swfupload_f9.swf
 suspended.page
 swagger/swagger-ui.htm
 swagger/ui
@@ -8558,7 +8532,6 @@ templates_c/
 textpattern/
 themes
 themes/
-themes/default/htdocs/flash/ZeroClipboard.swf
 Thorfile
 timeline.xctimeline
 tiny_mce/
@@ -8611,7 +8584,6 @@ vb.zip
 vendor/
 vendor/assets/bower_components
 version/
-video-js.swf
 vignettes/
 violations/
 vmailadmin/
@@ -8671,7 +8643,6 @@ yonetim
 yonetim.html
 yonetim.php
 zehir.php
-zeroclipboard.swf
 zf_backend.php
 zimbra/
 zipkin/
@@ -8776,3 +8747,4 @@ ps_admin.cgi
 psquare/x.jsp
 ptadmin
 pub
+%40%323%22

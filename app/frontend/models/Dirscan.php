@@ -6,7 +6,6 @@ use Yii;
 use yii\db\ActiveRecord;
 use frontend\models\Nuclei;
 use frontend\models\Queue;
-require_once 'Nuclei.php';
 
 ini_set('max_execution_time', 0);
 
@@ -15,6 +14,23 @@ class Dirscan extends ActiveRecord
     public static function tableName()
     {
         return 'tasks';
+    }
+
+    public function bannedsubdomains($in)
+    {
+        return preg_match("/jira|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in); // scanning jira for files is pointless. nuclei will get the cves
+    }
+
+    public function addtonuclei($scanurl)
+    {
+        if( $scanurl != "" ){
+            //add nuclei to queue
+            $queue = new Queue();
+            $queue->dirscanUrl = $scanurl;
+            $queue->instrument = 8; //nuclei
+            $queue->save();
+        }
+        return 1;
     }
 
     public function queuedone($queueid)
@@ -33,15 +49,32 @@ class Dirscan extends ActiveRecord
 
     }
 
-    public function savetodb($taskid, $hostname, $outputarray, $gau_result, $scanurl)
+    public function savetodb($taskid, $hostname, $output_ffuf, $gau_result, $scanurl)
     {
         global $randomid;
 
-        if( empty($outputarray) || $outputarray == 'null' || $outputarray == '[null]' || ( count($outputarray) == 1 && $outputarray[0]["status"] == "400" ) ){
-            return 1; //no need to save empty results
+        dirscan::addtonuclei($scanurl);
+
+        //|| ( count($output_ffuf) === 1 && $output_ffuf[0]["status"] == "400" )
+        
+        if( empty($output_ffuf) || $output_ffuf == 'null' || $output_ffuf == '[null]' || $output_ffuf == '[]' || $output_ffuf == '[[]]'){
+            
+            $dirscan = new Tasks();
+            $dirscan->host = $hostname;
+            $dirscan->dirscan_status = "Rescan";
+            $dirscan->dirscan = "";
+            $dirscan->notify_instrument = "3";
+            $dirscan->hidden = "1";
+            $dirscan->date = date("Y-m-d H-i-s");
+
+            $dirscan->save();
+
+            return 1; //save empty results to maaybe scan manually later
         }
 
-        $outputarray = json_encode($outputarray);
+        array_filter($output_ffuf);
+
+        $output_ffuf = json_encode($output_ffuf);
 
         try{
             Yii::$app->db->open();
@@ -57,7 +90,7 @@ class Dirscan extends ActiveRecord
                 if(!empty($dirscan) && ($dirscan->dirscan == "")) { //if task exists in db
 
                     $dirscan->dirscan_status = "Done.";
-                    $dirscan->dirscan = $outputarray;
+                    $dirscan->dirscan = $output_ffuf;
                     $dirscan->notify_instrument = $dirscan->notify_instrument."3";
                     $dirscan->wayback = $gau_result;
                     $dirscan->date = date("Y-m-d H-i-s");
@@ -68,7 +101,7 @@ class Dirscan extends ActiveRecord
                     $dirscan = new Tasks();
                     $dirscan->host = $hostname;
                     $dirscan->dirscan_status = "Done.";
-                    $dirscan->dirscan = $outputarray;
+                    $dirscan->dirscan = $output_ffuf;
                     $dirscan->notify_instrument = $dirscan->notify_instrument."3";
                     $dirscan->wayback = $gau_result;
                     $dirscan->date = date("Y-m-d H-i-s");
@@ -80,7 +113,7 @@ class Dirscan extends ActiveRecord
                 $dirscan = new Tasks();
                 $dirscan->host = $hostname;
                 $dirscan->dirscan_status = "Done.";
-                $dirscan->dirscan = $outputarray;
+                $dirscan->dirscan = $output_ffuf;
                 $dirscan->notify_instrument = $dirscan->notify_instrument."3";
                 $dirscan->wayback = $gau_result;
                 $dirscan->date = date("Y-m-d H-i-s");
@@ -90,32 +123,12 @@ class Dirscan extends ActiveRecord
            
         } catch (\yii\db\Exception $exception) {
 
-            sleep(2000);
-            $dirscan = new Tasks();
-            $dirscan->host = $hostname;
-            $dirscan->dirscan_status = "Done.";
-            $dirscan->notify_instrument = $dirscan->notify_instrument."3";
-            $dirscan->dirscan = $outputarray;
-            $dirscan->wayback = $gau_result;
-            $dirscan->date = date("Y-m-d H-i-s");
+            sleep(1000);
 
-            $dirscan->save();
+            dirscan::savetodb($taskid, $hostname, $output_ffuf, $gau_result, $scanurl);
+            Yii::$app->db->close();
             
-            return file_put_contents("/ffuf/error".$randomid, $exception.$outputarray.$gau_result);
-        }
-
-        if( $scanurl != "" ){
-            //add jsa+nuclei scans to queue
-            $queue = new Queue();
-            $queue->dirscanUrl = $scanurl;
-            $queue->instrument = 9; //jsa
-            $queue->save();
-
-            //add jsa scan to queue
-            $queue = new Queue();
-            $queue->dirscanUrl = $scanurl;
-            $queue->instrument = 8; //nuclei
-            $queue->save();
+            return file_put_contents("/ffuf/".$randomid."/error", $exception.$output_ffuf.$gau_result);
         }
   
     }
@@ -124,7 +137,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $domain); //get hostname only
         
         return $domain[1][0]; //group 1 == scheme
     }
@@ -133,7 +146,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $domain); //get hostname only
         
         return $domain[2][0]; //group 2 == domain name
 
@@ -152,7 +165,7 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $port); //get hostname only
 
         if(isset($port[2][1]) && $port[2][1]!="") {
             $port = ":".$port[2][1]; 
@@ -168,7 +181,7 @@ class Dirscan extends ActiveRecord
         if (file_exists($filename)) {
             $output = json_decode(file_get_contents($filename), true);
 
-            $outputarray = array();
+            $output_ffuf = array();
             $id=0;
             $result_length = array();
 
@@ -178,18 +191,18 @@ class Dirscan extends ActiveRecord
                     if ( $results["length"] >= 0 && !in_array($results["length"], $result_length) ){
                         $id++;
                         $result_length[] = $results["length"];//so no duplicates gonna be added
-                        $outputarray[$id]["url"] = $results["url"];
-                        $outputarray[$id]["length"] = $results["length"];
-                        $outputarray[$id]["status"] = $results["status"];
-                        $outputarray[$id]["redirect"] = $results["redirectlocation"];
-                        if($localhost==1) $outputarray[$id]["localhost"] = 1;
+                        $output_ffuf[$id]["url"] = $results["url"];
+                        $output_ffuf[$id]["length"] = $results["length"];
+                        $output_ffuf[$id]["status"] = $results["status"];
+                        $output_ffuf[$id]["redirect"] = $results["redirectlocation"];
+                        if($localhost==1) $output_ffuf[$id]["localhost"] = 1;
 
                         if ($results["length"] < 350000 ){
 
                             $resultfilename = "/ffuf/" . $randomid . "/" . $results["resultfile"] . "";
 
                             if (file_exists($resultfilename)) {
-                                $outputarray[$id]["resultfile"] = base64_encode(file_get_contents($resultfilename));
+                                $output_ffuf[$id]["resultfile"] = base64_encode(file_get_contents($resultfilename));
                             }
                         }
                     }
@@ -197,7 +210,7 @@ class Dirscan extends ActiveRecord
             } 
         } 
 
-        return $outputarray;
+        return $output_ffuf;
     }
 
     public function Gau($url, $randomid)
@@ -207,14 +220,14 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 25 -o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 25 -o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
         exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ &");
 
         if( file_exists($name) ){
-            $gau_result = explode("\n", file_get_contents($name));
+            $gau_result = array_unique( explode("\n", file_get_contents($name) ) );
 
             foreach ($gau_result as $id => $result) {
                 //wayback saves too much (js,images,xss payloads)
@@ -239,6 +252,8 @@ class Dirscan extends ActiveRecord
 
         foreach ($urls as $currenturl){
 
+            $currenturl = preg_replace("/[\n\r]/", "", $currenturl);
+
             $hostname = dirscan::ParseHostname($currenturl);
 
             $port = dirscan::ParsePort($currenturl);
@@ -259,9 +274,18 @@ class Dirscan extends ActiveRecord
             $hostname = trim($hostname, ' ');
             $port = trim($port, ' ');
 
-            if( $scheme=="http://" && ($port==":443") ){
+            $scanurl = $scheme.$hostname.$port;
+
+            if( dirscan::bannedsubdomains($scanurl) !== 0 ){
+                dirscan::addtonuclei($scanurl);
+
+                return 2; //scanning banned subdomains is pointless
+            }
+
+
+            if( ($scheme=="http://" && $port==":443") || ($scheme=="https://" && $port==":80")){
                 dirscan::queuedone($input["queueid"]);
-                return 1; //pointless scan https port with http scheme
+                return 2; //scanning https port with http scheme is pointless
                 //$scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
 
@@ -288,14 +312,12 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 180000 -s -fc 429 -fs 612 -maxtime-job 40000 -recursion -recursion-depth 1 -t 1 -p 2 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 150000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -noninteractive -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
             
-            $general_ffuf_string = $ffuf_string.$headers." -mc all -timeout 10 -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+            $general_ffuf_string = $ffuf_string.$headers." -mc all  -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
             if (!isset($input["ip"])) {
                 $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
-                
-                if ( $port == "" ) $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
             }
 
             if (isset($input["ip"])) {
@@ -330,7 +352,7 @@ class Dirscan extends ActiveRecord
                         $hostsfile = "/ffuf/" . $randomid . "/" . $randomid . "domains.txt";
                         file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
-                        $start_dirscan = $ffuf_string . " -mc all -timeout 20 -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
+                        $start_dirscan = $ffuf_string . " -mc all -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
                         exec($start_dirscan);
 
                         $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
@@ -340,11 +362,18 @@ class Dirscan extends ActiveRecord
 
             $output_ffuf = array_unique($output_ffuf);
 
-            $scanurl = $scheme.$hostname.$port;
+            if ( !isset($input["ip"]) ) {
+                if ( $port == "" ) {
+                    if( !empty($output_ffuf) || $output_ffuf !== 'null' || $output_ffuf !== '[null]' || $output_ffuf !== '[]' || $output_ffuf !== '[[]]'){
+                        
+                        $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
+                    } 
+                }
+            }
 
             exec("sudo rm -r /ffuf/" . $randomid . "/");
 
-            dirscan::savetodb($taskid, $hostname, $output_ffuf, $gau_result, $scanurl);
+            dirscan::savetodb($taskid, $scheme.$hostname, $output_ffuf, $gau_result, $scanurl);
 
             dirscan::queuedone($input["queueid"]);
 

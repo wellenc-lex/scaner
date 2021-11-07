@@ -16,6 +16,8 @@ use frontend\models\Reverseip;
 use frontend\models\Tasks;
 use frontend\models\Vhostscan;
 
+use frontend\models\Whatweb;
+
 use Yii;
 use yii\web\Controller;
 
@@ -124,6 +126,11 @@ class ScanController extends Controller
             if (Yii::$app->user->id === $task['userid']) {
 
                 Yii::$app->response->statusCode = 200;
+                
+                if( $task->aquatone != "" ){
+                    exec("sudo rm -r /screenshots/" . $task->taskid . "/ && sudo rm -r /var/www/app/frontend/web/screenshots/" . $task->taskid . " & ");
+                }
+
                 return $task->delete();
 
             } else Yii::$app->response->statusCode = 403;
@@ -223,7 +230,7 @@ class ScanController extends Controller
         $secretIN = Yii::$app->request->post('secret');
 
         if ($secretIN === $secret) {
-            return $model::scanhost(Yii::$app->request->post());
+            return $model::nmapips(Yii::$app->request->post());
         }
 
     }
@@ -249,7 +256,7 @@ class ScanController extends Controller
         $secretIN = Yii::$app->request->get('secret');
 
         if ($secretIN === $secret) {
-            return $model::RestoreAmass(Yii::$app->request->get('randomid'));
+            return $model::RestoreAmass();
         }
 
     }
@@ -354,6 +361,19 @@ class ScanController extends Controller
 
         if ($secretIN === $secret) {
             return $model::vhostscan(Yii::$app->request->post());
+        }
+
+    }
+
+        public function actionWhatweb()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new Whatweb();
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::whatweb(Yii::$app->request->post());
         }
 
     }

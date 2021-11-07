@@ -6,7 +6,10 @@ use Yii;
 use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
-require_once 'Dirscan.php';
+use frontend\models\Nmap;
+
+
+ini_set('max_execution_time', 0);
 
 class Ipscan extends ActiveRecord
 {
@@ -15,54 +18,63 @@ class Ipscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function savetodb($hostname, $output)
+    public function savetodb($taskid, $hostname, $output)
     {
         global $randomid;
 
-        if( empty($outputarray) ){
+        if( empty($output) ){
             return 1; //no need to save empty results
         }
 
         try{
-            
-            $task = new Tasks();
-            $task->host = $hostname;
-            $task->ips_status = "Done.";
-            $task->notify_instrument = $task->notify_instrument."5";
-            $task->ips = $output;
-            $task->date = date("Y-m-d H-i-s");
+            Yii::$app->db->open();
 
-            $task->save();
-           
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            if(!empty($task)){ //if querry exists in db
+
+                $task->ips_status = "Done.";
+                $task->ips = $output;
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save(); 
+
+            } else {
+                $task = new Tasks();
+                $task->host = $hostname;
+                $task->ips_status = "Done.";
+                $task->notify_instrument = "16";
+                $task->ips = $output;
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+
+                $taskid = $task->taskid;
+            }
+            
+            //add vhost scan to queue
+            $queue = new Queue();
+            $queue->taskid = $taskid;
+            $queue->instrument = 7;
+            $queue->save();
+
+           Yii::$app->db->close();
+
         } catch (\yii\db\Exception $exception) {
 
             sleep(2000);
-            Yii::$app->db->open();
-            $task = new Tasks();
-            $task->host = $hostname;
-            $task->ips_status = "Done.";
-            $task->notify_instrument = $task->notify_instrument."5";
-            $task->ips = $output;
-            $task->date = date("Y-m-d H-i-s");
-
-            $task->save();
-            
-            return file_put_contents("/ffuf/error".$randomid, $exception.$output);
+            ipscan::savetodb($taskid, $hostname, $output);
         }
 
         if( $output != "" ){
-            
 
-            /* nmap scan for found ips
-            $queue = new Queue();
-            $queue->dirscanUrl = $scanurl;
-            $queue->instrument = 1; //jsa
-            $queue->save();
-            */
+            nmap::nmapips( $task->taskid, $randomid );
 
-            //nmap save as OG + parse + httpx + dirscan automatically
+            $nmapoutputxml = "/dockerresults/" . $randomid . "/nmap.xml";
         }
-  
     }
 
     public static function ipscan($input)
@@ -71,19 +83,21 @@ class Ipscan extends ActiveRecord
         
         $parsed_queries = array();
 
-        if( $input["query"] != "") $queries = explode(PHP_EOL, $input["query"]); else return 0; //no need to scan without supplied url
+        $taskid = (int) $input["taskid"]; if($taskid=="0") $taskid = "";
+
+        if( $input["query"] != "") $queries = explode(PHP_EOL, $input["query"]); else return 0; //no need to scan without supplied queries
 
         $randomid = rand(100000, 1000000000);
 
-        $queriesfile = "/ffuf/" . $randomid . "/" . $randomid . "queries.txt";
+        $queriesfile = "/dockerresults/" . $randomid . "/queries.txt";
 
-        $outputfile = "/ffuf/" . $randomid . "/" . $randomid . "ipscanoutput.txt";
+        $outputfile = "/dockerresults/" . $randomid . "/ipscanoutput.txt";
 
         $apikeysfile = "/configs/ipscanapikeys.json";
 
         foreach ($queries as $query){
 
-            //we assume that we get clear amass root domain (without any subdomains) in format google.com so queries will be google.com and google
+            //we assume that we get domain without any subdomains in format google.com so queries will be google.com and google
             $hostname = dirscan::ParseHostname($query);
             preg_match("/^[\w\-\_\d=]+/i", $query, $hostonly);
 
@@ -93,26 +107,23 @@ class Ipscan extends ActiveRecord
                 $parsed_queries[] = $hostonly[0];
 
             }
-
         }
 
-        exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
-        exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ ");
+        exec("sudo mkdir /dockerresults/" . $randomid . "/ "); //create dir for ips+nmap+aquatone scan results
+        exec("sudo chmod -R 777 /dockerresults/" . $randomid . "/ ");
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 
-
-        exec("sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
+        exec("sudo docker run --cpu-shares 512 --rm --network=docker_default -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
             . " -a " . $apikeysfile . " -o " . $outputfile);
             
+        $output = file_get_contents($outputfile);
 
-        $output = implode( ' ', array_unique( file_get_contents( $outputfile ) ) );
-
-        ipscan::savetodb($hostname, $output);
+        ipscan::savetodb($taskid, $hostname, $output);
 
         dirscan::queuedone($input["queueid"]);
 
-        return exec("sudo rm -r /ffuf/" . $randomid . "/");
+        return 1;
     }
 
 }

@@ -6,7 +6,6 @@ use Yii;
 use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
-require_once 'Dirscan.php';
 
 ini_set('max_execution_time', 0);
 
@@ -22,54 +21,99 @@ class Amass extends ActiveRecord
         return preg_match("/img|cdn|sentry|support|^ws|websocket|socket/i", $in);
     }
 
-    //scans again after error
-    public function RestoreAmass($randomid)
+     public function dosplit($input){
+        //www.test.google.com -> www test google
+        global $wordlist;
+        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $out);
+
+        if($out[0][0]!=""){
+            $word = implode("", $out[0]);
+            $word = rtrim($word, ".");
+            $wordlist[] = $word;
+            amass::dosplit($word);
+        }
+    }
+
+    public function split2($input){
+        //www.test.google.com -> www.test -> www
+        global $wordlist;
+
+        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $matches);
+
+        foreach($matches[0] as $match){
+            $wordlist[] = rtrim($match, "."); 
+        }
+    }
+
+    //resume scan after some IO/DB error
+    public function RestoreAmass()
     {   
-        $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
-        //we need to store vhosts somewhere + httpx needs taskid.
-        $tasks = new Tasks();
-        $tasks->hidden = 1;
-        $tasks->amass_status = 'Working';
-        $tasks->save();
+        exec("find /dockerresults/*amass.json -mtime +3", $notdone);
 
-        $taskid = $tasks->taskid;
+        foreach ($notdone as $id){
+            preg_match("/(\d)+/", $id, $out);
+            
+            $randomid = $out[0];
 
-        Yii::$app->db->close();  
+            $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
+            //we need to store vhosts somewhere + httpx needs taskid.
 
-        $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
+            $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
 
-        $fileamass = str_replace("}
+            if($fileamass != ""){
+
+                $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
-        $fileamass = str_replace("} {", "},{", $fileamass);
+                $fileamass = str_replace("} {", "},{", $fileamass);
 
-        $fileamass = str_replace("}
+                $fileamass = str_replace("}
 {", "},{", $fileamass);
 
-        $fileamass = str_replace("}
+                $fileamass = str_replace("}
 {\"name\"", "},{\"name\"", $fileamass);
 
-        $amassoutput = '[' . $fileamass . ']';
+                $amassoutput = '[' . $fileamass . ']';
 
-        $aquatoneoutput = "[]"; #amass::aquatone($randomid);
+                $aquatoneoutput = "[]"; 
 
-        $subtakeover = 0;
+                $subtakeover = 0;
 
-        if (file_exists($gauoutputname)) {
-            $gau = file_get_contents($gauoutputname);
-            $gau = explode(PHP_EOL,$gau);
-        } else $gau="[]";
+                if($amassoutput != "[]" && $amassoutput != "" && $amassoutput != "[{}]" && !empty($amassoutput) ){
 
-        $vhosts = amass::vhosts($amassoutput, $gau, $taskid);
+                    Yii::$app->db->open();  
+                    
+                    $tasks = new Tasks();
+                    $tasks->hidden = 1;
+                    $tasks->amass_status = 'Working';
+                    $tasks->save();
 
-        amass::httpxhosts($vhosts, $taskid, $randomid); // dirscan domains found by amass+gau
+                    $taskid = $tasks->taskid;
 
-        $vhosts = json_encode($vhosts);
+                    Yii::$app->db->close();
 
-        amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+                    if (file_exists($gauoutputname)) {
+                        $gau = file_get_contents($gauoutputname);
+                        $gau = explode(PHP_EOL,$gau);
+                    } else $gau="[]";
 
-        return exec("sudo rm -r /dockerresults/" . $randomid . "");
+                    $vhosts = amass::vhosts($amassoutput, $gau, $taskid, $randomid);
+
+                    $vhosts = json_encode($vhosts);
+
+                    amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+                }
+
+                exec("sudo rm /dockerresults/" . $randomid . "*");
+            }
+            
+        }
+        
+        return 1;
     }
+
+
+
 
     public function saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts)
     {
@@ -113,12 +157,6 @@ class Amass extends ActiveRecord
                     $amass->save(); 
                 }
 
-                //add vhost scan to queue
-                $queue = new Queue();
-                $queue->taskid = $taskid;
-                $queue->instrument = 7;
-                $queue->save();
-
                 /*
                 //add git scan to queue
                 $queue = new Queue();
@@ -127,34 +165,22 @@ class Amass extends ActiveRecord
                 $queue->save();
                 */
                 
-                return 1;
+                return Yii::$app->db->close();;
 
             } catch (\yii\db\Exception $exception) {
                 var_dump($exception);
-                sleep(360);
+                sleep(1000);
 
-                $amass = new Tasks();
-                        
-                $amass->taskid = $taskid;
-                $amass->amass_status = 'Done.';
-                $amass->amass = $amassoutput;
-                $amass->amass_intel = $intelamass;  
-                $amass->aquatone = $aquatoneoutput;
-                $amass->vhostwordlist = $vhosts;
-                $amass->subtakeover = $subtakeover;
-                $amass->hidden = 1;
-                $amass->date = date("Y-m-d H-i-s");
-
-                $amass->save(); 
+                amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
 
                 return $exception.json_encode(array_unique($output));
             }
         }
     }
 
-    public function vhosts($amassoutput, $gau, $taskid)
+    public function vhosts($amassoutput, $gau, $taskid, $randomid)
     {
-        global $maindomain;
+        global $maindomain; global $wordlist;
         //get subdomain names from amass and gau to use it as virtual hosts wordlist
 
         /*
@@ -166,21 +192,9 @@ class Amass extends ActiveRecord
         cloud
         */
 
-        function splitting($input){
-            global $wordlist;
-            preg_match_all("/\w*\./", $input, $out);
+        $vhostswordlist = array(); //subdomains from gau and amass with slices and alterations to find virtual hosts later
 
-            if($out[0][0]!=""){
-                $word = implode("", $out[0]);
-                $word = rtrim($word, ".");
-                $wordlist[] = $word;
-                splitting($word);
-            }
-
-        }
-
-        $wordlist = array(); //all words from subdomain names
-        $vhostswordlist = array(); //subdomains from gau and amass
+        $hostwordlist = array();
 
         if(isset($amassoutput) && $amassoutput!=""){
 
@@ -195,15 +209,11 @@ class Amass extends ActiveRecord
 
                 if (strpos($name, 'https://xn--') === false) {
 
-                    $vhostswordlist[] = $name;
+                    $hostwordlist[] = $name; // full hostname for Host: header
 
-                    splitting($name);
+                    amass::dosplit($name);
 
-                    preg_match_all("/\w*\./", $name, $matches);
-
-                    foreach($matches[0] as $match){
-                        $wordlist[] = rtrim($match, ".");
-                    }
+                    amass::split2($name);
                 }
             }
         }
@@ -214,15 +224,16 @@ class Amass extends ActiveRecord
                 
                 if (strpos($subdomain, $maindomain) !== false && amass::bannedwords($subdomain) === 0 ) {
 
-                    $vhostswordlist[] = dirscan::ParseHostname($subdomain);
-                
+                    $hostwordlist[] = dirscan::ParseHostname($subdomain);
+
+                    amass::split2($subdomain);
                 }
             }
         }
         
-        $vhostswordlist = array_unique(array_merge($wordlist,$vhostswordlist));
+        $vhostswordlist = array_unique(array_merge($wordlist,$hostwordlist)); // vhostwordlist to save into the DB
 
-        return $vhostswordlist;
+        return amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); //to be scanned with httpx to get alive hosts + scan it with dirscan
     }
 
     public function httpxhosts($vhostslist, $taskid, $randomid)
@@ -234,7 +245,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,9999,10000,4443,6443,10250 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
         
         exec($httpx);
 
@@ -246,7 +257,7 @@ class Amass extends ActiveRecord
 
             $alive = array_unique($alive); 
 
-            rsort($alive); //rsort so https:// will be first and we get less invalid duplicates below
+            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates below
 
             foreach($alive as $url) {
 
@@ -254,18 +265,32 @@ class Amass extends ActiveRecord
 
                     $currenthost = dirscan::ParseHostname($url).dirscan::ParsePort($url);
 
+                    $scheme = dirscan::ParseScheme($url);
+                    $port = dirscan::ParsePort($url); 
+
+                    if( ($scheme=="http://" && $port==":443") || ($scheme=="https://" && $port==":80")){
+                        continue; //scanning https port with http scheme is pointless so we get to the next host
+                    }
+
                     if( !in_array($currenthost, $hostnames ) ){
 
-                        if( amass::bannedwords($subdomain) === 0 ){
+                        if( amass::bannedwords($currenthost) === 0 ){
+
                             $queue = new Queue();
                             $queue->taskid = $taskid;
                             $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
-                            $queue->instrument = 3;
+                            $queue->instrument = 3; //ffuf
                             $queue->wordlist = 1;
                             $queue->save();
 
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
+                            $queue->instrument = 5; //whatweb
+                            $queue->save();
+                            
                             $hostnames[] = $currenthost;
-                        }    
+                        }
                     }
                 }
             }
@@ -281,7 +306,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo chmod -R 777 /dockerresults && sudo chmod -R 777 /dockerresults/ && sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau timeout 10000 gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 
@@ -294,70 +319,6 @@ class Amass extends ActiveRecord
         } else $output="[]";
         
         return $output;
-    }
-    
-    public function aquatone($randomid)
-    {
-
-        $command = "cat /dockerresults/" . $randomid . "amass.json | sudo docker run -v screenshots:/screenshots --rm -i 5631/aquatone -http-timeout 20000 -threads 3 -ports large -scan-timeout 5000 -screenshot-timeout 6000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $randomid . " -save-body false > /dev/null";
-
-        exec($command);
-
-        if (file_exists("/screenshots/" . $randomid . "/aquatone_report.html")) {
-            $fileaquatone = file_get_contents("/screenshots/" . $randomid . "/aquatone_report.html");
-            $fileaquatone = str_replace('<img src="screenshots', '<img src="../../screenshots', $fileaquatone);
-
-            $fileaquatone = str_replace('<a href="screenshots', '<a href="../../screenshots', $fileaquatone);
-
-            $fileaquatone = str_replace('<link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css" integrity="sha384-RVGPQcy+W2jAbpqAb6ccq2OfPpkoXhrYRMFFD3JPdu3MDyeRvKPII9C82K13lxn4" crossorigin="anonymous">', '<link rel="stylesheet" href="https://bootswatch.com/3/darkly/bootstrap.min.css">', $fileaquatone);
-
-            $fileaquatone = str_replace('</html>>', '</html>', $fileaquatone);
-
-            $fileaquatone = str_replace('.cluster {
-                border-bottom: 1px solid rgb(68, 68, 68);
-                padding: 30px 20px 20px 20px;
-                overflow-x: auto;
-                white-space: nowrap;
-            }', '.cluster {
-                border-bottom: 1px solid rgb(68, 68, 68);
-                box-shadow: inset 0px 6px 8px rgb(24, 24, 24);
-                padding: 30px 20px 20px 20px;
-                overflow-x: auto;
-                white-space: nowrap;
-            }', $fileaquatone);
-
-            $fileaquatone = str_replace('.cluster:nth-child(even) {
-                background-color: rgba(0, 0, 0, 0.075);
-                box-shadow: inset 0px 6px 8px rgb(24, 24, 24);
-            }', '.cluster:nth-child(even) {
-                border-bottom: 1px solid rgb(68, 68, 68);
-                padding: 30px 20px 20px 20px;
-                overflow-x: auto;
-                white-space: nowrap;
-                box-shadow: inset 0px 6px 8px rgb(24, 24, 24);
-            }', $fileaquatone);
-
-            preg_replace("/<footer>.*<\/footer>/s", "", $fileaquatone);
-
-            $fileaquatone = str_replace('<div class="card-footer text-muted">', '<div class="card-footer text-muted">
-            <label style="text-align: right; float: right; margin-right: 4%">
-                <input type="checkbox" name="dirscan"> <b>Dirscan</b>
-            </label>
-
-            <label style="text-align: right; float: right; margin-right: 2%">
-                <input type="checkbox" name="nmap"> <b>Nmap</b>
-            </label>', $fileaquatone);
-
-            $fileaquatone = str_replace('<td>', '<td style="word-wrap: break-word; max-width: 100px;">', $fileaquatone);
-
-            /** Copy the screenshots from the volume to folder in order to be accessible from nginx **/
-            $clearthemess = "sudo chmod -R 777 /screenshots/" . $randomid . "/screenshots && cp -R --remove-destination /screenshots/" . $randomid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $randomid . "/ && sudo chmod -R 777 /var/www/app/frontend/web/screenshots && sudo rm /dockerresults/" . $randomid . "amass*";
-
-            exec($clearthemess);
-
-        } else $fileaquatone="No screenshots";
-
-        return $fileaquatone;
     }
 
     public static function amassscan($input)
@@ -389,7 +350,7 @@ class Amass extends ActiveRecord
 
         $url = rtrim($url, '/');
 
-        $randomid = rand(1,100000000);
+        $randomid =  (int) $input["queueid"];//rand(1,100000000);
         htmlspecialchars($url);
 
         $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
@@ -401,21 +362,26 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass2.ini";
+        $amassconfig = "/configs/amass6.ini";
 
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 1600 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
 
         exec($command);
 
         if (file_exists($enumoutput)) {
             $fileamass = file_get_contents($enumoutput);
         } else {
-            sleep(1800);
+            sleep(1000);
             exec($command);
+            
+            if ( !file_exists($enumoutput) ) {
+                exec("sudo rm /dockerresults/" . $randomid . "*");
+            }
+
             $fileamass = file_get_contents($enumoutput);
         }
 
@@ -446,15 +412,11 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        $aquatoneoutput = "[]"; #amass::aquatone($randomid);
+        $aquatoneoutput = "[]"; #aquatone::aquatone($randomid);
 
         $subtakeover = 0;
 
-        $vhosts = amass::vhosts($amassoutput, $gau, $taskid);
-
-        amass::httpxhosts($vhosts, $taskid, $randomid); // dirscan domains found by amass+gau
-
-        $vhosts = json_encode($vhosts);
+        $vhosts = json_encode( amass::vhosts($amassoutput, $gau, $taskid, $randomid) );
 
         amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
 

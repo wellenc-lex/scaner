@@ -43,11 +43,11 @@ class Newscan extends Model
     {
         return [
 
-            [['nmapDomain'], 'string', 'length' => [5, 5555]],
+            [['nmapDomain'], 'string', 'length' => [5, 1000000000]],
             [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
-            [['amassDomain'], 'string', 'length' => [5, 255]],
-            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:]+)$/'],
+            [['amassDomain'], 'string', 'length' => [5, 100000]],
+            [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:\r\n]+)$/'],
 
             [['dirscanUrl'], 'string'],
             [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
@@ -70,13 +70,13 @@ class Newscan extends Model
             [['raceUrl'], 'string', 'length' => [5, 255]],
             [['raceUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9 \.\-\/\:]+)$/'],
 
-            [['raceCookies'], 'string', 'length' => [3, 20000]],
+            [['raceCookies'], 'string', 'length' => [3, 200000]],
             [['raceCookies'], 'match', 'pattern' => '/^([a-zA-Z0-9=,_ %\.\-\/\:;]+)$/'],
 
-            [['raceHeaders'], 'string', 'length' => [3, 1000]],
+            [['raceHeaders'], 'string', 'length' => [3, 10000]],
             [['raceHeaders'], 'match', 'pattern' => '/^([a-zA-Z0-9= ,_ %\.\-\/\:;\-/().]+)$/'],
 
-            [['raceBody'], 'string', 'length' => [3, 20000]],
+            [['raceBody'], 'string', 'length' => [3, 200000]],
             [['raceBody'], 'match', 'pattern' => '/^([a-zA-Z0-9\,\=\ \%\&\.\-\/\:;]+)$/'],
 
             [['vhostDomain'], 'string'],
@@ -90,7 +90,7 @@ class Newscan extends Model
 
             [['vhostSsl'], 'boolean'],
 
-            [['ips'], 'string', 'length' => [5, 255]],
+            [['ips'], 'string', 'length' => [3, 255]],
             [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['reverseip'], 'ip'],

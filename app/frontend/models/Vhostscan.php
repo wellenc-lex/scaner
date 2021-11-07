@@ -102,11 +102,15 @@ class Vhostscan extends ActiveRecord
                         $output_vhost_array[$id]["redirect"] = $results["redirectlocation"];
                         $output_vhost_array[$id]["host"] = $results["host"];
 
-                        if ($results["length"] < 350000 ){
-                            exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/");
+                        /*if ($results["length"] < 350000 ){
+                            exec("sudo chmod 777 " . $resultfilename . "");
 
-                            $output_vhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . ""));
-                        }
+                            $resultfilename = "/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . "";
+
+                            if (file_exists($resultfilename)) {
+                                $output_vhost_array[$id]["resultfile"] = base64_encode(file_get_contents($resultfilename));
+                            }
+                        }*/
                     }
                 }
             } else $output_vhost_array = "";
@@ -124,7 +128,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
-        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -u ";
+        $ffuf_general_string = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -ignore-body -r -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
@@ -152,7 +156,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 100000 -u ";
+        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 100000 -ignore-body -r -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
             
@@ -178,14 +182,31 @@ class Vhostscan extends ActiveRecord
 
     public function httpxhosts($amassoutput)
     {
-        global $iparray; $iparray = array();
+        global $iparray;
         global $randomid;
 
         //Cloudflare ip ranges + private networks - no need to ffuf
         $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
             "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
             "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
-            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24","23.74.0.0/23");
+            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24",
+            "23.74.0.0/23" );
+
+            /*"120.52.22.96/27", "205.251.249.0/24", "180.163.57.128/26", "204.246.168.0/22", "205.251.252.0/23", "54.192.0.0/16", "204.246.173.0/24", "54.230.200.0/21", 
+            "120.253.240.192/26", "116.129.226.128/26", "130.176.0.0/17", "108.156.0.0/14", "99.86.0.0/16", "205.251.200.0/21", "223.71.71.128/25", "13.32.0.0/15", "120.253.245.128/26", 
+            "13.224.0.0/14", "70.132.0.0/18", "15.158.0.0/16", "13.249.0.0/16", "205.251.208.0/20", "65.9.128.0/18", "130.176.128.0/18", "58.254.138.0/25", "54.230.208.0/20", "116.129.226.0/25", 
+            "52.222.128.0/17", "64.252.128.0/18", "205.251.254.0/24", "54.230.224.0/19", "71.152.0.0/17", "216.137.32.0/19", "204.246.172.0/24", "120.52.39.128/27", 
+            "118.193.97.64/26", "223.71.71.96/27", "54.240.128.0/18", "205.251.250.0/23", "180.163.57.0/25", "52.46.0.0/18", "223.71.11.0/27", "52.82.128.0/19", 
+            "54.230.0.0/17", "54.230.128.0/18", "54.239.128.0/18", "130.176.224.0/20", "36.103.232.128/26", "52.84.0.0/15", "143.204.0.0/16", "144.220.0.0/16", 
+            "120.52.153.192/26", "119.147.182.0/25", "120.232.236.0/25", "54.182.0.0/16", "58.254.138.128/26", "120.253.245.192/27", "54.239.192.0/19", "18.64.0.0/14", 
+            "120.52.12.64/26", "99.84.0.0/16", "130.176.192.0/19", "52.124.128.0/17", "204.246.164.0/22", "13.35.0.0/16", "204.246.174.0/23", "36.103.232.0/25", 
+            "119.147.182.128/26", "118.193.97.128/25", "120.232.236.128/26", "204.246.176.0/20", "65.8.0.0/16", "65.9.0.0/17", "108.138.0.0/15", "120.253.241.160/27", 
+            "64.252.64.0/18", "13.113.196.64/26", "13.113.203.0/24", "52.199.127.192/26", "13.124.199.0/24", "3.35.130.128/25", "52.78.247.128/26", "13.233.177.192/26", 
+            "15.207.13.128/25", "15.207.213.128/25", "52.66.194.128/26", "13.228.69.0/24", "52.220.191.0/26", "13.210.67.128/26", "13.54.63.128/26", "99.79.169.0/24", 
+            "18.192.142.0/23", "35.158.136.0/24", "52.57.254.0/24", "13.48.32.0/24", "18.200.212.0/23", "52.212.248.0/26", "3.10.17.128/25", "3.11.53.0/24", "52.56.127.0/25", 
+            "15.188.184.0/24", "52.47.139.0/24", "18.229.220.192/26", "54.233.255.128/26", "3.231.2.0/25", "3.234.232.224/27", "3.236.169.192/26", "3.236.48.0/23", 
+            "34.195.252.0/24", "34.226.14.0/24", "13.59.250.0/26", "18.216.170.128/25", "3.128.93.0/24", "3.134.215.0/24", "52.15.127.128/26", "3.101.158.0/23", 
+            "52.52.191.128/26", "34.216.51.0/25", "34.223.12.224/27", "34.223.80.192/26", "35.162.63.192/26", "35.167.191.128/26", "44.227.178.0/24", "44.234.108.128/25", "44.234.90.252/30"); cloudfront?*/ 
 
         foreach($amassoutput as $json){
             foreach ($json["addresses"] as $ip) {
@@ -221,7 +242,9 @@ class Vhostscan extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,10000,4443 -threads 20 -silent -o ". $output ." -l ". $wordlist ."";
+
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,9999,10000,4443,6443,10250 -t 2 -rl 5 -fr -maxr 3 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
+
         exec($httpx);
 
         if (file_exists($output)) {
@@ -257,9 +280,27 @@ class Vhostscan extends ActiveRecord
                 $host = preg_replace("~https?://~", "", $domainarray);
                 $host = rtrim($host, '/');
 
+                $domains[] = $host;
+
+                //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
+                function sliceHost($host){
+                    global $vhostlist; global $domains;
+                    STATIC $stop = 1;
+                    while ($stop != 0){
+                        $outputValue = preg_replace('/\.(\w[\-\_\d]?)*$/', '', $host, 1, $stop);
+                        
+                        array_push($vhostlist, $outputValue);
+                        array_push($domains, $outputValue); //http://localhost/GOOGLE-STAGE.COM/ -> source code listings?
+
+                        sliceHost($outputValue);
+                    }
+                }
+
+                sliceHost($host);
+
                 $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
 
-                $hostonly = preg_replace("/(\w)*\./", "", $domainfull); //something.com -> something
+                $hostonly = preg_replace("/(\w[\-\_\d]?)*\./", "", $domainfull); //something.com -> something
 
                 if ($domainfull == $hostonly) $hostonly = "";
 
@@ -271,7 +312,7 @@ class Vhostscan extends ActiveRecord
                     }
                 }
 
-                $domains[] = $host;
+                
             }
         }
         
@@ -335,7 +376,7 @@ class Vhostscan extends ActiveRecord
             vhostscan::saveToDB($taskid, $output);
             dirscan::queuedone($input["queueid"]);
 
-            exec("sudo rm -R /ffuf/vhost" . $randomid . "/ &");
+            exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
             return 1;
         }
 
@@ -352,13 +393,17 @@ class Vhostscan extends ActiveRecord
 
             if($task!=""){
 
+                global $iparray; $iparray = array(); $output = array();
+
+                if ( $task->ips != "" ){
+                    $iparray = explode(" ", $task->ips);
+                }
+
                 $vhostwordlist = json_decode($task->vhostwordlist, true);
 
                 $amassoutput = json_decode($task->amass, true);
 
                 $maindomain = $amassoutput[0]["domain"];
-
-                $output = array();
 
                 vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
@@ -375,13 +420,13 @@ class Vhostscan extends ActiveRecord
                     }
                 } else return "NO AMASS RESULTS or NO PORTS";
 
-                exec("sudo rm -r /ffuf/vhost" . $randomid . "/");
-
                 vhostscan::saveToDB($taskid, array_filter($output), implode( " ", $alive) );
                 //filter empty elemts from output, use alive IPS for later nmap purposes
             }
 
             dirscan::queuedone($input["queueid"]); //no amass results - maybe task been already deleted
+
+            exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
 
             return 1;
         }

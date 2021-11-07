@@ -2,9 +2,13 @@
 
 namespace frontend\models;
 
+use Yii;
 use yii\db\ActiveRecord;
-use frontend\models\Dirscan;
-require_once 'Dirscan.php';
+
+use frontend\models\Aquatone;
+
+
+ini_set('max_execution_time', 0);
 
 class Nmap extends ActiveRecord
 {
@@ -13,7 +17,101 @@ class Nmap extends ActiveRecord
         return 'tasks';
     }
 
-    public static function scanhost($input)
+    public function saveToDB($taskid, $nmapoutput)
+    {
+        if($nmapoutput != "[]"){
+
+            try{
+                Yii::$app->db->open();
+
+                $task = Tasks::find()
+                    ->where(['taskid' => $taskid])
+                    ->limit(1)
+                    ->one();
+
+                if(!empty($task)){ //if querry exists in db
+
+                    $task->nmap = $nmapoutput;
+                    $task->nmap_status = "Done.";
+                    $task->notify_instrument = $task->notify_instrument."1";
+                    $task->date = date("Y-m-d H-i-s");
+
+                    $task->save(); 
+
+                } else {
+                    $task = new Tasks();
+                    
+                    $task->taskid = $taskid;
+                    $task->nmap_status = 'Done.';
+                    $task->nmap = $nmapoutput;
+                    $task->notify_instrument = "1";
+                    $task->date = date("Y-m-d H-i-s");
+
+                    $task->save();
+
+                    $taskid = $task->taskid;
+                }
+
+            } catch (\yii\db\Exception $exception) {
+                var_dump($exception);
+                sleep(360);
+
+                nmap::saveToDB($taskid, $output);
+            }
+
+            Yii::$app->db->close();
+            
+            return $taskid;
+        }
+    }
+
+    public function nmapips($taskid, $randomid)
+    {
+        $inputIPS = "/dockerresults/" . $randomid . "/ipscanoutput.txt";
+
+        if($taskid=""){
+            $taskid = (int) $input["taskid"];
+        }
+
+        if($randomid=""){
+            $randomid = (int) $input["randomid"];
+
+            if($randomid=""){
+                $randomid = rand(100000, 1000000000);
+
+                exec("mkdir /dockerresults/" . $randomid . "/");
+
+                file_put_contents($inputIPS, implode( " ", $input["ips"]) );
+            }
+        }
+
+        $nmapoutputxml = "/dockerresults/" . $randomid . "/nmap.xml";
+        $nmapoutputhtml = "/dockerresults/" . $randomid . "/nmap.html";
+
+        $scripts = " --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute".
+                    " --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC";
+            
+        exec("sudo docker run --cpu-shares 1024 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T4 --randomize-hosts -Pn -v -sV -p- -A --min-hostgroup 200 --script-timeout 1500m --max-scan-delay 30s --max-retries 40 -oX "
+            . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $inputIPS );
+
+        exec("sudo /usr/bin/xsltproc -o " . $nmapoutputhtml . " /configs/nmap.xsl " . $nmapoutputxml . "");
+
+        if (file_exists($nmapoutputhtml)) {
+            $output = file_get_contents($nmapoutputhtml);
+        } else $output = "";
+
+        $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
+
+        return aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
+
+        //TODO:add udp top ports scan?
+    }
+
+
+
+
+
+    public function scanhost($input)
     {
         $url = dirscan::ParseHostname($input["url"]);
         $taskid = (int) $input["taskid"];
@@ -21,6 +119,8 @@ class Nmap extends ActiveRecord
         $randomid = $taskid;
 
         //sudo nohup sudo nmap -sS -T3 -p- --open -iL sort.txt -oG - > /root/outputnmap.txt &
+
+        //sudo nohup sudo masscan -p79-33000 --max-rate 10000 --open -iL input.txt -oX /root/outputmass.xml -oG /root/outputmass.txt -oL /root/outputmass.list &
 
 
         //brute default passwords -> default-http-login-hunter.sh urls.txt https://github.com/InfosecMatter/default-http-login-hunter
@@ -46,7 +146,7 @@ class Nmap extends ActiveRecord
 
         //" . escapeshellarg($url) . " Gives Failed to resolve " $url ". , don't know how to fix, left it as is.
             
-        exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sX -T3 -p- -A --host-timeout 4000m --source-port 2002 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -g 2002 -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
+        exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T3 -p- -A --host-timeout 4000m --source-port 2002 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -g 2002 -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
 
         exec("sudo /usr/bin/xsltproc -o /dockerresults/nmap/" . $randomid . ".html /configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");
 
@@ -56,17 +156,16 @@ class Nmap extends ActiveRecord
 
         $date_end = date("Y-m-d H-i-s");
 
-        $nmap = Tasks::find()
+        $task = Tasks::find()
             ->where(['taskid' => $taskid])
             ->limit(1)
             ->one();
 
-        $nmap->nmap_status = "Done.";
-        $nmap->nmap = $output;
-        $nmap->date = $date_end;
+        $task->nmap_status = "Done.";
+        $task->nmap = $output;
+        $task->date = $date_end;
 
-        $a = "Done";
-        $nmap->save();
+        $task->save();
 
         exec("sudo rm /dockerresults/scan" . $randomid . ".xml && sudo rm /dockerresults/nmap/" . $randomid . ".html");
 

@@ -2,10 +2,10 @@
 
 namespace frontend\models;
 
+use Yii;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 use frontend\models\Queue;
-require_once 'Dirscan.php';
 
 ini_set('max_execution_time', 0);
 
@@ -16,6 +16,47 @@ class Nuclei extends ActiveRecord
         return 'tasks';
     }
 
+    public function savetodb($taskid, $nuclei)
+    {
+        try{
+            Yii::$app->db->open();
+
+            $task = Tasks::find()
+                ->where(['taskid' => $taskid])
+                ->limit(1)
+                ->one();
+
+            if(!empty($task) && ($task->nuclei=="") ){ //if task exists in db and nuclei result is empty
+
+                $task->dirscan_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."8";
+                $task->nuclei = json_encode($nuclei);
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+            } else {
+
+                $task = new Tasks();
+
+                $task->host = $url;
+                $task->dirscan_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."8";
+                $task->nuclei = json_encode($nuclei);
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+            }
+        } catch (\yii\db\Exception $exception) {
+
+            sleep(2000);
+
+            nuclei::savetodb($taskid, $nuclei);
+        }
+
+        return 1;
+    }
+
+
     public function Nucleiscan($list, $randomid)
     {
 
@@ -25,9 +66,7 @@ class Nuclei extends ActiveRecord
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -timeout 15 -rl 3 " . $exclude . $headers;
-
-        //-nut
+        $nuclei_start = "sudo docker run --cpu-shares 128 --rm --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -nut -retries 3 -max-host-error 90 -timeout 20 -rl 12 -bs 500 -c 1 " . $exclude . $headers; 
 
         exec($nuclei_start); 
 
@@ -90,32 +129,7 @@ class Nuclei extends ActiveRecord
         $nuclei = nuclei::Nucleiscan($urllist, $randomid); //starts nuclei scan and stores result json into $nuclei
             
         if($nuclei!=="null" && $nuclei!=""){
-
-            $task = Tasks::find()
-            ->where(['taskid' => $taskid])
-            ->limit(1)
-            ->one();
-
-            if(!empty($task) && ($task->nuclei="") ){ //if task exists in db and nuclei result is empty
-
-                $task->dirscan_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."8";
-                $task->nuclei = json_encode($nuclei);
-                $task->date = date("Y-m-d H-i-s");
-
-                $task->save();
-                    
-            } else {
-
-                $task = new Tasks();
-                $task->host = $url;
-                $task->dirscan_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."8";
-                $task->nuclei = json_encode($nuclei);
-                $task->date = date("Y-m-d H-i-s");
-
-                $task->save();
-            }
+            nuclei::savetodb($taskid, $nuclei);
         }
 
         if( isset($input["queueid"]) ) $queues = explode(PHP_EOL, $input["queueid"]); 

@@ -209,8 +209,20 @@
                         <td><xsl:value-of select="../../address/@addr"/><xsl:if test="count(../../hostnames/hostname) > 0"> - <xsl:value-of select="../../hostnames/hostname/@name"/></xsl:if></td>
                         <td><xsl:value-of select="@portid"/></td>
 
-                        <td> <xsl:variable name="ip" select="../../address/@addr"/> <xsl:variable name="port" select="@portid"/>
-                        <script>if ({$port} == 443 || {$port} == 8443){scheme=https://} else {scheme=http://}</script> <a href="{scheme}{$ip}:{$port}">Visit </a>  </td>
+
+                        <xsl:variable name="ip" select="../../address/@addr"/> <xsl:variable name="port" select="@portid"/>
+
+                        <xsl:choose>
+
+                          <xsl:when test="$port = 443 or $port = 8443">
+                            <td>  <a href="https://{$ip}:{$port}">Visit </a>  </td>
+                          </xsl:when>
+
+                          <xsl:otherwise>
+                            <td> <a href="http://{$ip}:{$port}">Visit </a>  </td>
+                          </xsl:otherwise>
+
+                        </xsl:choose>
 
                         <td><xsl:value-of select="@protocol"/></td>
                         <td><xsl:value-of select="service/@name"/></td>

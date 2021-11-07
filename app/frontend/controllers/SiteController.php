@@ -158,15 +158,19 @@ class SiteController extends Controller
             $model = new Profile();
 
             $done = Tasks::find()
+                ->select(['tasks.taskid','tasks.status', 'tasks.host'])
                 ->andWhere(['userid' => Yii::$app->user->id])
                 ->andWhere(['status' => "Done."])
-                ->andWhere(['hidden' => "0"]);
+                ->andWhere(['hidden' => "0"])
+                ->orderBy(['notify_instrument ' => SORT_DESC]);
 
             $tasks = Tasks::find()
+                ->select(['tasks.taskid','tasks.status', 'tasks.host'])
                 ->andWhere(['hidden' => "0"])
                 ->andWhere(['userid' => Yii::$app->user->id]);
 
             $hidden = Tasks::find()
+                ->select(['tasks.taskid','tasks.status', 'tasks.host'])
                 ->andWhere(['userid' => Yii::$app->user->id])
                 ->andWhere(['hidden' => "1"]);
 
@@ -341,36 +345,41 @@ class SiteController extends Controller
 
                     if (isset($url["amassDomain"]) && $url["amassDomain"] != "") {
 
-                        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url["amassDomain"], $domain);
+                        $urls = explode(PHP_EOL, $url["amassDomain"]); 
 
-                        $url["amassDomain"] = $domain[2][0];
-                        
-                        $DomainsAlreadyinDB = Tasks::find()
-                            ->andWhere(['userid' => Yii::$app->user->id])
-                            ->andWhere(['=', 'host', $url["amassDomain"]])
-                            ->exists(); 
+                        foreach ($urls as $currenturl){
 
-                        if($DomainsAlreadyinDB == 0){
+                            preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url["amassDomain"], $domain);
 
-                            $tasks->host = $url["amassDomain"];
-                            $tasks->amass_status = "Working";
-                            $tasks->notify_instrument = $tasks->notify_instrument . "2";
-                            $amass = 1;
+                            $url["amassDomain"] = $domain[2][0];
+                            
+                            $DomainsAlreadyinDB = Tasks::find()
+                                ->andWhere(['userid' => Yii::$app->user->id])
+                                ->andWhere(['=', 'host', $url["amassDomain"]])
+                                ->exists(); 
 
-                            $queue = new Queue();
-                            $queue->amassdomain = $url["amassDomain"];
-                            $queue->taskid = $tasks->taskid;
-                            $queue->instrument = 2;
-                            $queue->save();
+                            if($DomainsAlreadyinDB == 0){
 
-                            //adds the domain to scan it later continiously
-                            if ($url["passive"] == 1) {
-                                $passive = new PassiveScan();
-                                $passive->userid = Yii::$app->user->id;
-                                $passive->notifications_enabled = 1;
-                                $passive->amassDomain = $url["amassDomain"];
-                                $passive->scanday = rand(1, 30);
-                                $passive->save();
+                                $tasks->host = $url["amassDomain"];
+                                $tasks->amass_status = "Working";
+                                $tasks->notify_instrument = $tasks->notify_instrument . "2";
+                                $amass = 1;
+
+                                $queue = new Queue();
+                                $queue->amassdomain = $url["amassDomain"];
+                                $queue->taskid = $tasks->taskid;
+                                $queue->instrument = 2;
+                                $queue->save();
+
+                                //adds the domain to scan it later continiously
+                                if ($url["passive"] == 1) {
+                                    $passive = new PassiveScan();
+                                    $passive->userid = Yii::$app->user->id;
+                                    $passive->notifications_enabled = 1;
+                                    $passive->amassDomain = $url["amassDomain"];
+                                    $passive->scanday = rand(1, 30);
+                                    $passive->save();
+                                }
                             }
                         }
                     }
@@ -422,8 +431,14 @@ class SiteController extends Controller
                         $tasks->host = $url["ips"];
                         $tasks->ips_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "6";
+                        
                         $ips = 1;
-                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["ips"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
+
+                        $queue = new Queue();
+                        $queue->taskid = $tasks->taskid;
+                        $queue->instrument = 6;
+                        $queue->ipscan = $url["ips"];
+                        $queue->save();
                     }
 
                     if ((isset($url["vhostDomain"]) && $url["vhostDomain"] != "") && (isset($url["vhostIp"]) && $url["vhostIp"] != "")) {
@@ -435,6 +450,7 @@ class SiteController extends Controller
                         $queue = new Queue();
                         $queue->taskid = $tasks->taskid;
                         $queue->instrument = 7;
+
 
                         if ((isset($url["vhostPort"]) && $url["vhostPort"] != "")) {
 

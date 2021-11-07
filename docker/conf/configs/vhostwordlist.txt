@@ -19,10 +19,11 @@ alerts
 alpha
 ap
 backup1
+confluence
+jira
 apache
 api
 app
-jira
 apps
 appserver
 aptest
@@ -81,7 +82,6 @@ codeville
 collectd
 collectl
 conf
-confluence
 continuum
 crm
 cruisecontrol

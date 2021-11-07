@@ -406,20 +406,24 @@ $this->registerJs($script, View::POS_READY);
                     <div class="passivescanclass">
                             <div class="col-xs-4">
 
-                                <a data-toggle="modal" data-target="#awsscanModal" href="#" style="margin-left:13%;">AWS scan</a>
+                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
+                                    IP's</a>
 
-                                <div id="awsscanModal" class="modal fade" role="dialog">
+                                <div id="findipsModal" class="modal fade" role="dialog">
                                     <div class="modal-dialog">
 
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal">&times;
                                                 </button>
-                                                <h4 class="modal-title">What is Awsscan?</h4>
+                                                <h4 class="modal-title">What is Find IP'S?</h4>
                                             </div>
 
                                             <div class="modal-body">
-                                                <p>Awsscan is a tool created for searching the buckets that belong to the company by bruteforcing bucket names.</p>
+                                                <p>Find IP's is a tool created for searching all possible IP addresses
+                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
+                                                <p>If IP will be found, any 1 could connect to your server with IP and
+                                                    bypass all Cloud protection mechanisms.</p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">
@@ -431,8 +435,6 @@ $this->registerJs($script, View::POS_READY);
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
                     </div>     
 
                     <div class="col-lg-12">
@@ -441,7 +443,7 @@ $this->registerJs($script, View::POS_READY);
 
                         <div class="passivescanclass">
                             <div class="col-xs-6">
-                                <label class="switch" style="margin-left:0.8%;" id="nuclei">
+                                <label class="switch" style="margin-left:-0.5%;" id="nuclei">
                                     <input type="checkbox" id="nucleibox">
                                     <span class="slider round"></span>
                                 </label>
@@ -449,15 +451,16 @@ $this->registerJs($script, View::POS_READY);
 
                             <div class="passivescanclass">
                                 <div class="col-xs-4">
-                                    <label class="switch" style="margin-left:5.5%;" id="awsscan">
-                                        <input type="checkbox" id="awsscanbox">
+                                    <label class="switch" style="margin-left:7.2%;" id="findips">
+                                        <input type="checkbox" id="findipsbox">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                    </div>     
+                    </div>
+                </div>
 
                     <!-- <div class="col-lg-12">
 
@@ -490,30 +493,25 @@ $this->registerJs($script, View::POS_READY);
                                     </div>
                                 </div>
                             </div>
-                        </div> -->
+                        </div> 
 
-                        <!--
                         <div class="passivescanclass">
                             <div class="col-xs-4">
 
-                                <a data-toggle="modal" data-target="#findipsModal" href="#" style="margin-left:13%;">Find
-                                    IP's</a>
+                                <a data-toggle="modal" data-target="#awsscanModal" href="#" style="margin-left:13%;">AWS scan</a>
 
-                                <div id="findipsModal" class="modal fade" role="dialog">
+                                <div id="awsscanModal" class="modal fade" role="dialog">
                                     <div class="modal-dialog">
 
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal">&times;
                                                 </button>
-                                                <h4 class="modal-title">What is Find IP'S?</h4>
+                                                <h4 class="modal-title">What is Awsscan?</h4>
                                             </div>
 
                                             <div class="modal-body">
-                                                <p>Find IP's is a tool created for searching all possible IP addresses
-                                                    for your server even if its behind Cloudflare/Cloudstorm/etc.</p>
-                                                <p>If IP will be found, any 1 could connect to your server with IP and
-                                                    bypass all Cloud protection mechanisms.</p>
+                                                <p>Awsscan is a tool created for searching the buckets that belong to the company by bruteforcing bucket names.</p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">
@@ -527,11 +525,12 @@ $this->registerJs($script, View::POS_READY);
                             </div>
                         </div>
 
-                    </div> -->
+                    </div>
+                
 
-                        
+                                               
 
-                    <!--<div class="col-lg-12">
+                    <div class="col-lg-12">
 
                         <div class="col-xs-2"></div>
 
@@ -545,15 +544,15 @@ $this->registerJs($script, View::POS_READY);
 
                             <div class="passivescanclass">
                                 <div class="col-xs-4">
-                                    <label class="switch" style="margin-left:5.5%;" id="findips">
-                                        <input type="checkbox" id="findipsbox">
+                                    <label class="switch" style="margin-left:5.5%;" id="awsscan">
+                                        <input type="checkbox" id="awsscanbox">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                    </div> -->
+                    </div>-->
 
                     <!--<div class="col-lg-12">
 
@@ -809,7 +808,7 @@ $this->registerJs($script, View::POS_READY);
                             <p align="center">Enter Domain name for searching its IP's:</p>
 
                             <?= $form->field($model, 'ips', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
 
                         </div>
                     </div>
@@ -906,11 +905,11 @@ $this->registerJs($script, View::POS_READY);
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">
-                        <div class="findips">
+                        <div class="findaws">
 
                             <p align="center">Enter Domain name for searching its AWS buckets:</p>
 
-                            <?= $form->field($model, 'ips', [
+                            <?= $form->field($model, 'raceUrl', [
                                 'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
 
                         </div>

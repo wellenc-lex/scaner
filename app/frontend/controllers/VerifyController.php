@@ -217,7 +217,7 @@ class VerifyController extends Controller
                 ->andWhere(['working' => "0"])
                 ->andWhere(['todelete' => "0"])
                 ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC, 'instrument' => SORT_ASC]) //asc
-                ->limit(3000)
+                ->limit(2000)
                 ->all();
 
             $tools_amount = ToolsAmount::find()
@@ -244,7 +244,7 @@ class VerifyController extends Controller
 
             //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+10; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
 
-            $max_amass = 2; $max_ffuf = 130; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
+            $max_amass = 1; $max_ffuf = 130; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
 
             $max_nmap = 1; $max_nmap_in_task = 10;
 

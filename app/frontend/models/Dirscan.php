@@ -18,7 +18,11 @@ class Dirscan extends ActiveRecord
 
     public function bannedsubdomains($in)
     {
-        return preg_match("/jira|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in); // scanning jira for files is pointless. nuclei will get the cves
+        if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
+            return 0; //if its used for internal or develop purposes - scan anyway
+        } else { 
+            return preg_match("/link|img|cdn|sentry|support|^ws|wiki|status|static|blog|socket|docs|email|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in);
+        }
     }
 
     public function addtonuclei($scanurl)
@@ -57,7 +61,7 @@ class Dirscan extends ActiveRecord
 
         //|| ( count($output_ffuf) === 1 && $output_ffuf[0]["status"] == "400" )
         
-        if( empty($output_ffuf) || $output_ffuf == 'null' || $output_ffuf == '[null]' || $output_ffuf == '[]' || $output_ffuf == '[[]]'){
+        if( $output_ffuf == 'null' || $output_ffuf == '[null]' || $output_ffuf == '[]' || $output_ffuf == '[[]]' ||  $output_ffuf == '' ||  $output_ffuf == '{}' ||  $output_ffuf == '[{}]'){
             
             $dirscan = new Tasks();
             $dirscan->host = $hostname;
@@ -137,18 +141,18 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n]+)/i", $url, $domain); //get hostname only
         
-        return $domain[1][0]; //group 1 == scheme
+        return trim( $domain[1][0], ' '); //group 1 == scheme
     }
 
     public function ParseHostname($url)
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $domain); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n]+)/i", $url, $domain); //get hostname only
         
-        return $domain[2][0]; //group 2 == domain name
+        return trim( $domain[2][0], ' '); //group 2 == domain name
 
     }
 
@@ -158,20 +162,20 @@ class Dirscan extends ActiveRecord
 
         preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $ip, $ip); //get ip only //weird regex because IP parses throguht regexp earlier - when form submits
       
-        return $ip[0]; //everything thats inside regex
+        return trim( $ip[0], ' '); //everything thats inside regex
     }
 
     public function ParsePort($url)
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[]+)/i", $url, $port); //get hostname only
+        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n]+)/i", $url, $port); //get hostname only
 
         if(isset($port[2][1]) && $port[2][1]!="") {
             $port = ":".$port[2][1]; 
         } else $port = "";
         
-        return $port; // :8443
+        return trim( $port, ' '); // :8443
     }
 
     public function ReadFFUFResult($filename, $localhost)
@@ -268,11 +272,7 @@ class Dirscan extends ActiveRecord
                 $scheme = "https://";
             } else $scheme = "http://";
 
-            $hostname = trim($hostname, ' ');
             $hostname = rtrim($hostname, '/');
-
-            $hostname = trim($hostname, ' ');
-            $port = trim($port, ' ');
 
             $scanurl = $scheme.$hostname.$port;
 
@@ -283,13 +283,12 @@ class Dirscan extends ActiveRecord
             }
 
 
-            if( ($scheme=="http://" && $port==":443") || ($scheme=="https://" && $port==":80")){
+            if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
                 dirscan::queuedone($input["queueid"]);
                 return 2; //scanning https port with http scheme is pointless
-                //$scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
 
-            if( $scheme=="http://" && ($port==":8443" || $port==":4443") ){
+            if( $scheme==="http://" && ($port===":8443" || $port===":4443") ){
                 $scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
 
@@ -312,9 +311,9 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 150000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -noninteractive -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 150000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
             
-            $general_ffuf_string = $ffuf_string.$headers." -mc all  -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
+            $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
             if (!isset($input["ip"])) {
                 $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($scheme.$hostname.$port."/FUZZ") . " -o " . $ffuf_output . " ";
@@ -364,7 +363,10 @@ class Dirscan extends ActiveRecord
 
             if ( !isset($input["ip"]) ) {
                 if ( $port == "" ) {
-                    if( !empty($output_ffuf) || $output_ffuf !== 'null' || $output_ffuf !== '[null]' || $output_ffuf !== '[]' || $output_ffuf !== '[[]]'){
+                    if( !empty($output_ffuf) && $output_ffuf !== 'null' && $output_ffuf !== '[null]' && $output_ffuf !== '[]' && $output_ffuf !== '[[]]' 
+                        &&  $output_ffuf !== '' &&  $output_ffuf !== '{}' &&  $output_ffuf !== '[{}]' ){
+
+                        //isset($output_ffuf[1]);
                         
                         $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
                     } 

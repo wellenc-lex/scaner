@@ -18,7 +18,11 @@ class Amass extends ActiveRecord
 
     public function bannedwords($in)
     {
-        return preg_match("/img|cdn|sentry|support|^ws|websocket|socket/i", $in);
+        if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
+            return 0; //if its used for internal or develop purposes - scan anyway
+        } else { 
+            return preg_match("/img|cdn|sentry|support|^ws|wiki|status|static|socket|docs|url(\d)*/i", $in);
+        }
     }
 
      public function dosplit($input){
@@ -268,7 +272,7 @@ class Amass extends ActiveRecord
                     $scheme = dirscan::ParseScheme($url);
                     $port = dirscan::ParsePort($url); 
 
-                    if( ($scheme=="http://" && $port==":443") || ($scheme=="https://" && $port==":80")){
+                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
                         continue; //scanning https port with http scheme is pointless so we get to the next host
                     }
 

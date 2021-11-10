@@ -317,20 +317,14 @@ class SiteController extends Controller
                     $race = 0;
                     $reverseip = 0;
 
-                    $tasks = new Tasks();
-                    $tasks->userid = Yii::$app->user->id;
-                    $tasks->save();
-
                     $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
                     $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
                     //checks if at least 1 instrument exists
 
-                    if (isset($url["notify"]) && $url["notify"] == 1)
-                        $tasks->notification_enabled = 1;
-                    else
-                        $tasks->notification_enabled = 0;
-
                     if (isset($url["nmapDomain"]) && $url["nmapDomain"] != "") {
+
+                        $tasks = new Tasks();
+                    
                         $nmap = 1;
                         $tasks->host = rtrim($url["nmapDomain"], ',');
                         $tasks->nmap_status = "Working";
@@ -341,6 +335,10 @@ class SiteController extends Controller
                         $queue->taskid = $tasks->taskid;
                         $queue->instrument = 1;
                         $queue->save();
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->notification_enabled = $url["notify"];
+                        $tasks->save();
                     }
 
                     if (isset($url["amassDomain"]) && $url["amassDomain"] != "") {
@@ -348,6 +346,8 @@ class SiteController extends Controller
                         $urls = explode(PHP_EOL, $url["amassDomain"]); 
 
                         foreach ($urls as $currenturl){
+
+                            $tasks = new Tasks();
 
                             preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url["amassDomain"], $domain);
 
@@ -381,53 +381,99 @@ class SiteController extends Controller
                                     $passive->save();
                                 }
                             }
+
+                            $tasks->userid = Yii::$app->user->id;
+                            $tasks->notification_enabled = $url["notify"];
+                            $tasks->save();
                         }
                     }
 
                     if (isset($url["dirscanUrl"]) && $url["dirscanUrl"] != "") {
                         
-                        $DomainsAlreadyinDB = Tasks::find()
-                            ->andWhere(['userid' => Yii::$app->user->id])
-                            ->andWhere(['=', 'host', $url["dirscanUrl"]])
-                            ->exists(); 
+                        $hostnames = array();
 
-                        if($DomainsAlreadyinDB == 0){
-                            $dirscan = 1;
+                        $urls = explode(PHP_EOL, $url["dirscanUrl"]);
 
-                            $tasks->host = $url["dirscanUrl"];
+                        $urls = array_unique($urls); 
 
-                            $queue = new Queue();
-                            $queue->taskid = $tasks->taskid;
-                            $queue->instrument = 3;
+                        rsort($urls);
 
-                            if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
-                                $queue->dirscanIP = $url["dirscanIp"];
+                        foreach ($urls as $currenturl){
+
+                            if ($currenturl != "") { //if isnt empty
+                                $currenthost = dirscan::ParseHostname($currenturl).dirscan::ParsePort($currenturl);
+
+                                $scheme = dirscan::ParseScheme($currenturl);
+                                $port = dirscan::ParsePort($currenturl);
+
+                                if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80") ){
+                                    continue; //scanning https port with http scheme is pointless so we get to the next host
+                                }
+
+                                if( dirscan::bannedsubdomains($currenthost) !== 0 ){
+                                    continue; //no need to ffuf subdomain like docs.smth.com - low chance of juicy fruits here
+                                }
+
+                                if( !in_array($currenthost, $hostnames ) ){
+
+                                    $tasks = new Tasks();
+
+                                    $tasks->host = dirscan::ParseScheme($currenturl).$currenthost;
+
+                                    $queue = new Queue();
+                                    
+                                    $queue->taskid = $tasks->taskid;
+                                    $queue->instrument = 3;
+
+                                    if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
+                                        $queue->dirscanIP = dirscan::ParseIP($url["dirscanIp"]);
+                                    }
+
+                                    $queue->dirscanUrl = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff
+                                    $queue->save();
+
+                                    $tasks->dirscan_status = "Working";
+                                    $tasks->notify_instrument = $tasks->notify_instrument . "3";
+
+                                    $hostnames[] = $currenthost;
+
+                                    $tasks->userid = Yii::$app->user->id;
+                                    $tasks->save();
+                                }
                             }
-
-                            $queue->dirscanUrl = $url["dirscanUrl"]; //slice #? and other stuff
-                            $queue->save();
-
-                            $tasks->dirscan_status = "Working";
-                            $tasks->notify_instrument = $tasks->notify_instrument . "3";
                         }
+
+                        $dirscan = 1;
                     }
 
                     if (isset($url["gitUrl"]) && $url["gitUrl"] != "") {
+                        $tasks = new Tasks();
+
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
                         //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
                     }
 
                     if (isset($url["reverseip"]) && $url["reverseip"] != "") {
+                        $tasks = new Tasks();
+
                         $tasks->host = $url["reverseip"];
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
                         $reverseip = 1;
                         //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
                     }
 
                     if (isset($url["ips"]) && $url["ips"] != "") {
+                        $tasks = new Tasks();
+
                         $tasks->host = $url["ips"];
                         $tasks->ips_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "6";
@@ -439,9 +485,13 @@ class SiteController extends Controller
                         $queue->instrument = 6;
                         $queue->ipscan = $url["ips"];
                         $queue->save();
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
                     }
 
                     if ((isset($url["vhostDomain"]) && $url["vhostDomain"] != "") && (isset($url["vhostIp"]) && $url["vhostIp"] != "")) {
+                        $tasks = new Tasks();
 
                         $tasks->vhost_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "7";
@@ -480,11 +530,15 @@ class SiteController extends Controller
                             $queue->save();
                         }
 
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
+
                     }
 
                     if ((isset($url["nucleiDomain"]) && $url["nucleiDomain"] != "") ) {
+                        $tasks = new Tasks();
 
-                        $tasks->vhost_status = "Working";
+                        $tasks->dirscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "8";
                         $nuclei = 1;
 
@@ -493,11 +547,15 @@ class SiteController extends Controller
                         $queue->instrument = 8;
                         $queue->dirscanUrl = $url["nucleiDomain"];
                         $queue->save();
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
                     }
 
                     if ((isset($url["jsaDomain"]) && $url["jsaDomain"] != "") ) {
+                        $tasks = new Tasks();
 
-                        $tasks->vhost_status = "Working";
+                        $tasks->js_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "9";
                         $nuclei = 1;
 
@@ -506,6 +564,9 @@ class SiteController extends Controller
                         $queue->instrument = 9;
                         $queue->dirscanUrl = $url["jsaDomain"];
                         $queue->save();
+
+                        $tasks->userid = Yii::$app->user->id;
+                        $tasks->save();
                     }
 
                     /*if (isset($url["raceUrl"]) && $url["raceUrl"] != "") {
@@ -551,7 +612,7 @@ class SiteController extends Controller
                     }*/
 
                     if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0 && $nuclei == 0 && $jsa == 0) {
-                        $tasks->delete();
+
                         Yii::$app->session->setFlash('failure', 'You provided empty instrument\'s parameters. Please try again.');
                         
 
@@ -561,15 +622,8 @@ class SiteController extends Controller
 
                         //return $this->redirect(['/site/newscan']);
 
-
-
-
-
-
-                        
                     }
 
-                    $tasks->save();
                     $user->updated_at = time();
                     $user->save();
                     $user->updateCounters(['scans_counter' => 1]);

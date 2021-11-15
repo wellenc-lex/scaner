@@ -65,34 +65,36 @@ class Nmap extends ActiveRecord
         }
     }
 
-    public function nmapips($taskid, $randomid)
+    public function nmapips($input)
     {
-        $inputIPS = "/dockerresults/" . $randomid . "/ipscanoutput.txt";
-
-        if($taskid=""){
+        if( $taskid == "" ){
             $taskid = (int) $input["taskid"];
         }
 
-        if($randomid=""){
+        if( $randomid == "" ){
             $randomid = (int) $input["randomid"];
 
-            if($randomid=""){
+            if( $randomid == "" ){
                 $randomid = rand(100000, 1000000000);
 
                 exec("mkdir /dockerresults/" . $randomid . "/");
 
-                file_put_contents($inputIPS, implode( " ", $input["ips"]) );
+                $scanIPS = "/dockerresults/" . $randomid . "/inputips.txt";
+
+                file_put_contents($scanIPS, $input["ips"] );
             }
         }
 
+        $scanIPS = "/dockerresults/" . $randomid . "/inputips.txt";
         $nmapoutputxml = "/dockerresults/" . $randomid . "/nmap.xml";
         $nmapoutputhtml = "/dockerresults/" . $randomid . "/nmap.html";
 
         $scripts = " --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute".
                     " --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC";
             
-        exec("sudo docker run --cpu-shares 1024 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T4 --randomize-hosts -Pn -v -sV -p- -A --min-hostgroup 200 --script-timeout 1500m --max-scan-delay 30s --max-retries 40 -oX "
-            . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $inputIPS );
+        exec("sudo docker run --cpu-shares 1024 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -g 53 -sS -sU -T4 --randomize-hosts -Pn -v -sV"
+        ." -p T:1-65000,U:53,111,137,161,162,500,1434,5060,11211,67-69,123,135,138,139,445,514,520,631,1434,1900,4500,5353,49152 -A -R --min-hostgroup 500 --script-timeout 1500m --max-scan-delay 30s --max-retries 10 -oX "
+            . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
 
         exec("sudo /usr/bin/xsltproc -o " . $nmapoutputhtml . " /configs/nmap.xsl " . $nmapoutputxml . "");
 
@@ -103,8 +105,6 @@ class Nmap extends ActiveRecord
         $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
 
         return aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
-
-        //TODO:add udp top ports scan?
     }
 
 

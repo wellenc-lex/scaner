@@ -21,7 +21,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/link|img|cdn|sentry|support|^ws|wiki|status|static|blog|socket|docs|email|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in);
+            return preg_match("/link|img|cdn|sentry|support|^ws|wiki|status|static|blog|socket|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in);
         }
     }
 
@@ -298,7 +298,7 @@ class Dirscan extends ActiveRecord
 
             if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
 
-            $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,zip,tar,rar,tgz,tar.gz,".$hostname.",".$domainfull.",".$hostonly;
+            $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,tar.gz,".$hostname.",".$domainfull.",".$hostonly;
 
             if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
 
@@ -311,7 +311,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 150000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 200000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

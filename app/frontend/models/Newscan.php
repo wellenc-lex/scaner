@@ -26,6 +26,8 @@ class Newscan extends Model
     public $vhostSsl;
     public $reverseip;
 
+    public $whatwebUrl;
+
     public $nucleiDomain;
     public $jsaDomain;
 
@@ -51,6 +53,9 @@ class Newscan extends Model
 
             [['dirscanUrl'], 'string'],
             [['dirscanUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
+
+            [['whatwebUrl'], 'string'],
+            [['whatwebUrl'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['nucleiDomain'], 'string'],
             [['nucleiDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],

@@ -162,7 +162,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id])
                 ->andWhere(['status' => "Done."])
                 ->andWhere(['hidden' => "0"])
-                ->orderBy(['notify_instrument ' => SORT_DESC]);
+                ->orderBy(['notify_instrument' => SORT_DESC]);
 
             $tasks = Tasks::find()
                 ->select(['tasks.taskid','tasks.status', 'tasks.host'])
@@ -307,6 +307,7 @@ class SiteController extends Controller
                     global $vhost;
                     global $race;
                     global $reverseip;
+                    global $whatweb;
 
                     $nmap = 0;
                     $amass = 0;
@@ -316,6 +317,7 @@ class SiteController extends Controller
                     $vhost = 0;
                     $race = 0;
                     $reverseip = 0;
+                    $whatweb = 0;
 
                     $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
                     $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
@@ -490,6 +492,46 @@ class SiteController extends Controller
                         $tasks->save();
                     }
 
+                    if (isset($url["whatwebUrl"]) && $url["whatwebUrl"] != "") {
+                        
+                        $hostnames = array();
+
+                        $urls = explode(PHP_EOL, $url["whatwebUrl"]);
+
+                        $urls = array_unique($urls); 
+
+                        rsort($urls);
+
+                        foreach ($urls as $currenturl){
+
+                            if ($currenturl != "") { //if isnt empty
+                                $currenthost = dirscan::ParseHostname($currenturl).dirscan::ParsePort($currenturl);
+
+                                $scheme = dirscan::ParseScheme($currenturl);
+                                $port = dirscan::ParsePort($currenturl);
+
+                                if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80") ){
+                                    continue; //scanning https port with http scheme is pointless so we get to the next host
+                                }
+
+                                if( !in_array($currenthost, $hostnames ) ){
+
+                                    $queue = new Queue();
+                                    
+                                    $queue->instrument = 5;
+
+                                    $queue->dirscanUrl = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff
+                                    
+                                    $queue->save();
+
+                                    $hostnames[] = $currenthost;
+                                }
+                            }
+                        }
+
+                        $whatweb = 1;
+                    }
+
                     if ((isset($url["vhostDomain"]) && $url["vhostDomain"] != "") && (isset($url["vhostIp"]) && $url["vhostIp"] != "")) {
                         $tasks = new Tasks();
 
@@ -611,7 +653,7 @@ class SiteController extends Controller
                         }
                     }*/
 
-                    if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0 && $nuclei == 0 && $jsa == 0) {
+                    if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0 && $nuclei == 0 && $jsa == 0 && $whatweb == 0) {
 
                         Yii::$app->session->setFlash('failure', 'You provided empty instrument\'s parameters. Please try again.');
                         

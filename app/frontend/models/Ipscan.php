@@ -54,14 +54,6 @@ class Ipscan extends ActiveRecord
 
                 $taskid = $task->taskid;
             }
-            
-            //add vhost scan to queue
-            $queue = new Queue();
-            $queue->taskid = $taskid;
-            $queue->instrument = 7;
-            $queue->save();
-
-           Yii::$app->db->close();
 
         } catch (\yii\db\Exception $exception) {
 
@@ -71,9 +63,20 @@ class Ipscan extends ActiveRecord
 
         if( $output != "" ){
 
-            nmap::nmapips( $task->taskid, $randomid );
+            //add vhost scan to queue
+            $queue = new Queue();
+            $queue->taskid = $taskid;
+            $queue->instrument = 7;
+            $queue->save();
 
-            $nmapoutputxml = "/dockerresults/" . $randomid . "/nmap.xml";
+            //add nmap scan to queue
+            $queue = new Queue();
+            $queue->taskid = $task->taskid;
+            $queue->instrument = 1;
+            $queue->nmap = $output;
+            $queue->save();
+
+            Yii::$app->db->close();
         }
     }
 
@@ -93,7 +96,11 @@ class Ipscan extends ActiveRecord
 
         $outputfile = "/dockerresults/" . $randomid . "/ipscanoutput.txt";
 
-        $apikeysfile = "/configs/ipscanapikeys.json";
+        $apikeysfile = "/configs/ipscankeys/". date("d") . ".json";
+
+        if ( !file_exists($apikeysfile) ) {
+            $apikeysfile = "/configs/ipscankeys/30.json";
+        }
 
         foreach ($queries as $query){
 

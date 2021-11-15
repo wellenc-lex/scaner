@@ -213,18 +213,13 @@ class VerifyController extends Controller
 
         if ($secret === $secretIN) {
 
-            $allresults = Queue::find()
-                ->andWhere(['working' => "0"])
-                ->andWhere(['todelete' => "0"])
-                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC, 'instrument' => SORT_ASC]) //asc
-                ->limit(2000)
-                ->all();
-
             $tools_amount = ToolsAmount::find()
                 ->where(['id' => 1])
                 ->one();
 
             $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array(); $whatweburls = array(); $nmapips = array();
+
+            $tools_amount_nmap = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
 
             $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
@@ -232,49 +227,73 @@ class VerifyController extends Controller
 
             $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');
 
-            $tools_amount_ips = (int) exec('sudo docker ps | grep "passive" | wc -l');
+            $tools_amount_ips = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
             $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
             $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');   
 
-            $tools_amount_nmap = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
+            
 
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 50;
 
             //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+10; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
 
-            $max_amass = 1; $max_ffuf = 130; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
+            $max_amass = 1; $max_ffuf = 95; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
 
             $max_nmap = 1; $max_nmap_in_task = 10;
 
-            foreach ($allresults as $results) {
+            if( $tools_amount_nmap < $max_nmap ){
+                //Nmaps
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "1"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_nmap_in_task)
+                    ->all();
 
-                if ($results != NULL) {
+                foreach ($queues as $results) {
 
-                    if ($results->passivescan == 0){ 
-                    
-                        if (strpos($results->instrument, "1") !== false) {
+                    if ($results != NULL) {
 
-                            if ($tools_amount->nmap < $max_nmap && count($nmapips) < $max_nmap_in_task) {
+                        if ($tools_amount->nmap < $max_nmap && count($nmapips) < $max_nmap_in_task) {
 
-                                $results->working = 1;
+                            $results->working = 1;
 
-                                $nmapintask = explode(" ", $results->nmap);
+                            $nmapintask = explode(" ", $results->nmap);
 
-                                foreach($nmapintask as $id){
-                                    $nmapips[] = $id;
-                                }
-
-                                $nmapips = array_unique($nmapips);
-
-                                $queues_array_nmap[] = $results->id;
-
-                                $results->save();
+                            foreach($nmapintask as $id){
+                                $nmapips[] = $id;
                             }
-                        }
 
-                        if (strpos($results->instrument, "2") !== false) {
+                            $nmapips = array_unique($nmapips);
+
+                            $queues_array_nmap[] = $results->id;
+
+                            $results->save();
+                        }
+                    }
+                }
+            }
+            
+            if( $tools_amount_amass < $max_amass ){
+                //Amasses
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "2"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_amass)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa && $tools_amount_nuclei <= $max_nuclei ) {
 
@@ -288,9 +307,27 @@ class VerifyController extends Controller
 
                                 $tools_amount_amass++;
                             }
-                        }
+                        
+                    }
+                }
+            }
 
-                        if (strpos($results->instrument, "3") !== false) {
+            if( $tools_amount_ffuf < $max_ffuf ){
+                //Dirscans
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "3"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_ffuf-$tools_amount_ffuf)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ( $tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
@@ -308,29 +345,63 @@ class VerifyController extends Controller
 
                                 $tools_amount_ffuf++;
                             }
-                        }
+                        
+                    }
+                }
+            }
 
-                        if (strpos($results->instrument, "4") !== false) {
+            /*
+            //Gitscan
+            $queues = Queue::find()
+                ->andWhere(['working' => "0"])
+                ->andWhere(['todelete' => "0"])
+                ->andWhere(['instrument' => "4"])
+                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC])
+                ->limit(1)
+                ->all();
 
-                            if ($tools_amount->gitscan < 0) {
+            foreach ($queues as $results) {
 
-                                if ($tools_amount_amass < 1) {
+                if ($results != NULL) {
 
-                                    if ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa ) {
+                    
 
-                                        $results->working  = 1;
+                        if ($tools_amount->gitscan < 0) {
 
-                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                            if ($tools_amount_amass < 1) {
 
-                                        $results->save();
+                                if ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa ) {
 
-                                        $tools_amount->gitscan = $tools_amount->gitscan+1;
-                                    }
+                                    $results->working  = 1;
+
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+
+                                    $results->save();
+
+                                    $tools_amount->gitscan = $tools_amount->gitscan+1;
                                 }
                             }
                         }
+                    
+                }
+            } */
 
-                        if (strpos($results->instrument, "5") !== false) {
+            if( $tools_amount_whatweb < $max_whatweb ){
+                //Whatweb
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "5"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_whatweb_in_task)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ($tools_amount_whatweb < $max_whatweb && $whatweb_in_task <= $max_whatweb_in_task ) {
 
@@ -344,9 +415,31 @@ class VerifyController extends Controller
 
                                 $whatweb_in_task++;
                             }
-                        } 
+                        
+                    }
+                }
+            }
 
-                        if (strpos($results->instrument, "6") !== false) {
+            if( $tools_amount_ips < $max_ips ){
+
+                $hour=date('H');
+
+                //execute only several times per day because of the API keys limitations per day
+                if ($hour/10==2){
+
+                    //Ipscan
+                    $queues = Queue::find()
+                        ->andWhere(['working' => "0"])
+                        ->andWhere(['todelete' => "0"])
+                        ->andWhere(['instrument' => "6"])
+                        ->andWhere(['passivescan' => "0"])
+                        ->orderBy(['id' => SORT_DESC])
+                        ->limit($max_ips)
+                        ->all();
+
+                    foreach ($queues as $results) {
+
+                        if ($results != NULL) {
 
                             if ($tools_amount_ips < $max_ips && $tools_amount_amass <= $max_amass ) {
 
@@ -360,9 +453,27 @@ class VerifyController extends Controller
 
                                 $tools_amount_ips++;
                             }
-                        } 
+                        }
+                    }
+                }
+            }
 
-                        if (strpos($results->instrument, "7") !== false) {
+            if( $tools_amount_ffuf < $max_vhost ){
+                //Vhost
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "7"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_vhost-$tools_amount_ffuf)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
@@ -382,10 +493,27 @@ class VerifyController extends Controller
 
                                 $tools_amount_ffuf++;                 
                             }
+                        
+                    }
+                }
+            }
 
-                        } 
+            if( $tools_amount_nuclei < $max_nuclei ){
+                //Nuclei
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "8"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_nuclei_in_task)
+                    ->all();
 
-                        if (strpos($results->instrument, "8") !== false) {
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
 
@@ -399,9 +527,27 @@ class VerifyController extends Controller
 
                                 $nuclei_in_task++;
                             }
-                        } 
+                        
+                    }
+                }
+            }
 
-                        if (strpos($results->instrument, "9") !== false) { 
+            if( $tools_amount_jsa < $max_jsa ){
+                //JS Analysis
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "9"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_jsa)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        
 
                             if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
@@ -417,9 +563,14 @@ class VerifyController extends Controller
 
                                 $tools_amount_jsa++;
                             }
-                        } 
+                        
                     }
+                }
+            }
 
+
+
+                    /*
                     if ($results->passivescan == 1){
 
                             if (strpos($results->instrument, "1") !== false) {
@@ -470,9 +621,7 @@ class VerifyController extends Controller
                                     $tools_amount_ffuf++;
                                 }
                             }
-                    }
-                }
-            } 
+                    }*/
 
             $tools_amount->amass = $tools_amount_amass;
 
@@ -480,8 +629,8 @@ class VerifyController extends Controller
 
             
             if ( !empty($nucleiurls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . ' &queueid=' . implode( PHP_EOL, $queues_array_nuclei )
-                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/nuclei >/dev/null 2>/dev/null &');
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_nuclei )
+                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nuclei >/dev/null 2>/dev/null &');
 
                 $tools_amount_nuclei++;
 
@@ -489,8 +638,8 @@ class VerifyController extends Controller
             }
 
             if ( !empty($whatweburls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . ' &queueid=' . implode( PHP_EOL, $queues_array_whatweb )
-                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/whatweb >/dev/null 2>/dev/null &');
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
+                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/whatweb >/dev/null 2>/dev/null &');
 
                 $tools_amount_whatweb++;
 
@@ -498,13 +647,13 @@ class VerifyController extends Controller
             }
 
             if ( !empty($nmapips) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . ' &queueid=' . implode( PHP_EOL, $queues_array_nmap )
-                    . ' &secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &');
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
+                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &');
 
                 $tools_amount_nmap++;
             }
 
-            $tools_amount->save();    
+            $tools_amount->save(); 
         } else return Yii::$app->response->statusCode = 403;
     }
 

@@ -816,6 +816,23 @@ $this->registerJs($script, View::POS_READY);
                 </div>
             </div>
 
+            <div class="findipsclass">
+                <div class="col-lg-12">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="findips">
+
+                            <p align="center">Enter Domain name for searching its IP's:</p>
+
+                            <?= $form->field($model, 'whatwebUrl', [
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                </div>
+            </div>
+
             <div class="vhostscanclass" style="display: none; margin-top= 2em;">
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>

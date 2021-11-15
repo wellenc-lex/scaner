@@ -292,6 +292,12 @@ class Amass extends ActiveRecord
                             $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
                             $queue->instrument = 5; //whatweb
                             $queue->save();
+
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->ipscan = $maindomain;
+                            $queue->instrument = 6; //ipscan - find IPS associated with this domain
+                            $queue->save();
                             
                             $hostnames[] = $currenthost;
                         }

@@ -6,4 +6,5 @@ conf/configs/crontab.txt
 conf/configs/githoundconfig.yml
 conf/configs/githoundconfig*.yml
 conf/configs/nuclei-templates/*
+conf/configs/ipscankeys/*
 database/*

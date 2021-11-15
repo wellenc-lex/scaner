@@ -11,7 +11,6 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - '22:22' #In order to scan with nmap from :22 port - bypases some WAFs
     networks:
       - default
     depends_on:
@@ -22,16 +21,22 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - 'dockerresults:/dockerresults'
       - 'ffuf:/ffuf'
+      - 'nuclei:/nuclei'
       - 'configs:/configs'
+      - 'jsa:/jsa'
       - 'screenshots:/screenshots'
     extra_hosts:
       - 'localhost.soft:127.0.0.1'
       - 'dev.localhost.soft:127.0.0.1'
-    restart: always      
-  
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"  
+    restart: always  
+
   db:
-    image: 'mysql:latest'
-    command: mysqld --default-authentication-plugin=mysql_native_password
+    image: 'mysql:5.7'
+    command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=1G --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
     restart: always
     networks:
       - default
@@ -44,6 +49,12 @@ services:
     volumes:
       - './database:/var/lib/mysql'
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"  
+
+    #docker exec -i docker_db_1 sh -c 'exec mysql -uroot -p"SupeRsecRetpasSword"' < /root/project/scaner2.sql
 
   cron:
     image: 5631/cron
@@ -54,8 +65,11 @@ services:
       - app
     volumes:
       - './conf/configs/crontab.txt:/etc/cron.d/crontab'
+      - '/var/run/docker.sock:/var/run/docker.sock'
     logging:
-      driver: none  
+      driver: "json-file"
+      options:
+        max-size: "2m"    
   
   phpmyadmin:
     depends_on:
@@ -73,7 +87,9 @@ services:
     networks:
       - default
     logging:
-      driver: none
+      driver: "json-file"
+      options:
+        max-size: "5m" 
   
   amass:
     image: caffix/amass
@@ -82,34 +98,35 @@ services:
     volumes:
       - 'dockerresults:/dockerresults'
       - 'configs:/configs'
-  
-  aquatone:
-    image: 5631/aquatone
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"    
+
+  gau:
+    image: 5631/gau
     networks:
       - default
     volumes:
-      - 'screenshots:/screenshots'
+      - 'dockerresults:/dockerresults'
     logging:
-      driver: none
-  
-  wayback:
-    image: 5631/wayback
-    networks:
-      - default
-    volumes:
-      - 'ffuf:/ffuf'
-    logging:
-      driver: none
+      driver: "json-file"
+      options:
+        max-size: "2m"
   
   nmap:
     image: instrumentisto/nmap
     networks:
       - default
+    ports:
+      - '53:53'
     volumes:
-      - 'dockerresults:/dockerresults'
+      - 'nmap:/nmap'
       - 'configs:/configs'
     logging:
-      driver: none
+      driver: "json-file"
+      options:
+        max-size: "2m"  
 
   ffuf:
     image: 5631/ffuf
@@ -119,14 +136,54 @@ services:
       - 'dockerresults:/dockerresults'
       - 'configs:/configs'
       - 'ffuf:/ffuf'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"  
 
   nuclei:
     image: projectdiscovery/nuclei
     networks:
       - default
     volumes:
+      - 'nuclei:/nuclei'
+      - 'configs:/root/'
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+  
+  httpx:
+    image: projectdiscovery/httpx
+    networks:
+      - default
+    volumes:
       - 'ffuf:/ffuf'
       - 'configs:/configs'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"           
+
+  #githound:
+  #  image: 5631/githound
+  #  networks:
+  #    - default
+  #  volumes:
+  #    - 'dockerresults:/dockerresults'
+  #    - 'configs:/configs'    
+
+  #aquatone:
+  #  image: 5631/aquatone
+  #  networks:
+  #    - default
+  #  volumes:
+  #    - 'screenshots:/screenshots'
+  #  logging:
+  #    driver: "json-file"
+  #    options:
+  #      max-size: "2m" 
      
 volumes:
   dockerresults:
@@ -137,6 +194,12 @@ volumes:
     name: screenshots
   ffuf:
     name: ffuf 
+  jsa:
+    name: jsa
+  nuclei:
+    name: nuclei
+  nmap:
+    name: nmap
 
 
 

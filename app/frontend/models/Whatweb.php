@@ -91,7 +91,7 @@ class Whatweb extends ActiveRecord
 
                 foreach($alive as $url) {
 
-                    if($url != "" ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+                    if($url != "" ){
 
                         $currenthost = dirscan::ParseHostname($url).dirscan::ParsePort($url);
 

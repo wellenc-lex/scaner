@@ -59,7 +59,7 @@ class Amass extends ActiveRecord
             
             $randomid = $out[0];
 
-            $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
+            $gauoutputname="/dockerresults/" .$randomid. "uniquegau.txt";
             //we need to store vhosts somewhere + httpx needs taskid.
 
             $fileamass = file_get_contents("/dockerresults/" . $randomid . "amass.json");
@@ -83,7 +83,7 @@ class Amass extends ActiveRecord
 
                 $subtakeover = 0;
 
-                if($amassoutput != "[]" && $amassoutput != "" && $amassoutput != "[{}]" && !empty($amassoutput) ){
+                if($amassoutput != "[]" && $amassoutput != "[{}]" && !empty($amassoutput)){
 
                     Yii::$app->db->open();  
                     
@@ -99,18 +99,17 @@ class Amass extends ActiveRecord
                     if (file_exists($gauoutputname)) {
                         $gau = file_get_contents($gauoutputname);
                         $gau = explode(PHP_EOL,$gau);
-                    } else $gau="[]";
+                    } else $gau="";
 
                     $vhosts = amass::vhosts($amassoutput, $gau, $taskid, $randomid);
 
                     $vhosts = json_encode($vhosts);
 
-                    amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+                    amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
                 }
 
                 exec("sudo rm /dockerresults/" . $randomid . "*");
             }
-            
         }
         
         return 1;
@@ -119,7 +118,7 @@ class Amass extends ActiveRecord
 
 
 
-    public function saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts)
+    public function saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts)
     {
         if($amassoutput != "[]" && $amassoutput != '"No file."'){
 
@@ -131,11 +130,10 @@ class Amass extends ActiveRecord
                     ->limit(1)
                     ->one();
 
-                if(!empty($amass)){ //if querry exists in db
+                if(!empty($amass) && $amass->amass == "" ){ //if querry exists in db
 
                     $amass->amass_status = 'Done.';
                     $amass->amass = $amassoutput;
-                    $amass->amass_intel = $intelamass;
                     $amass->notify_instrument = $amass->notify_instrument."2";
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
@@ -150,7 +148,6 @@ class Amass extends ActiveRecord
                     $amass->taskid = $taskid;
                     $amass->amass_status = 'Done.';
                     $amass->amass = $amassoutput;
-                    $amass->amass_intel = $intelamass;  
                     $amass->notify_instrument = $amass->notify_instrument."2";
                     $amass->aquatone = $aquatoneoutput;
                     $amass->vhostwordlist = $vhosts;
@@ -158,7 +155,8 @@ class Amass extends ActiveRecord
                     $amass->hidden = 1;
                     $amass->date = date("Y-m-d H-i-s");
 
-                    $amass->save(); 
+                    $amass->save();
+
                 }
 
                 /*
@@ -175,7 +173,79 @@ class Amass extends ActiveRecord
                 var_dump($exception);
                 sleep(1000);
 
-                amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+                amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
+
+                return $exception.json_encode(array_unique($output));
+            }
+        }
+    }
+
+    public function saveintelToDB($taskid, $intelamass)
+    {
+        if($intelamass != ""){
+
+            try{
+
+                $intelresults = array();
+
+                Yii::$app->db->open();
+
+                $all = Amassintel::find()
+                    ->where(['id' => "1"])
+                    ->limit(1)
+                    ->one();
+
+                Yii::$app->db->close();
+
+                $domains = json_decode($all->domains, true);
+
+                foreach ($intelamass as $inteldomain) {
+
+                    if ( !in_array($inteldomain, $domains) ) { //if not found in array
+                        $intelresults[] = $inteldomain;
+                        $domains[] = $inteldomain; // all the domains ever found by amass intel
+                    }
+                }
+
+                //if there are unique domains in output
+                if ( $intelresults != "" && $intelresults != "[]"){
+
+                    Yii::$app->db->open();
+
+                    $amass = Tasks::find()
+                    ->where(['taskid' => $taskid])
+                    ->limit(1)
+                    ->one();
+
+                    if(!empty($amass) && empty($amass->amass_intel) ){ //if querry exists in db
+
+                        $amass->amass_intel  = json_encode($intelresults);
+                        $amass->save();
+
+                    } else {
+                        $amass = new Tasks();
+                        
+                        $amass->taskid = $taskid;
+                        $amass->amass_status = 'Done.';
+                        $amass->amass_intel  = json_encode($intelresults);
+                        $amass->notify_instrument = "2";
+                        $amass->hidden = 1;
+                        $amass->date = date("Y-m-d H-i-s");
+
+                        $amass->save(); 
+                    }
+
+                    $all->domains = json_encode( array_unique($domains) );
+                    $all->save(); 
+                }
+                
+                return Yii::$app->db->close();
+
+            } catch (\yii\db\Exception $exception) {
+                var_dump($exception);
+                sleep(1000);
+
+                amass::saveintelToDB($taskid, $intelamass);
 
                 return $exception.json_encode(array_unique($output));
             }
@@ -200,24 +270,27 @@ class Amass extends ActiveRecord
 
         $hostwordlist = array();
 
-        if(isset($amassoutput) && $amassoutput!=""){
+        if(isset($amassoutput) && $amassoutput!= "" && !empty($amassoutput) ){
 
             $amassoutput = json_decode($amassoutput, true);
 
-            //Get vhost names from amass scan & wordlist file + use only unique ones
-            foreach ($amassoutput as $amass) {
+            if (!empty($amassoutput) ){
 
-                $name = $amass["name"];
+                //Get vhost names from amass scan & wordlist file + use only unique ones
+                foreach ($amassoutput as $amass) {
 
-                $maindomain = $amass["domain"];
+                    $name = $amass["name"];
 
-                if (strpos($name, 'https://xn--') === false) {
+                    $maindomain = $amass["domain"];
 
-                    $hostwordlist[] = $name; // full hostname for Host: header
+                    if (strpos($name, 'https://xn--') === false) {
 
-                    amass::dosplit($name);
+                        $hostwordlist[] = $name; // full hostname for Host: header
 
-                    amass::split2($name);
+                        amass::dosplit($name);
+
+                        amass::split2($name);
+                    }
                 }
             }
         }
@@ -235,7 +308,12 @@ class Amass extends ActiveRecord
             }
         }
         
-        $vhostswordlist = array_unique(array_merge($wordlist,$hostwordlist)); // vhostwordlist to save into the DB
+        if ( $wordlist != "" ) {
+
+            $vhostswordlist = array_unique(array_merge($wordlist,$hostwordlist));
+
+        } else $vhostswordlist = array_unique($hostwordlist); // vhostwordlist to save into the DB
+        
 
         return amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); //to be scanned with httpx to get alive hosts + scan it with dirscan
     }
@@ -335,35 +413,20 @@ class Amass extends ActiveRecord
     {
 
         $url = $input["url"];
-        $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1030;
-
-        $url = trim($url, ' ');
-        $url = rtrim($url, '/');
+        $taskid = (int) $input["taskid"]; if($taskid=="") {
+            $tasks = new Tasks();
+            $taskid = $tasks->taskid;
+        }
 
         $url = strtolower($url);
-        $url = str_replace("http://", "", $url);
-        $url = str_replace("https://", "", $url);
-        $url = str_replace("www.", "", $url);
-        $url = str_replace(" ", ",", $url);
-        $url = str_replace(",", " ", $url);
-        $url = str_replace("\r", " ", $url);
-        $url = str_replace("\n", " ", $url);
-        $url = str_replace("|", " ", $url);
-        $url = str_replace("&", " ", $url);
-        $url = str_replace("&&", " ", $url);
-        $url = str_replace(">", " ", $url);
-        $url = str_replace("<", " ", $url);
-        $url = str_replace("/", " ", $url);
-        $url = str_replace("'", " ", $url);
-        $url = str_replace("\"", " ", $url);
-        $url = str_replace("\\", " ", $url);
+        $url = dirscan::ParseHostname($url);
 
-        $url = rtrim($url, '/');
+        $url = str_replace("www.", "", $url);
 
         $randomid =  (int) $input["queueid"];//rand(1,100000000);
         htmlspecialchars($url);
 
-        $gauoutputname="/dockerresults/" .$randomid. "unique.txt";
+        $gauoutputname="/dockerresults/" . $randomid . "uniquegau.txt";
         $gau = amass::gauhosts($url, $randomid, $gauoutputname);
 
         $enumoutput = "/dockerresults/" . $randomid . "amass.json";
@@ -395,7 +458,6 @@ class Amass extends ActiveRecord
             $fileamass = file_get_contents($enumoutput);
         }
 
-        
         exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
 
         if (file_exists($inteloutput)) {
@@ -403,12 +465,12 @@ class Amass extends ActiveRecord
 
             $intelamass = array_unique(explode(PHP_EOL,$intelamass));
 
-            $intelamass = json_encode($intelamass);
-        } else {
-            $intelamass = NULL;
+            if ( $intelamass != "" ){
+                amass::saveintelToDB($taskid, $intelamass);
+            }
         }
 
-
+        //We need valid json object instead of separate json strings
         $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
@@ -428,7 +490,7 @@ class Amass extends ActiveRecord
 
         $vhosts = json_encode( amass::vhosts($amassoutput, $gau, $taskid, $randomid) );
 
-        amass::saveToDB($taskid, $amassoutput, $intelamass, $aquatoneoutput, $subtakeover, $vhosts);
+        amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
 
         dirscan::queuedone($input["queueid"]);
 

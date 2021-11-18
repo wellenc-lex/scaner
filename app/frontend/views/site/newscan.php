@@ -816,7 +816,7 @@ $this->registerJs($script, View::POS_READY);
                 </div>
             </div>
 
-            <div class="findipsclass">
+            <div class="findipsclass" style="display: none; margin-top= 2em;">
                 <div class="col-lg-12">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">

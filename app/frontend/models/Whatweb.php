@@ -124,8 +124,8 @@ class Whatweb extends ActiveRecord
         if( $input["url"] != "") file_put_contents($inputurlsfile, $input["url"] ); else return 0; //no need to scan without supplied urls
 //--tty --interactive
         exec('sudo docker run --rm -v dockerresults:/dockerresults guidelacour/whatweb \
-            ./whatweb --input-file=' . $inputurlsfile . ' --aggression 3 --max-threads 2 --wait=1 \
-            --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36" > ' . $whatweboutput . ' ');
+            ./whatweb --input-file=' . $inputurlsfile . ' --aggression 3 --max-threads 2 --no-errors --wait=1 \
+            --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36" --log-brief ' . $whatweboutput . ' ');
 
         if ( file_exists($whatweboutput) ) {
             $output = file_get_contents($whatweboutput);
@@ -143,7 +143,7 @@ class Whatweb extends ActiveRecord
             }
         }
 
-        //exec("sudo rm -r /dockerresults/" . $randomid . "whatweb*");
+        exec("sudo rm -r /dockerresults/" . $randomid . "whatweb*");
 
         return 3;
     }

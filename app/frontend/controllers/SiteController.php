@@ -13,6 +13,7 @@ use frontend\models\Queue;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\Tasks;
+use frontend\models\Amassintel;
 use frontend\models\Dirscan;
 use Yii;
 use yii\base\InvalidParamException;
@@ -21,6 +22,8 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
+
+ini_set('max_execution_time', 0);
 
 /**
  * Site controller
@@ -260,6 +263,7 @@ class SiteController extends Controller
 
     public function actionNewscan()
     {
+
         $model = new Newscan();
 
         if (!Yii::$app->user->isGuest) {
@@ -349,9 +353,7 @@ class SiteController extends Controller
 
                         foreach ($urls as $currenturl){
 
-                            $tasks = new Tasks();
-
-                            preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&]+)/i", $url["amassDomain"], $domain);
+                            preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n\?]+)/i", $url["amassDomain"], $domain);
 
                             $url["amassDomain"] = $domain[2][0];
                             
@@ -362,9 +364,11 @@ class SiteController extends Controller
 
                             if($DomainsAlreadyinDB == 0){
 
+                                $tasks = new Tasks();
+
                                 $tasks->host = $url["amassDomain"];
                                 $tasks->amass_status = "Working";
-                                $tasks->notify_instrument = $tasks->notify_instrument . "2";
+                                $tasks->notify_instrument = "2";
                                 $amass = 1;
 
                                 $queue = new Queue();
@@ -382,11 +386,11 @@ class SiteController extends Controller
                                     $passive->scanday = rand(1, 30);
                                     $passive->save();
                                 }
-                            }
 
-                            $tasks->userid = Yii::$app->user->id;
-                            $tasks->notification_enabled = $url["notify"];
-                            $tasks->save();
+                                $tasks->userid = Yii::$app->user->id;
+                                $tasks->notification_enabled = $url["notify"];
+                                $tasks->save();
+                            }
                         }
                     }
 

@@ -28,6 +28,17 @@ ci
 fetch.cgi
 Accesses.txt
 EemAdminService/EemAdmin?wsdl
+.hprof
+dump.hprof
+management/info
+config/config.json
+accounts/config
+accounts/configs
+accounts/config.json
+logs
+metrics
+stats/summary
+v2/keys/?recursive=true
 cicd
 phoenixkonsole-01
 phoenixkonsole
@@ -81,7 +92,6 @@ wstats
 trace
 health
 loggers
-metrics
 .DS_Store
 .git
 .svn
@@ -599,7 +609,6 @@ mysql.log
 mysql.php
 mysql.sql
 logins.txt
-logs
 logs.htm
 logs.html
 logs.mdb
@@ -5351,7 +5360,6 @@ users/admin
 users/admin.php
 usr/
 utility_login/
-v2/keys/?recursive=true
 vagrant-spec.config.rb
 vagrant/
 Vagrantfile.backup

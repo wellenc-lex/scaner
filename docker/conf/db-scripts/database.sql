@@ -256,6 +256,16 @@ LOCK TABLES `user` WRITE;
 INSERT INTO `user` VALUES (10,'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A','$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe',NULL,'admin@admin.com',10,0,1575122687,1633015109,3720,1630432689);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
+
+CREATE TABLE `amassintel` (
+  `id` int(11) NOT NULL,
+  `domains` longtext COLLATE utf8mb4_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `amassintel`
+  ADD PRIMARY KEY (`id`);
+
+INSERT INTO `amassintel` (`id`, `domains`) VALUES ('1', '[]');
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

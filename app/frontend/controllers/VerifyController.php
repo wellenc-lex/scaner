@@ -239,7 +239,12 @@ class VerifyController extends Controller
 
             //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+10; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
 
-            $max_amass = 1; $max_ffuf = 95; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 0; $max_whatweb = 1; $max_whatweb_in_task = 50;
+
+
+
+
+
+            $max_amass = 1; $max_ffuf = 100; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 1; $max_whatweb = 1; $max_whatweb_in_task = 100;
 
             $max_nmap = 1; $max_nmap_in_task = 10;
 
@@ -258,7 +263,7 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        if ($tools_amount->nmap < $max_nmap && count($nmapips) < $max_nmap_in_task) {
+                        if ($tools_amount_nmap < $max_nmap && count($nmapips) < $max_nmap_in_task) {
 
                             $results->working = 1;
 
@@ -293,21 +298,18 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa && $tools_amount_nuclei <= $max_nuclei ) {
 
-                            if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa && $tools_amount_nuclei <= $max_nuclei ) {
+                            $results->working  = 1;
 
-                                $results->working  = 1;
+                            $url = $results->amassdomain;
 
-                                $url = $results->amassdomain;
+                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/amass > /dev/null 2>/dev/null &');
+                            $results->save();
 
-                                $results->save();
-
-                                $tools_amount_amass++;
-                            }
-                        
+                            $tools_amount_amass++;
+                        }
                     }
                 }
             }
@@ -327,25 +329,22 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ( $tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
-                            if ( $tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                            $results->working = 1;
 
-                                $results->working = 1;
+                            $dirscanurl = $results->dirscanUrl;
+                            $dirscanip = $results->dirscanIP;
 
-                                $dirscanurl = $results->dirscanUrl;
-                                $dirscanip = $results->dirscanIP;
-
-                                if ($dirscanip != "") {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
-                                } else {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &queueid=' . $results->id . '&wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
-                                }
-                                $results->save();
-
-                                $tools_amount_ffuf++;
+                            if ($dirscanip != "") {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            } else {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &queueid=' . $results->id . '&wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
                             }
-                        
+                            $results->save();
+
+                            $tools_amount_ffuf++;
+                        }
                     }
                 }
             }
@@ -401,21 +400,18 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ($tools_amount_whatweb < $max_whatweb && $whatweb_in_task <= $max_whatweb_in_task ) {
 
-                            if ($tools_amount_whatweb < $max_whatweb && $whatweb_in_task <= $max_whatweb_in_task ) {
+                            $results->working = 1;
 
-                                $results->working = 1;
+                            $whatweburls[] = $results->dirscanUrl;
 
-                                $whatweburls[] = $results->dirscanUrl;
+                            $queues_array_whatweb[] = $results->id;
 
-                                $queues_array_whatweb[] = $results->id;
+                            $results->save();
 
-                                $results->save();
-
-                                $whatweb_in_task++;
-                            }
-                        
+                            $whatweb_in_task++;
+                        }
                     }
                 }
             }
@@ -473,27 +469,23 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
-                            if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                            $results->working = 1;
 
-                                $results->working = 1;
+                            if ($results->vhostport != "" && $results->vhostdomain != "" && $results->vhostip != ""){
+                                if ( $results->vhostssl == 1 ) $ssl = "1"; else $ssl = "0";
 
-                                if ($results->vhostport != "" && $results->vhostdomain != "" && $results->vhostip != ""){
-                                    if ( $results->vhostssl == 1 ) $ssl = "1"; else $ssl = "0";
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid
+                                        . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
+                                        . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid
-                                            . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
-                                            . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                            } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                                } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/vhostscan > /dev/null 2>/dev/null &');
+                            $results->save();
 
-                                $results->save();
-                                $tools_amount->vhosts = $tools_amount->vhosts+1;  
-
-                                $tools_amount_ffuf++;                 
-                            }
-                        
+                            $tools_amount_ffuf++;                 
+                        }
                     }
                 }
             }
@@ -513,21 +505,18 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
 
-                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
+                            $results->working = 1;
 
-                                $results->working = 1;
+                            $nucleiurls[] = $results->dirscanUrl;
 
-                                $nucleiurls[] = $results->dirscanUrl;
+                            $queues_array_nuclei[] = $results->id;
 
-                                $queues_array_nuclei[] = $results->id;
+                            $results->save();
 
-                                $results->save();
-
-                                $nuclei_in_task++;
-                            }
-                        
+                            $nuclei_in_task++;
+                        }
                     }
                 }
             }
@@ -547,23 +536,20 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        
+                        if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
 
-                            if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                            $results->working = 1;
 
-                                $results->working = 1;
+                            $url = $results->dirscanUrl;
 
-                                $url = $results->dirscanUrl;
-
-                                if ($url != "") {
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url . '&queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret 
-                                        . '" https://dev.localhost.soft/scan/jsa > /dev/null 2>/dev/null &');
-                                }
-                                $results->save();
-
-                                $tools_amount_jsa++;
+                            if ($url != "") {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url . '&queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret 
+                                    . '" https://dev.localhost.soft/scan/jsa > /dev/null 2>/dev/null &');
                             }
-                        
+                            $results->save();
+
+                            $tools_amount_jsa++;
+                        }
                     }
                 }
             }

@@ -219,34 +219,28 @@ class VerifyController extends Controller
 
             $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array(); $whatweburls = array(); $nmapips = array();
 
-            $tools_amount_nmap = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
+            $tools_amount_nmap    = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
 
-            $tools_amount_amass = (int) exec('sudo docker ps | grep "amass" | wc -l');
+            $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
+            $tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
 
-            $tools_amount_jsa = (int) exec('sudo docker ps | grep "jsa" | wc -l');
+            $tools_amount_jsa     = (int) exec('sudo docker ps | grep "jsa" | wc -l');
 
-            $tools_amount_ips = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
+            $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
-            $tools_amount_nuclei = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
+            $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
             $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');   
 
             
 
-            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 50;
-
-            //$max_amass = 1; $max_ffuf = 65; $max_vhost = $max_ffuf+10; $max_jsa = 4; $max_nuclei = 5; $max_nuclei_in_task = 50;
+            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
+            $max_amass = 1; $max_ffuf = 180; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_jsa = 0; $max_ips = 1; $max_whatweb = 1; $max_whatweb_in_task = 50;
 
-
-
-
-            $max_amass = 1; $max_ffuf = 100; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 1; $max_whatweb = 1; $max_whatweb_in_task = 100;
-
-            $max_nmap = 1; $max_nmap_in_task = 10;
+            $max_nmap = 1; $max_nmap_in_task = 50;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -298,7 +292,7 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        if ($tools_amount_amass < $max_amass && $tools_amount_jsa <= $max_jsa && $tools_amount_nuclei <= $max_nuclei ) {
+                        if ($tools_amount_amass < $max_amass ) {
 
                             $results->working  = 1;
 
@@ -329,7 +323,7 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        if ( $tools_amount_ffuf < $max_ffuf && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                        if ( $tools_amount_ffuf < $max_ffuf ) {
 
                             $results->working = 1;
 
@@ -418,10 +412,8 @@ class VerifyController extends Controller
 
             if( $tools_amount_ips < $max_ips ){
 
-                $hour=date('H');
-
                 //execute only several times per day because of the API keys limitations per day
-                if ($hour/10==2){
+                if ( date('H')/10==2 || date('H')==19 || date('H')==15){
 
                     //Ipscan
                     $queues = Queue::find()
@@ -437,11 +429,13 @@ class VerifyController extends Controller
 
                         if ($results != NULL) {
 
-                            if ($tools_amount_ips < $max_ips && $tools_amount_amass <= $max_amass ) {
+                            if ($tools_amount_ips < $max_ips) {
 
                                 $results->working  = 1;
 
                                 $query = $results->ipscan;
+
+                                if($query=="") $query=$results->dirscanUrl;
 
                                 exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "query=' . $query . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://dev.localhost.soft/scan/ipscan > /dev/null 2>/dev/null &');
 
@@ -454,7 +448,7 @@ class VerifyController extends Controller
                 }
             }
 
-            if( $tools_amount_ffuf < $max_vhost ){
+            if( $tools_amount_ffuf < $max_vhost+$max_ffuf ){
                 //Vhost
                 $queues = Queue::find()
                     ->andWhere(['working' => "0"])
@@ -469,7 +463,7 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        if ($tools_amount_ffuf < $max_vhost && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                        if ($tools_amount_ffuf < $max_vhost) {
 
                             $results->working = 1;
 
@@ -501,21 +495,23 @@ class VerifyController extends Controller
                     ->limit($max_nuclei_in_task)
                     ->all();
 
-                foreach ($queues as $results) {
+                if (count($queues) > 200) {
+                    foreach ($queues as $results) {
 
-                    if ($results != NULL) {
+                        if ($results != NULL) {
 
-                        if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
+                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
 
-                            $results->working = 1;
+                                $results->working = 1;
 
-                            $nucleiurls[] = $results->dirscanUrl;
+                                $nucleiurls[] = $results->dirscanUrl;
 
-                            $queues_array_nuclei[] = $results->id;
+                                $queues_array_nuclei[] = $results->id;
 
-                            $results->save();
+                                $results->save();
 
-                            $nuclei_in_task++;
+                                $nuclei_in_task++;
+                            }
                         }
                     }
                 }
@@ -536,7 +532,7 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        if ($tools_amount_jsa < $max_jsa && $tools_amount_amass <= $max_amass && $tools_amount_nuclei <= $max_nuclei ) {
+                        if ($tools_amount_jsa < $max_jsa ) {
 
                             $results->working = 1;
 

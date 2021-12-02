@@ -208,7 +208,7 @@ class Amass extends ActiveRecord
                 }
 
                 //if there are unique domains in output
-                if ( $intelresults != "" && $intelresults != "[]"){
+                if ( $intelresults != "" && $intelresults != "[]" ){
 
                     Yii::$app->db->open();
 
@@ -370,18 +370,18 @@ class Amass extends ActiveRecord
                             $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
                             $queue->instrument = 5; //whatweb
                             $queue->save();
-
-                            $queue = new Queue();
-                            $queue->taskid = $taskid;
-                            $queue->ipscan = $maindomain;
-                            $queue->instrument = 6; //ipscan - find IPS associated with this domain
-                            $queue->save();
                             
                             $hostnames[] = $currenthost;
                         }
                     }
                 }
             }
+
+            $queue = new Queue();
+            $queue->taskid = $taskid;
+            $queue->ipscan = $maindomain;
+            $queue->instrument = 6; //ipscan - find IPS associated with this domain
+            $queue->save();
         }
         
         return 1;
@@ -435,7 +435,7 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass6.ini";
+        $amassconfig = "/configs/amass4.ini";
 
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini";
@@ -445,22 +445,22 @@ class Amass extends ActiveRecord
 
         exec($command);
 
-        if (file_exists($enumoutput)) {
+        if ( file_exists($enumoutput) ) {
             $fileamass = file_get_contents($enumoutput);
         } else {
-            sleep(1000);
+            sleep(2000);
             exec($command);
             
             if ( !file_exists($enumoutput) ) {
                 exec("sudo rm /dockerresults/" . $randomid . "*");
             }
 
-            $fileamass = file_get_contents($enumoutput);
+            $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
         }
 
         exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
 
-        if (file_exists($inteloutput)) {
+        if ( file_exists($inteloutput) ){
             $intelamass = file_get_contents($inteloutput);
 
             $intelamass = array_unique(explode(PHP_EOL,$intelamass));

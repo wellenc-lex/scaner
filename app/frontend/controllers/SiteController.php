@@ -165,7 +165,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id])
                 ->andWhere(['status' => "Done."])
                 ->andWhere(['hidden' => "0"])
-                ->orderBy(['notify_instrument' => SORT_DESC]);
+                ->orderBy(['notify_instrument' => SORT_DESC, 'taskid' => SORT_ASC]);
 
             $tasks = Tasks::find()
                 ->select(['tasks.taskid','tasks.status', 'tasks.host'])
@@ -185,8 +185,7 @@ class SiteController extends Controller
                 'totalCount' => $done->count(),
             ]);
 
-            $doneresult = $done->orderBy('taskid')
-                ->offset($donepages->offset)
+            $doneresult = $done->offset($donepages->offset)
                 ->limit($donepages->limit)
                 ->all();
 

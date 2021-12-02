@@ -91,10 +91,14 @@ class Nmap extends ActiveRecord
 
         $scripts = " --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute".
                     " --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC";
-            
-        exec("sudo docker run --cpu-shares 1024 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -g 53 -sS -sU -T4 --randomize-hosts -Pn -v -sV"
-        ." -p T:1-65000,U:53,111,137,161,162,500,1434,5060,11211,67-69,123,135,138,139,445,514,520,631,1434,1900,4500,5353,49152 -A -R --min-hostgroup 500 --script-timeout 1500m --max-scan-delay 30s --max-retries 10 -oX "
+        
+
+        //try -f --badsum to bypass IDS
+        exec("sudo docker run --cpu-shares 1024 --rm --net=host --privileged=true --expose=53 -p=53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -sU -T4 --randomize-hosts -Pn -v -sV"
+        ." -p T:1-65000,U:53,U:111,U:137,U:161,U:162,U:500,U:1434,U:5060,U:11211,U:67-69,U:123,U:135,U:138,U:139,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353,U:49152 -A -R --min-hostgroup 100 --script-timeout 1500m --max-scan-delay 30s --max-retries 10 -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
+
+        /*sudo docker run --cpu-shares 1024 --rm --net=host --privileged=true --expose=53 -p=53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap  --privileged -sT -sU -T4 --randomize-hosts -Pn -v -sV -p T:1-65000 -A -R --min-hostgroup 100 --script-timeout 1500m --max-scan-delay 30s --max-retries 10 -oX /dockerresults/15312580/nmap.xml --stylesheet /configs/nmap.xsl -R --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC -iL /dockerresults/15312580/inputips.txt*/
 
         exec("sudo /usr/bin/xsltproc -o " . $nmapoutputhtml . " /configs/nmap.xsl " . $nmapoutputxml . "");
 
@@ -106,6 +110,15 @@ class Nmap extends ActiveRecord
 
         return aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -148,10 +161,10 @@ class Nmap extends ActiveRecord
             
         exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T3 -p- -A --host-timeout 4000m --source-port 2002 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -g 2002 -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
 
-        exec("sudo /usr/bin/xsltproc -o /dockerresults/nmap/" . $randomid . ".html /configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");
+        exec("sudo /usr/bin/xsltproc -o /dockerresults/nmap" . $randomid . ".html /configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");
 
-        if (file_exists("/dockerresults/nmap/" . $randomid . ".html")) {
-            $output = file_get_contents("/dockerresults/nmap/" . $randomid . ".html");
+        if (file_exists("/dockerresults/nmap" . $randomid . ".html")) {
+            $output = file_get_contents("/dockerresults/nmap" . $randomid . ".html");
         } else $output = "None.";
 
         $date_end = date("Y-m-d H-i-s");
@@ -167,7 +180,7 @@ class Nmap extends ActiveRecord
 
         $task->save();
 
-        exec("sudo rm /dockerresults/scan" . $randomid . ".xml && sudo rm /dockerresults/nmap/" . $randomid . ".html");
+        //exec("sudo rm /dockerresults/scan" . $randomid . ".xml && sudo rm /dockerresults/nmap" . $randomid . ".html");
 
         return 1;
     }

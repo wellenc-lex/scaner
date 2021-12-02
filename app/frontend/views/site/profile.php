@@ -5,6 +5,9 @@ use yii\helpers\Url;
 use yii\web\JqueryAsset;
 use yii\widgets\ActiveForm;
 use yii\widgets\LinkPager;
+use yii\widgets\Pjax;
+use yii\grid\GridView;
+use yii\data\ActiveDataProvider;
 
 
 $this->title = 'Profile';

@@ -140,7 +140,7 @@ class Aquatone extends ActiveRecord
         exec("sudo mkdir /screenshots/" . $taskid . "/");
         exec("sudo chmod 777 -R  /screenshots/" . $taskid . "/");
 
-        //for amass results
+        //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
             $command = "cat ". $filename ." | sudo docker run -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone -http-timeout 20000 -threads 1 -scan-timeout 5000 -ports xlarge -http-timeout 30000 -screenshot-timeout 60000 -chrome-path /usr/bin/chromium-browser -out /screenshots/" . $taskid . " -save-body false";
         }

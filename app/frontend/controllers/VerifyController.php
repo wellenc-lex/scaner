@@ -56,44 +56,27 @@ class VerifyController extends Controller
                     $gitscan = 0;
                     $ips = 0;
                     $reverseip = 0;
+                    
+                    if ($result->nmap_status === "Done.") $nmap = 1;
 
-                    if (($pos1 = strpos($result->notify_instrument, "1")) !== false) {
-                        if ($result->nmap_status === "Done.") $nmap = 1;
-                    } else $nmap = 1;
-
-                    if ($pos = strpos($result->notify_instrument, "2") !== false) {
-                        if ($result->amass_status === "Done.") $amass = 1;
-                    } else $amass = 1;
-
-                    if (strpos($result->notify_instrument, "3") !== false) {
-                        if ($result->dirscan_status === "Done.") $dirscan = 1;
-                    } else $dirscan = 1;
+                    if ($result->amass_status === "Done.") $amass = 1;
 
                     if ($result->dirscan_status === "Done.") $dirscan = 1;
 
-                    if (strpos($result->notify_instrument, "4") !== false) {
-                        if ($result->gitscan_status === "Done.") $gitscan = 1;
-                    } else $gitscan = 1;
+                    if ($result->gitscan_status === "Done.") $gitscan = 1;
 
-                    if (strpos($result->notify_instrument, "5") !== false) {
-                        if ($result->reverseip_status === "Done.") $reverseip = 1;
-                    } else $reverseip = 1;
+                    if ($result->reverseip_status === "Done.") $reverseip = 1;
 
-                    if (strpos($result->notify_instrument, "6") !== false) {
-                        if ($result->ips_status === "Done.") $ips = 1;
-                    } else $ips = 1;
+                    if ($result->ips_status === "Done.") $ips = 1;
 
-                    if (strpos($result->notify_instrument, "7") !== false) {
-                        if ($result->vhost_status === "Done.") $vhost = 1;
-                    } else $vhost = 1;
+                    if ($result->vhost_status === "Done.") $vhost = 1;
 
                     /*if ($result->notify_instrument == "3") {
                         Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
                         Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
                     }*/
 
-                    if ($nmap == 1 && $amass == 1 && $dirscan == 1 && $gitscan == 1 && $vhost == 1 && $ips == 1 && $reverseip == 1) {
-
+                    if ( $nmap===1 || $amass===1 || $dirscan===1 || $ips === 1 || $vhost===1 ){
                         if ($result->notified == 0 && $result->notification_enabled == 1) {
 
                             $result->status = "Done.";
@@ -115,7 +98,7 @@ class VerifyController extends Controller
 
                             $this->sendactiveemail($result->taskid, $email, $user->id);*/
 
-                            $this->sendslack($result->taskid, $diff);
+                            //$this->sendslack($result->taskid, $diff);
                         } elseif ($result->notified == 0 && $result->notification_enabled == 0) {
 
                             $result->status = "Done.";
@@ -238,9 +221,9 @@ class VerifyController extends Controller
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
-            $max_amass = 1; $max_ffuf = 180; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_jsa = 0; $max_ips = 1; $max_whatweb = 1; $max_whatweb_in_task = 50;
+            $max_amass = 1; $max_ffuf = 250; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_jsa = 0; $max_ips = 1; $max_whatweb = 2; $max_whatweb_in_task = 50;
 
-            $max_nmap = 1; $max_nmap_in_task = 50;
+            $max_nmap = 5; $max_nmap_in_task = 100;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -308,7 +291,8 @@ class VerifyController extends Controller
                 }
             }
 
-            if( $tools_amount_ffuf < $max_ffuf ){
+            //dirscan from the end of the queue
+            if( $tools_amount_ffuf < $max_ffuf-80 ){
                 //Dirscans
                 $queues = Queue::find()
                     ->andWhere(['working' => "0"])
@@ -316,6 +300,42 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_ffuf-$tools_amount_ffuf-80)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        if ( $tools_amount_ffuf < $max_ffuf ) {
+
+                            $results->working = 1;
+
+                            $dirscanurl = $results->dirscanUrl;
+                            $dirscanip = $results->dirscanIP;
+
+                            if ($dirscanip != "") {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            } else {
+                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &queueid=' . $results->id . '&wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://dev.localhost.soft/scan/dirscan > /dev/null 2>/dev/null &');
+                            }
+                            $results->save();
+
+                            $tools_amount_ffuf++;
+                        }
+                    }
+                }
+            }
+
+            //dirscan from the start of the queue
+            if( $tools_amount_ffuf < $max_ffuf ){
+                //Dirscans
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "3"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_ASC])
                     ->limit($max_ffuf-$tools_amount_ffuf)
                     ->all();
 

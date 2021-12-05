@@ -33,9 +33,29 @@ Accesses.txt
 EemAdminService/EemAdmin?wsdl
 .hprof
 wallet.json
+config.yml
 binance.json
 binance.txt
+ws_utc/login.do
 wallet.txt
+statistic.%EXT%
+statistics.%EXT%
+stats.%EXT%
+users.%EXT%
+manageusers.%EXT%
+manage_users.%EXT%
+usersmanage.%EXT%
+usersmanager.%EXT%
+2020.%EXT%
+2021.%EXT%
+2019.%EXT%
+users2021.%EXT%
+users2022.%EXT%
+2022.%EXT%
+admin2022.%EXT%
+admin2021.%EXT%
+admin2020.%EXT%
+admin2019.%EXT%
 binance.php~
 binance.php~~
 binance.php.swp
@@ -251,7 +271,6 @@ cluster
 cobbler
 codeship
 codeville
-api/v1/pods
 collectd
 collectl
 conf
@@ -526,6 +545,11 @@ system.log
 system/
 system/cache/
 system/cron/cron.txt
+web/app_dev.php
+app_dev.php
+portal/app_dev.php
+_debugbar/open
+_profiler
 system/error.txt
 system/expressionengine/config/config.php
 system/expressionengine/config/database.php
@@ -772,7 +796,6 @@ config.save
 config.swp
 config.txt
 config.xml
-config.yml
 config.yml.templ
 config/
 /config/AppData.config
@@ -843,7 +866,6 @@ build.xml
 build/build.properties
 build/buildinfo.properties
 build_config_private.ini
-app_dev.php
 appcache.manifest
 application.log
 /application/cache/
@@ -1846,7 +1868,6 @@ database.%EXT%
 database.%EXT%.%EXT%
 data.%EXT%.%EXT%
 database.sqlite
-users.%EXT%
 users.%EXT%.%EXT%
 %EXT%.users.%EXT%
 %EXT%.datbase.%EXT%
@@ -2340,8 +2361,6 @@ htpasswd.htpasswd
 2016.%EXT%
 2017.%EXT%
 2018.%EXT%
-2019.%EXT%
-2020.%EXT%
 2phpmyadmin/
 3.%EXT%
 4.%EXT%
@@ -2366,7 +2385,6 @@ _build
 _build/
 _cache/
 _data/
-_debugbar/open
 _Dockerfile
 _eumm/
 _h5ai/
@@ -6719,7 +6737,6 @@ config_test.yml
 _internal
 parameters.yml
 parameters.yml.dist
-_profiler
 _profiler/empty/search/results?limit=10
 Resources
 routing_dev.yml
@@ -8643,7 +8660,6 @@ zf_backend.php
 zimbra/
 zipkin/
 zone-h.php
-2021.%EXT%
 2021dump.%EXT%
 2020dump.%EXT%
 2020.dump.%EXT%

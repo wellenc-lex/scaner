@@ -78,6 +78,8 @@ class Dirscan extends ActiveRecord
 
         array_filter($output_ffuf);
 
+        $output_ffuf = json_encode($output_ffuf);
+
         if( $output_ffuf === 'null' || $output_ffuf === '[null]' || $output_ffuf === '[]' || $output_ffuf === '[[]]' ||  $output_ffuf === '' ||  $output_ffuf === '{}' ||  $output_ffuf === '[{}]'){
             
             $dirscan = new Tasks();
@@ -92,8 +94,6 @@ class Dirscan extends ActiveRecord
 
             return 1; //save empty results to maaybe scan manually later
         }
-
-        $output_ffuf = json_encode($output_ffuf);
 
         try{
             Yii::$app->db->open();
@@ -239,7 +239,7 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 25 -o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
@@ -293,6 +293,7 @@ class Dirscan extends ActiveRecord
 
             if( dirscan::bannedsubdomains($scanurl) !== 0 ){
                 dirscan::addtonuclei($scanurl);
+                dirscan::queuedone($input["queueid"]);
 
                 return 2; //scanning banned subdomains is pointless
             }
@@ -326,7 +327,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 250000 -s -fc 429 -fs 612 -fs 613 -timeout 25 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 250000 -s -fc 429 -fs 612 -fs 613 -timeout 15 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

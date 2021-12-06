@@ -47,7 +47,7 @@ class Whatweb extends ActiveRecord
     {
         //httpx -o  добавляет результаты или заменяет?
 
-        $randomid = 1;
+        $randomid = 2;
 
         $wordlist = "/dockerresults/" . $randomid . "whatwebhosts.txt";
         $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
@@ -62,19 +62,19 @@ class Whatweb extends ActiveRecord
         $urls = array();
 
         foreach ($allresults as $results) {
-
             $amassoutput = json_decode($results->amass, true);
 
-            //Get vhost names from amass scan & wordlist file + use only unique ones
-            foreach ($amassoutput as $amass) {
+            if(!empty($amassoutput)) {
+                foreach ($amassoutput as $amass) {
 
-                $urls[] = $amass["name"];
+                    $urls[] = $amass["name"];
+                }
             }
         }
 
         file_put_contents($wordlist, implode( PHP_EOL, $urls) );
 
-        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,9999,10000,4443,6443,10250 -t 3 -rl 5 -maxr 4 -timeout 20 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
             
         exec($httpx);
 

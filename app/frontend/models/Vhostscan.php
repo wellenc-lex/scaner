@@ -30,6 +30,20 @@ class Vhostscan extends ActiveRecord
         return ($ip_ip_net == $ip_net);
     }
 
+    //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
+    public function sliceHost($host){
+        global $vhostlist; global $domains;
+        STATIC $stop = 1;
+        while ($stop != 0){
+            $outputValue = preg_replace('/\.(\w[\-\_\d]?)*$/', '', $host, 1, $stop);
+            
+            array_push($vhostlist, $outputValue);
+            array_push($domains, $outputValue); //http://localhost/GOOGLE-STAGE.COM/ -> source code listings?
+
+            vhostscan::sliceHost($outputValue);
+        }
+    }
+
     public function saveToDB($taskid, $output, $nmapips)
     {
         $output = json_encode(array_unique($output));
@@ -180,7 +194,7 @@ class Vhostscan extends ActiveRecord
         return $output_vhost;
     }
 
-    public function httpxhosts($amassoutput)
+    public function httpxhosts($amassoutput, $ipstoscan)
     {
         global $iparray;
         global $randomid;
@@ -208,9 +222,35 @@ class Vhostscan extends ActiveRecord
             "34.195.252.0/24", "34.226.14.0/24", "13.59.250.0/26", "18.216.170.128/25", "3.128.93.0/24", "3.134.215.0/24", "52.15.127.128/26", "3.101.158.0/23", 
             "52.52.191.128/26", "34.216.51.0/25", "34.223.12.224/27", "34.223.80.192/26", "35.162.63.192/26", "35.167.191.128/26", "44.227.178.0/24", "44.234.108.128/25", "44.234.90.252/30"); cloudfront?*/ 
 
-        foreach($amassoutput as $json){
-            foreach ($json["addresses"] as $ip) {
+        if($amassoutput != 0){
+            foreach($amassoutput as $json){
+                foreach ($json["addresses"] as $ip) {
 
+                    if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
+
+                        if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
+
+                            $stop = 0;
+
+                            for ($n = 0; $n < count($masks); $n++) { 
+
+                                if (((vhostscan::ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
+                                    $stop = 1;
+                                    break;
+                                } else $stop = 0;
+
+                            }
+
+                            if ($stop == 0) { //if ip is allowed
+
+                                $iparray[] = $ip["ip"];
+                            }
+                        }
+                    }
+                }
+            }  
+        } else if ($ipstoscan != 0){
+            foreach ($ipstoscan as $ip) {
                 if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
 
                     if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
@@ -227,33 +267,34 @@ class Vhostscan extends ActiveRecord
                         }
 
                         if ($stop == 0) { //if ip is allowed
-
                             $iparray[] = $ip["ip"];
                         }
                     }
                 }
             }
         }
-
+        
         $iparray = array_unique($iparray);
 
-        $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
-        $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
-        
-        file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
+        if (!empty($iparray)) {
+            $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
+            $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
+            
+            file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
 
+            $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8888,8880,9999,10000,4443,6443,10250 -t 2 -rl 5 -fr -maxr 3 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
+            exec($httpx);
 
-        exec($httpx);
+            if (file_exists($output)) {
+                $alive = file_get_contents($output);
+                $alive = explode(PHP_EOL,$alive);
+                $alive = array_unique($alive);
+            } else $alive = [];
+            
+            return $alive;
 
-        if (file_exists($output)) {
-            $alive = file_get_contents($output);
-            $alive = explode(PHP_EOL,$alive);
-            $alive = array_unique($alive);
-        } else $alive = [];
-        
-        return $alive;
+        } else return 0;
     }
 
     public function getVHosts($domains, $amassoutput, $vhostwordlist)
@@ -282,21 +323,7 @@ class Vhostscan extends ActiveRecord
 
                 $domains[] = $host;
 
-                //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
-                function sliceHost($host){
-                    global $vhostlist; global $domains;
-                    STATIC $stop = 1;
-                    while ($stop != 0){
-                        $outputValue = preg_replace('/\.(\w[\-\_\d]?)*$/', '', $host, 1, $stop);
-                        
-                        array_push($vhostlist, $outputValue);
-                        array_push($domains, $outputValue); //http://localhost/GOOGLE-STAGE.COM/ -> source code listings?
-
-                        sliceHost($outputValue);
-                    }
-                }
-
-                sliceHost($host);
+                vhostscan::sliceHost($host);
 
                 $domainfull = substr($host, 0, strrpos($host, ".")); ///www.something.com -> something.com
 
@@ -316,7 +343,6 @@ class Vhostscan extends ActiveRecord
             }
         }
         
-
         if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
 
         $vhostlist = array_unique($vhostlist);
@@ -330,7 +356,6 @@ class Vhostscan extends ActiveRecord
 
     public static function vhostscan($input)
     {
-
         global $headers;
         global $randomid;
 
@@ -407,9 +432,9 @@ class Vhostscan extends ActiveRecord
 
                 vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
-                if(isset($amassoutput)){
+                if( isset($amassoutput) && !empty($amassoutput) ) {
 
-                    $alive = vhostscan::httpxhosts($amassoutput);
+                    $alive = vhostscan::httpxhosts($amassoutput, 0);
 
                     foreach($alive as $host) {
 
@@ -418,13 +443,23 @@ class Vhostscan extends ActiveRecord
                             $output[] = vhostscan::findVhostsNoDomain($host);
                         }
                     }
-                } else return "NO AMASS RESULTS or NO PORTS";
+
+                } else if ( !empty($iparray) ) {
+                    $alive = vhostscan::httpxhosts(0, $iparray);
+
+                    foreach($alive as $ip) {
+
+                        if($ip!=""){
+                            $output[] = vhostscan::findVhostsNoDomain($ip);
+                        }
+                    }
+                }
 
                 vhostscan::saveToDB($taskid, array_filter($output), implode( " ", $alive) );
                 //filter empty elemts from output, use alive IPS for later nmap purposes
             }
 
-            dirscan::queuedone($input["queueid"]); //no amass results - maybe task been already deleted
+            dirscan::queuedone($input["queueid"]); //no amass results - maybe task already been deleted
 
             exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
 

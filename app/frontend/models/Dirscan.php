@@ -327,7 +327,7 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 250000 -s -fc 429 -fs 612 -fs 613 -timeout 15 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
+            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -maxtime 350000 -s -fc 429 -fs 612 -fs 613 -timeout 15 -recursion -recursion-depth 1 -t 1 -p 2.5 -r";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -ac -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

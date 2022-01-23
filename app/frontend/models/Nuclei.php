@@ -75,7 +75,7 @@ class Nuclei extends ActiveRecord
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -nut -retries 3 -max-host-error 10000 -timeout 20 -rl 14 -bs 500 -c 1 " . $exclude . $headers; 
+        $nuclei_start = "sudo docker run --rm --cpu-shares 256 --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -retries 3 -max-host-error 10000 -timeout 28 -rl 10 -bs 500 -c 10 " . $exclude . $headers; 
 
         exec($nuclei_start); 
 
@@ -91,12 +91,12 @@ class Nuclei extends ActiveRecord
             $id=0;
             foreach ($output as $results) {
                 $id++;
-                $output_json[$id]["template"] = $results["templateID"];
-                $output_json[$id]["matched"] = $results["matched"];
+                $output_json[$id]["template"] = $results["template-id"];
+                $output_json[$id]["matched"] = $results["matched"].$results["matched-at"];
                 $output_json[$id]["severity"] = $results["info"]["severity"];
 
-                if ( isset( $results["extracted_results"] ) ){
-                    $output_json[$id]["regexp"] = $results["extracted_results"];
+                if ( isset( $results["extracted-results"] ) ){
+                    $output_json[$id]["regexp"] = $results["extracted-results"];
                 }
 
                 if ( isset( $results["response"] ) ){
@@ -149,7 +149,7 @@ class Nuclei extends ActiveRecord
             dirscan::queuedone($queue);
         }
 
-        //exec("sudo rm -r /nuclei/" . $randomid . "*");
+        exec("sudo rm -r /nuclei/" . $randomid . "*");
 
         return 1;
     }

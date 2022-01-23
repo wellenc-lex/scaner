@@ -175,7 +175,7 @@ class Amass extends ActiveRecord
 
                 amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
 
-                return $exception.json_encode(array_unique($output));
+                return $exception.json_encode($output);
             }
         }
     }
@@ -314,8 +314,9 @@ class Amass extends ActiveRecord
 
         } else $vhostswordlist = array_unique($hostwordlist); // vhostwordlist to save into the DB
         
+        amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); // scanned amass subdomains with httpx to get alive hosts + scan it with ffuf later
 
-        return amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); //to be scanned with httpx to get alive hosts + scan it with dirscan
+        return $vhostswordlist;
     }
 
     public function httpxhosts($vhostslist, $taskid, $randomid)
@@ -435,10 +436,10 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass4.ini";
+        $amassconfig = "/configs/amass1.ini";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass1.ini";
+            $amassconfig = "/configs/amass2.ini";
         }
 
         $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);

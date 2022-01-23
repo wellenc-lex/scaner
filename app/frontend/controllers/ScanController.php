@@ -18,6 +18,8 @@ use frontend\models\Vhostscan;
 
 use frontend\models\Whatweb;
 
+use frontend\models\Forbiddenbypass;
+
 use Yii;
 use yii\web\Controller;
 
@@ -365,7 +367,7 @@ class ScanController extends Controller
 
     }
 
-        public function actionWhatweb()
+    public function actionWhatweb()
     {
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $model = new Whatweb();
@@ -374,6 +376,19 @@ class ScanController extends Controller
 
         if ($secretIN === $secret) {
             return $model::whatweb(Yii::$app->request->post());
+        }
+
+    }
+
+    public function actionForbiddenbypass()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $model = new Forbiddenbypass();
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::main(Yii::$app->request->post());
         }
 
     }

@@ -52,14 +52,14 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             crossorigin="anonymous"></script>
 
     <div id="messagesuccess" class="alert alert-success alert-dismissible" role="alert"
-         style="top: 80%; right: 1%; position: fixed; width: 250px; text-align: center; display: none; z-index: 5; color: #3c763d !important; background-color: #00bc8c !important; border-color: #00bc8c !important;  ">
+         style="top: 80%; right: 1%; position: fixed; width: 240px; text-align: center; display: none; z-index: 5; color: #3c763d !important; background-color: #00bc8c !important; border-color: #00bc8c !important;  ">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span></button>
         <b>Scan was successfully created!</b>
     </div>
 
     <div id="messagefailure" class="alert alert-danger alert-dismissible" role="alert"
-         style="top: 80%; right: 1%; position: fixed; width: 250px; text-align: center; display: none; z-index: 5; ">
+         style="top: 80%; right: 1%; position: fixed; width: 240px; text-align: center; display: none; z-index: 5; ">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span></button>
         <b>Scan wasn't created, contact us!</b>
@@ -728,10 +728,6 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                             </th>
 
                             <th style="text-align:center">
-                                <b style="text-align: center">Redirect</b>
-                            </th>
-
-                            <th style="text-align:center">
                                 <b style="text-align: center">Size</b>
                             </th>
 
@@ -743,6 +739,10 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                 <b style="text-align: center">Response</b>
                             </th>
 
+                            <th style="text-align:center">
+                                <b style="text-align: center">Redirect</b>
+                            </th>
+
                         </tr>
                         </thead>
 
@@ -750,24 +750,13 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                         <?php foreach ($dirscan as $scanid) { foreach($scanid as $scan){ ?>
                                 <?php if ($scan["status"] != "20") { ?>
                                     <tr>
-                                        <td style=" width: 350px;">
+                                        <td style=" width: 540px;">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                    <div style="text-align: left; width: 540px; white-space: nowrap; overflow:auto; resize: none; ">
                                                         <a style="vertical-align: middle;"
                                                            href="<?php echo $scan["url"];?>" rel="noreferrer"><?php echo $scan["url"]; ?></a>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </td>
-
-                                        <td style=" width: 300px">
-                                            <ul class="list-group">
-                                                <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px; max-width: 550px; min-width: 300px; width: 300px;">
-                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["redirect"]; ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -784,7 +773,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                             </ul>
                                         </td>
 
-                                        <td style="width: 150px">
+                                        <td style="width: 140px">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
@@ -824,6 +813,17 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
                                                     </div>
                                             </ul>
                                         </td>
+
+                                        <td style=" width: 40px">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px; max-width: 140px; width: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["redirect"]; ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
                                     </tr>
 
                                 <?php } }?>
@@ -855,7 +855,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-dirscan').DataTable({"pageLength": 1000, "order": [[ 2, "desc" ]]});
+                    $('#table-dirscan').DataTable({"pageLength": 1000, "order": [[ 1, "desc" ]]});
 
                 });
 

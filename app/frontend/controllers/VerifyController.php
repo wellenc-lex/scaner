@@ -200,7 +200,7 @@ class VerifyController extends Controller
                 ->where(['id' => 1])
                 ->one();
 
-            $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array(); $whatweburls = array(); $nmapips = array();
+            $nucleiurls = array(); $nuclei_in_task = 0; $queues_array = array(); $whatweburls = array(); $nmapips = array(); $forbiddenbypassurls = array();
 
             $tools_amount_nmap    = (int) exec('sudo docker ps | grep "nmap" | wc -l');  
 
@@ -214,16 +214,18 @@ class VerifyController extends Controller
 
             $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');   
+            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');
+
+            $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
             
 
-            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
+            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
-            $max_amass = 1; $max_ffuf = 250; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_jsa = 0; $max_ips = 1; $max_whatweb = 2; $max_whatweb_in_task = 50;
+            $max_amass = 2; $max_ffuf = 200; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 250; $max_jsa = 0; $max_ips = 3; $max_whatweb = 2; $max_whatweb_in_task = 50;
 
-            $max_nmap = 5; $max_nmap_in_task = 100;
+            $max_nmap = 5; $max_nmap_in_task = 30; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -292,7 +294,7 @@ class VerifyController extends Controller
             }
 
             //dirscan from the end of the queue
-            if( $tools_amount_ffuf < $max_ffuf-80 ){
+            if( $tools_amount_ffuf < $max_ffuf/2 ){
                 //Dirscans
                 $queues = Queue::find()
                     ->andWhere(['working' => "0"])
@@ -300,7 +302,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_ffuf-$tools_amount_ffuf-80)
+                    ->limit($max_ffuf-$tools_amount_ffuf/2)
                     ->all();
 
                 foreach ($queues as $results) {
@@ -515,7 +517,7 @@ class VerifyController extends Controller
                     ->limit($max_nuclei_in_task)
                     ->all();
 
-                if (count($queues) > 200) {
+                if (count($queues) >= $max_nuclei_in_task) {
                     foreach ($queues as $results) {
 
                         if ($results != NULL) {
@@ -565,6 +567,37 @@ class VerifyController extends Controller
                             $results->save();
 
                             $tools_amount_jsa++;
+                        }
+                    }
+                }
+            }
+
+            if( $tools_amount_forbiddenbypass < $max_forbiddenbypass ){
+                //403 bypass
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "10"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit($max_forbiddenbypass_in_task)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        if ($tools_amount_forbiddenbypass < $max_forbiddenbypass && $forbiddenbypass_in_task <= $max_forbiddenbypass_in_task ) {
+
+                            $results->working = 1;
+
+                            $forbiddenbypassurls[] = $results->dirscanUrl;
+
+                            $queues_array_forbiddenbypass[] = $results->id;
+
+                            $results->save();
+
+                            $forbiddenbypass_in_task++;
                         }
                     }
                 }
@@ -630,13 +663,13 @@ class VerifyController extends Controller
             $tools_amount->dirscan = $tools_amount_ffuf;
 
             
+            //first we get a lot of results into one big url list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
             if ( !empty($nucleiurls) ) {
                 exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_nuclei )
                     . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nuclei >/dev/null 2>/dev/null &');
 
                 $tools_amount_nuclei++;
 
-                //first we get a lot of nuclei results into one big list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
             }
 
             if ( !empty($whatweburls) ) {
@@ -645,7 +678,6 @@ class VerifyController extends Controller
 
                 $tools_amount_whatweb++;
 
-                //first we get a lot of whatweb results into one big list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
             }
 
             if ( !empty($nmapips) ) {
@@ -653,6 +685,14 @@ class VerifyController extends Controller
                     . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &');
 
                 $tools_amount_nmap++;
+            }
+
+            if ( !empty($forbiddenbypassurls) ) {
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $forbiddenbypassurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_forbiddenbypass )
+                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/forbiddenbypass >/dev/null 2>/dev/null &');
+
+                $tools_amount_forbiddenbypass++;
+
             }
 
             $tools_amount->save(); 

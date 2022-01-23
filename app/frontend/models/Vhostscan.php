@@ -170,7 +170,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 1 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 100000 -ignore-body -r -u ";
+        $ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ 5631/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ignore-body -r -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
             
@@ -186,6 +186,9 @@ class Vhostscan extends ActiveRecord
 
         //Asks Host:admin.local, asdf.local
         exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.local' ");
+
+        //Asks Host:admin.internal, asdf.internal
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.internal' ");
 
         $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
 
@@ -251,15 +254,15 @@ class Vhostscan extends ActiveRecord
             }  
         } else if ($ipstoscan != 0){
             foreach ($ipstoscan as $ip) {
-                if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
+                if (strpos($ip, '::') === false) { //TODO: add ipv6 support
 
-                    if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
+                    if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
 
                         $stop = 0;
 
                         for ($n = 0; $n < count($masks); $n++) { 
 
-                            if (((vhostscan::ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
+                            if (((vhostscan::ipCheck($ip, $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
                                 $stop = 1;
                                 break;
                             } else $stop = 0;
@@ -267,7 +270,7 @@ class Vhostscan extends ActiveRecord
                         }
 
                         if ($stop == 0) { //if ip is allowed
-                            $iparray[] = $ip["ip"];
+                            $iparray[] = $ip;
                         }
                     }
                 }
@@ -343,7 +346,7 @@ class Vhostscan extends ActiveRecord
             }
         }
         
-        if($vhostwordlist!=0) $domains = array_merge($domains,$vhostwordlist);
+        if( is_array($vhostwordlist) ) $domains = array_merge($domains,$vhostwordlist);
 
         $vhostlist = array_unique($vhostlist);
         $domains = array_unique($domains);

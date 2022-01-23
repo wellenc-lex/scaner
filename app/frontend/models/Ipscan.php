@@ -38,6 +38,7 @@ class Ipscan extends ActiveRecord
 
                 $task->ips_status = "Done.";
                 $task->ips = $output;
+                $task->hidden = 1;
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save(); 
@@ -48,6 +49,7 @@ class Ipscan extends ActiveRecord
                 $task->ips_status = "Done.";
                 $task->notify_instrument = "16";
                 $task->ips = $output;
+                $task->hidden = 1;
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save();

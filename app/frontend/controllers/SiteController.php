@@ -760,6 +760,41 @@ class SiteController extends Controller
      */
     public function actionAbout()
     {
+        //sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -store-response -srd /dockerresults/2 -silent -o /dockerresults/2whatwebhttpx.txt -l /dockerresults/2whatwebhosts.txt
+        /*$randomid = 2;
+
+        $wordlist = "/dockerresults/" . $randomid . "whatwebhosts.txt";
+        $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
+
+        $allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.amass', ])
+            ->andWhere(['not', ['tasks.amass' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        $urls = array();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass, true);
+
+            if(!empty($amassoutput)) {
+
+                foreach ($amassoutput as $amass) {
+
+                    $urls[] = $amass["name"];
+                }
+            }
+        }
+
+        $urls = array_unique($urls);
+        file_put_contents($wordlist, implode( PHP_EOL, $urls) );
+
+        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -store-response -srd /dockerresults/2 -silent -o ". $output ." -l ". $wordlist ."";
+            
+        exec($httpx);*/
+
         return $this->render('about');
     }
 

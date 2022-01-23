@@ -29,13 +29,17 @@ Telerik.Web.UI.WebResource.axd?type=r%61u
 kubernetes.yml
 deploy/kubernetes.yml
 fetch.cgi
+application.wadl
 Accesses.txt
 EemAdminService/EemAdmin?wsdl
 .hprof
 wallet.json
 config.yml
 binance.json
+log/
 binance.txt
+drone.yml
+Dockerfile.build
 ws_utc/login.do
 wallet.txt
 statistic.%EXT%
@@ -149,7 +153,6 @@ api/v1/swagger.yaml
 api/v2/swagger.json
 api/v2/swagger.yaml
 apis
-application.wadl
 backup
 beans
 composer.json
@@ -4121,7 +4124,6 @@ localsettings.php~
 log-in
 log-in.php
 log-in/
-log/
 log/access.log
 log/access_log
 log/authorizenet.log

@@ -708,7 +708,7 @@ $this->registerJs($script, View::POS_READY);
                         <div class="amass">
                             <p align="center">Domain for scanning with amass:</p>
                             <?= $form->field($model, 'amassDomain', [
-                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textInput(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
+                                'inputTemplate' => '<div class="input-group"><span class="input-group-addon">Domain</span>{input}</div>'])->textArea(['autofocus' => true, 'placeholder' => "example.com"])->label(false) ?>
                         </div>
                     </div>
                     <div class="col-lg-2"></div>

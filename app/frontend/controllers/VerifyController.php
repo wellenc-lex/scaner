@@ -225,7 +225,7 @@ class VerifyController extends Controller
 
             $max_amass = 2; $max_ffuf = 200; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 250; $max_jsa = 0; $max_ips = 3; $max_whatweb = 2; $max_whatweb_in_task = 50;
 
-            $max_nmap = 5; $max_nmap_in_task = 30; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_nmap = 7; $max_nmap_in_task = 5; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps

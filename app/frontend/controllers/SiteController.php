@@ -352,26 +352,26 @@ class SiteController extends Controller
 
                         foreach ($urls as $currenturl){
 
-                            preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n\?]+)/i", $url["amassDomain"], $domain);
+                            preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n\?]+)/i", $currenturl, $domain);
 
-                            $url["amassDomain"] = $domain[2][0];
+                            $currentdomain = $domain[2][0];
                             
                             $DomainsAlreadyinDB = Tasks::find()
                                 ->andWhere(['userid' => Yii::$app->user->id])
-                                ->andWhere(['=', 'host', $url["amassDomain"]])
+                                ->andWhere(['=', 'host', $currentdomain])
                                 ->exists(); 
 
                             if($DomainsAlreadyinDB == 0){
 
                                 $tasks = new Tasks();
 
-                                $tasks->host = $url["amassDomain"];
+                                $tasks->host = $currentdomain;
                                 $tasks->amass_status = "Working";
                                 $tasks->notify_instrument = "2";
                                 $amass = 1;
 
                                 $queue = new Queue();
-                                $queue->amassdomain = $url["amassDomain"];
+                                $queue->amassdomain = $currentdomain;
                                 $queue->taskid = $tasks->taskid;
                                 $queue->instrument = 2;
                                 $queue->save();
@@ -381,7 +381,7 @@ class SiteController extends Controller
                                     $passive = new PassiveScan();
                                     $passive->userid = Yii::$app->user->id;
                                     $passive->notifications_enabled = 1;
-                                    $passive->amassDomain = $url["amassDomain"];
+                                    $passive->amassDomain = $currentdomain;
                                     $passive->scanday = rand(1, 30);
                                     $passive->save();
                                 }

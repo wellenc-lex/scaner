@@ -22,6 +22,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
+use frontend\models\Aquatone;
 
 ini_set('max_execution_time', 0);
 
@@ -227,6 +228,20 @@ class SiteController extends Controller
                 ->andWhere(['viewed' => "0"])
                 ->count();*/
 
+            $amassIntel = Tasks::find()
+                ->select(['tasks.taskid','tasks.status', 'tasks.host'])
+                ->andWhere(['userid' => Yii::$app->user->id])
+                ->andWhere(['!=', 'amass_intel', ""]);
+
+            $amassIntelpages = new Pagination([
+                'defaultPageSize' => 50,
+                'totalCount' => $amassIntel->count(),
+            ]);
+
+            $amassIntelresult = $amassIntel->offset($amassIntelpages->offset)
+                ->limit($amassIntelpages->limit)
+                ->all();
+
             $PassiveNotify = PassiveScan::find()
                 ->andWhere(['userid' => Yii::$app->user->id])
                 ->andWhere(['needs_to_notify' => "1"])
@@ -238,11 +253,13 @@ class SiteController extends Controller
 
             return $this->render('profile', [
                 'done' => $doneresult,
+                'donepages' => $donepages,
                 'running' => $tasksresult,
                 'passive' => $passiveresult,
                 'hidden' => $hiddenresult,
                 'passivepages' => $passivepages,
-                'donepages' => $donepages,
+                'amassIntel' => $amassIntelresult,
+                'amassIntelpages' => $amassIntelpages,
                 'runningpages' => $taskspages,
                 'hiddenpages' => $hiddenpages,
                 'notify' => $needstonotify,
@@ -361,7 +378,7 @@ class SiteController extends Controller
                                 ->andWhere(['=', 'host', $currentdomain])
                                 ->exists(); 
 
-                            if($DomainsAlreadyinDB == 0){
+                            if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
 
                                 $tasks = new Tasks();
 
@@ -760,6 +777,136 @@ class SiteController extends Controller
      */
     public function actionAbout()
     {
+        $xmls = [
+"/dockerresults/325889636nmap.xml",
+"/dockerresults/55059194nmap.xml",
+"/dockerresults/943649441nmap.xml",
+"/dockerresults/532515659nmap.xml",
+"/dockerresults/714636115nmap.xml",
+"/dockerresults/990972258nmap.xml",
+"/dockerresults/848424741nmap.xml",
+"/dockerresults/583940136nmap.xml",
+"/dockerresults/17720961nmap.xml",
+"/dockerresults/831447997nmap.xml",
+"/dockerresults/675489331nmap.xml",
+"/dockerresults/826758581/nmap.xml",
+"/dockerresults/729863895nmap.xml",
+"/dockerresults/570363524nmap.xml",
+"/dockerresults/436083824nmap.xml",
+"/dockerresults/976708667nmap.xml",
+"/dockerresults/23144140nmap.xml",
+"/dockerresults/677151486nmap.xml",
+"/dockerresults/828744889nmap.xml",
+"/dockerresults/544767188nmap.xml",
+"/dockerresults/40874782nmap.xml",
+"/dockerresults/886867016nmap.xml",
+"/dockerresults/401023704/nmap.xml",
+"/dockerresults/214347597nmap.xml",
+"/dockerresults/281863483nmap.xml",
+"/dockerresults/3911445nmap.xml",
+"/dockerresults/22545348nmap.xml",
+"/dockerresults/779768412/nmap.xml",
+"/dockerresults/792226773nmap.xml",
+"/dockerresults/579345472nmap.xml",
+"/dockerresults/780606999nmap.xml",
+"/dockerresults/932423379/nmap.xml",
+"/dockerresults/777142532nmap.xml",
+"/dockerresults/916774169nmap.xml",
+"/dockerresults/471608859/nmap.xml",
+"/dockerresults/720688585nmap.xml",
+"/dockerresults/338415528/nmap.xml",
+"/dockerresults/174063214nmap.xml",
+"/dockerresults/130602686nmap.xml",
+"/dockerresults/793194480nmap.xml",
+"/dockerresults/40282151nmap.xml",
+"/dockerresults/812628349nmap.xml",
+"/dockerresults/798222689nmap.xml",
+"/dockerresults/217281187nmap.xml",
+"/dockerresults/707455652nmap.xml",
+"/dockerresults/993432225nmap.xml",
+"/dockerresults/142742365nmap.xml",
+"/dockerresults/140403237nmap.xml",
+"/dockerresults/892710276nmap.xml",
+"/dockerresults/416149449/nmap.xml",
+"/dockerresults/213555214nmap.xml",
+"/dockerresults/6007165nmap.xml",
+"/dockerresults/465419306nmap.xml",
+"/dockerresults/396565297nmap.xml",
+"/dockerresults/606041694nmap.xml",
+"/dockerresults/554037488nmap.xml",
+"/dockerresults/36430483nmap.xml",
+"/dockerresults/668719709nmap.xml",
+"/dockerresults/662751154nmap.xml",
+"/dockerresults/707945843nmap.xml",
+"/dockerresults/809996977nmap.xml",
+"/dockerresults/857464584/nmap.xml",
+"/dockerresults/496637844nmap.xml",
+"/dockerresults/569848514/nmap.xml",
+"/dockerresults/15312580/nmap.xml",
+"/dockerresults/528342521nmap.xml",
+"/dockerresults/510254396/nmap.xml",
+"/dockerresults/939607957nmap.xml",
+"/dockerresults/468401968nmap.xml",
+"/dockerresults/64978268nmap.xml",
+"/dockerresults/46790723nmap.xml",
+"/dockerresults/274254322nmap.xml",
+"/dockerresults/864643905nmap.xml",
+"/dockerresults/516577016nmap.xml",
+"/dockerresults/26057007/nmap.xml",
+"/dockerresults/557340033nmap.xml",
+"/dockerresults/545396200nmap.xml",
+"/dockerresults/717258275nmap.xml",
+"/dockerresults/229739638nmap.xml",
+"/dockerresults/537202865nmap.xml",
+"/dockerresults/969014679nmap.xml",
+"/dockerresults/660970978nmap.xml",
+"/dockerresults/911250491nmap.xml",
+"/dockerresults/189751352nmap.xml",
+"/dockerresults/425205965nmap.xml",
+"/dockerresults/159963230nmap.xml",
+"/dockerresults/775509494nmap.xml",
+"/dockerresults/27134661nmap.xml",
+"/dockerresults/668278171nmap.xml",
+"/dockerresults/474324479nmap.xml",
+"/dockerresults/708209007nmap.xml",
+"/dockerresults/69104971nmap.xml",
+"/dockerresults/571703513nmap.xml",
+"/dockerresults/420199496nmap.xml",
+"/dockerresults/340879923nmap.xml",
+"/dockerresults/915680373nmap.xml",
+"/dockerresults/436350813/nmap.xml",
+"/dockerresults/167531210nmap.xml",
+"/dockerresults/647595191/nmap.xml",
+"/dockerresults/96734954nmap.xml",
+"/dockerresults/127133609nmap.xml",
+"/dockerresults/965799514nmap.xml",
+"/dockerresults/897092158nmap.xml",
+"/dockerresults/489534327/nmap.xml",
+"/dockerresults/564875761/nmap.xml",
+"/dockerresults/489371813nmap.xml",
+"/dockerresults/257972141nmap.xml",
+"/dockerresults/336549619nmap.xml",
+"/dockerresults/237098928nmap.xml",
+"/dockerresults/184724787nmap.xml",
+"/dockerresults/690846117/nmap.xml",
+"/dockerresults/532473154nmap.xml",
+"/dockerresults/497283144nmap.xml",
+"/dockerresults/803252359nmap.xml",
+"/dockerresults/336693153nmap.xml",
+"/dockerresults/217028047nmap.xml",
+"/dockerresults/52373786nmap.xml",
+"/dockerresults/735408538/nmap.xml",
+"/dockerresults/524726201nmap.xml",
+"/dockerresults/470340043nmap.xml",
+"/dockerresults/654564109nmap.xml"];
+$id=4;
+foreach ($xmls as $xml) {
+    aquatone::aquatone($id, $xml, 1);
+
+    $id++;
+    return 3;
+}
+
         //sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -store-response -srd /dockerresults/2 -silent -o /dockerresults/2whatwebhttpx.txt -l /dockerresults/2whatwebhosts.txt
         /*$randomid = 2;
 

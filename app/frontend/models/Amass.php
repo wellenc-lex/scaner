@@ -439,10 +439,10 @@ class Amass extends ActiveRecord
         $amassconfig = "/configs/amass1.ini";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass2.ini";
+            $amassconfig = "/configs/amass3.ini";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
 
         exec($command);
 

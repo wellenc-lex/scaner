@@ -268,6 +268,8 @@ class ScanController extends Controller
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $model = new Gitscan();
 
+        //Gitscan::gittofile();
+
         $secretIN = Yii::$app->request->post('secret');
 
         if ($secretIN === $secret) {

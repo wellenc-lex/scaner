@@ -86,6 +86,8 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                 <?php endif; ?>
 
                 <li><a data-toggle="pill" href="#hiddenscans">Hidden scan results</a></li>
+
+                <li><a data-toggle="pill" href="#amassIntelscans">AmassIntel scan results</a></li>
             </ul>
 
             <div class="tab-content">
@@ -406,6 +408,65 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                         <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $hiddenpages]) ?></div>
 
                     </div>
+
+                </div>
+
+                <div id="amassIntelscans" class="tab-pane fade">
+
+                    <div class="container">
+
+                        <table class="table table-bordered" style="width: 100%; margin-top: 5%">
+                            <thead>
+                            <tr>
+                                <th style="text-align: center">ID</th>
+                                <th style="text-align: center">Host</th>
+                                <th style="text-align: center">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($amassIntel as $scan): ?>
+
+                                <tr>
+                                    <td style="text-align: center; height: 40px; min-height: 40px;">
+                                        <?= "<b style='vertical-align: middle; '>$scan->taskid</b>" ?>
+                                    </td>
+
+                                    <td style="text-align: center; max-width: 400px; height: 50px; min-height: 50px;">
+                                        <div style="text-align: center; overflow:auto; text-overflow: ellipsis; white-space:nowrap">
+                                            <?= "<b style='vertical-align: middle; overflow: hidden'>$scan->host</b>" ?>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: center; height: 40px; min-height: 40px;">
+
+                                        <a class="btn btn-success btn-sm"
+                                           href="<?= Url::toRoute(['/scan/scanresult', 'id' => $scan->taskid]) ?>">
+                                            Scan results</a>
+
+                                        <div class="btn btn-success btn-xs" id="hidebutton"
+                                             onclick="hide(1, <?php echo $scan->taskid ?>);">Unhide
+                                        </div>
+
+                                    </td>
+                                </tr>
+
+
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+
+                        <div style="left: 45%; bottom: 10%; position: fixed; margin: 0px 0 0 0px;"><?= LinkPager::widget(['pagination' => $amassIntelpages]) ?></div>
+
+                    </div>
+
+                    <div class="btn btn-success btn-xs" style=" margin-left: -15%;" onclick="
+                                    <?php foreach ($amassIntel as $task): ?>
+
+                                            <?php echo('window.open(`' . Url::toRoute(["/scan/scanresult", "id" => $task->taskid]) . '`);'); ?>    
+
+                                    <?php endforeach; ?>
+                                "> Show all pages
+                            </div>
 
                 </div>
 

@@ -2,6 +2,14 @@
 
 /
 static../main.py
+static../.git/HEAD
+public../.git/HEAD
+assets../.git/HEAD
+static../index.py
+public../main.py
+public../index.py
+assets../main.py
+assets../index.py
 .%EXT%
 .bash_history
 .zsh_history
@@ -27,6 +35,7 @@ monitor
 ci
 Telerik.Web.UI.WebResource.axd?type=r%61u
 kubernetes.yml
+.env.test
 deploy/kubernetes.yml
 fetch.cgi
 application.wadl
@@ -37,6 +46,13 @@ wallet.json
 config.yml
 binance.json
 log/
+DataServices.asmx
+dashboard.html
+api/dashboard.html
+log/production.log
+config/app_env.yml
+config/database.yml
+config/secrets.yml
 binance.txt
 drone.yml
 Dockerfile.build
@@ -3213,7 +3229,6 @@ config/aws.yml
 config/banned_words.txt
 config/config.inc
 config/config.ini
-config/database.yml
 config/database.yml.pgsql
 config/database.yml.sqlite3
 config/database.yml_original
@@ -4138,7 +4153,6 @@ log/old
 log/payment.log
 log/payment_authorizenet.log
 log/payment_paypal_express.log
-log/production.log
 log/server.log
 log/test.log
 log/www-error.log
@@ -6710,7 +6724,6 @@ backup.zip/
 vxd/
 sypex/
 vpn/../vpns/portal/scripts/newbm.pl
-.env.test
 local.env
 .env.swp
 lastlog.txt
@@ -17367,7 +17380,6 @@ config/parameters.yml
 config/push_ssh_keys_remote.yml
 config/push_ssh_keys.yml
 config/s3.yml
-config/secrets.yml
 config/solano.yml
 de.yml
 distelli-manifest.yml

@@ -395,7 +395,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -subs -o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 15 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 
@@ -439,7 +439,7 @@ class Amass extends ActiveRecord
         $amassconfig = "/configs/amass1.ini";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass3.ini";
+            $amassconfig = "/configs/amass4.ini";
         }
 
         $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);

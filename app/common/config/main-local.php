@@ -7,7 +7,7 @@ return [
             'dsn' => getenv('DB_DSN', 'mysql:host=db;dbname=scaner'),
             'username' => getenv('DB_USER', 'web'),
             'password' => getenv('DB_PASSWORD', 'web'),
-            'charset' => 'utf8',
+            'charset' => 'utf8mb4',
             'tablePrefix' => '',
         ],
 

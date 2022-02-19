@@ -158,26 +158,25 @@ class Gitscan extends ActiveRecord
             foreach ($tasks as $task) {
                 $task = json_decode($task["amass"], true); 
 
-                foreach ($task as $json) {
-                    $addresses[] = $json["name"];
-                }
+                if (!empty($task)){
+                    foreach ($task as $json) {
+                        $addresses[] = $json["name"];
+                    }
 
-                array_unique($addresses);
+                    $addresses = array_unique($addresses);
 
-                foreach ($addresses as $address) {
-                    if(preg_match("/(www.|static|sctp)/i", $address) === 1 ){
-                        continue;
-                    } else $done[] = "\"".$address."\"";
+                    foreach ($addresses as $address) {
+                        if(preg_match("/(^api|autodiscover|autoconfig|contact|img|cdn|static|sctp|www|^ns[\d\-\_\.]*|\_dc\-mx|^url[\d\-\_\.]*|^docs\.|academy|links|blog|help|status|(.*mail.*\.[\w\d\-\_]*\.[\w\d\-\_]*)|developers|smtp)/i", $address) === 1 ){
+
+                            continue;
+                        } else $done[] = "\"".$address."\"";
+                    }
                 }
             }
             
-            array_unique($done);
+            $done = array_unique($done);
 
             file_put_contents("/dockerresults/gitdomains.txt", implode(PHP_EOL, $done));
-
-        foreach ($done as $out) {
-            echo($out."\n");
-        }
             return 1;
          
     }

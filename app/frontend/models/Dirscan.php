@@ -160,7 +160,7 @@ class Dirscan extends ActiveRecord
                 dirscan::savetodb($taskid, $hostname, $output_ffuf, $gau_result, $scanurl);
                 Yii::$app->db->close();
                 
-                return file_put_contents("/ffuf/".$randomid."/error", $exception.$output_ffuf.$gau_result);
+                return file_put_contents("/dockerresults/".$randomid."error", $output_ffuf.$gau_result);
             }
         }
   
@@ -253,7 +253,7 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf 5631/gau gau -b ". $blacklist ." -t 1 -retries 15 -o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 15 --fc 404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
@@ -328,7 +328,7 @@ class Dirscan extends ActiveRecord
 
             if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
 
-            $extensions = "log,php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly;
+            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly;
 
             if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
 

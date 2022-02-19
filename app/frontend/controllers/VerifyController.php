@@ -8,6 +8,8 @@ use frontend\models\Queue;
 use frontend\models\SentEmail;
 use frontend\models\Tasks;
 use frontend\models\ToolsAmount;
+
+use frontend\models\Nmap;
 use Yii;
 use yii\web\Controller;
 
@@ -17,173 +19,6 @@ use yii\web\Controller;
  */
 class VerifyController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
-    public $enableCsrfValidation = false;
-
-
-    /**
-     *
-     * checks active scan result and sends emails
-     *
-     */
-
-    public function actionActive()
-    {
-
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
-
-        $secretIN = Yii::$app->request->post('secret');
-
-        if ($secret === $secretIN) {
-
-            $results = Tasks::find()
-                ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
-                ->where(['!=', 'status', 'Done.'])
-                ->limit(2500)
-                ->all();
-
-            if ($results != NULL) {
-
-                foreach ($results as $result) {
-
-                    $nmap = 0;
-                    $amass = 0;
-                    $dirscan = 0;
-                    $vhost = 0;
-                    $gitscan = 0;
-                    $ips = 0;
-                    $reverseip = 0;
-                    
-                    if ($result->nmap_status === "Done.") $nmap = 1;
-
-                    if ($result->amass_status === "Done.") $amass = 1;
-
-                    if ($result->dirscan_status === "Done.") $dirscan = 1;
-
-                    if ($result->gitscan_status === "Done.") $gitscan = 1;
-
-                    if ($result->reverseip_status === "Done.") $reverseip = 1;
-
-                    if ($result->ips_status === "Done.") $ips = 1;
-
-                    if ($result->vhost_status === "Done.") $vhost = 1;
-
-                    /*if ($result->notify_instrument == "3") {
-                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
-                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
-                    }*/
-
-                    if ( $nmap===1 || $amass===1 || $dirscan===1 || $ips === 1 || $vhost===1 ){
-                        if ($result->notified == 0 && $result->notification_enabled == 1) {
-
-                            $result->status = "Done.";
-
-                            $result->notified = 1;
-
-                            $result->save(false);
-
-                            $diff = 0;
-
-                            /*$user = User::find()
-                                ->where(['id' => $result->userid])
-                                ->limit(1)
-                                ->one();
-
-                            $email = $user->email;
-
-                            $result->save(false);
-
-                            $this->sendactiveemail($result->taskid, $email, $user->id);*/
-
-                            //$this->sendslack($result->taskid, $diff);
-                        } elseif ($result->notified == 0 && $result->notification_enabled == 0) {
-
-                            $result->status = "Done.";
-
-                            $result->notified = 1;
-
-                            $result->save(false);
-                        }
-                    }
-                }
-            }
-            return 1;
-        } else return Yii::$app->response->statusCode = 403;
-    }
-
-    /**
-     *
-     * checks passive scan results and sends emails
-     *
-     */
-    public function actionPassive()
-    {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-
-        $secretIN = Yii::$app->request->post('secret');
-
-        if ($secret === $secretIN) {
-
-            $results = PassiveScan::find()
-                ->where(['is_active' => 1])
-                ->andWhere(['needs_to_notify' => 1])
-                ->andWhere(['notifications_enabled' => 1])
-                ->andWhere(['user_notified' => 0])
-                ->limit(10)
-                ->all();
-
-            if ($results != NULL) {
-                foreach ($results as $result) {
-
-                    $diff = 0;
-
-                    //- распарсить и вызвать для каждого нового поддомена дирскан
-                    //- записать поддомены из array_diff в тхт и вызвать гитхаунд
-
-                        if ($pos = strpos($result->notify_instrument, "1") !== false) {
-
-                            if ($result->nmap_previous != null && $result->nmap_new != null){
-                                $diff = array_unique(array_diff($result->nmap_new,$result->nmap_previous));
-                            }
-                        }
-
-                        if ($pos = strpos($result->notify_instrument, "2") !== false) {
-
-                            if ($result->amass_previous != null && $result->amass_new != null) {
-
-                                $diff = array_unique(array_diff($result->amass_new,$result->amass_previous));
-                            }
-                        }
-
-                        if ($pos = strpos($result->notify_instrument, "3") !== false) {
-
-                            if ($result->dirscan_previous != null && $result->dirscan_new != null){
-                                $diff = array_unique(array_diff($result->dirscan_new,$result->dirscan_previous));
-                            }
-
-                        }
-
-                        $result->needs_to_notify = 0;
-
-                        $result->notify_instrument = 0;
-
-                        $result->user_notified = 1;
-
-                        $result->save(false);
-
-                        if ($diff != ""){
-                            $this->sendPassiveSlack($result->scanid, $diff);
-                        }
-                        
-                }
-            }
-        } else return Yii::$app->response->statusCode = 403;
-    }
-
-
     public function actionQueue()
     {
 
@@ -218,14 +53,13 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            
 
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
-            $max_amass = 1; $max_ffuf = 250; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 300; $max_jsa = 0; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 50;
+            $max_amass = 3; $max_ffuf = 150; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
 
-            $max_nmap = 4; $max_nmap_in_task = 5; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_nmap = 8; $max_nmap_in_task = 4; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -294,7 +128,7 @@ class VerifyController extends Controller
             }
 
             //dirscan from the end of the queue
-            if( $tools_amount_ffuf < $max_ffuf/2 ){
+            if( $tools_amount_ffuf < $max_ffuf ){
                 //Dirscans
                 $queues = Queue::find()
                     ->andWhere(['working' => "0"])
@@ -302,7 +136,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_ffuf-$tools_amount_ffuf/2)
+                    ->limit($max_ffuf-$tools_amount_ffuf)
                     ->all();
 
                 foreach ($queues as $results) {
@@ -329,7 +163,7 @@ class VerifyController extends Controller
                 }
             }
 
-            //dirscan from the start of the queue
+            /*//dirscan from the start of the queue
             if( $tools_amount_ffuf < $max_ffuf ){
                 //Dirscans
                 $queues = Queue::find()
@@ -363,7 +197,7 @@ class VerifyController extends Controller
                         }
                     }
                 }
-            }
+            }*/
 
             /*
             //Gitscan
@@ -680,13 +514,6 @@ class VerifyController extends Controller
 
             }
 
-            if ( !empty($nmapips) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
-                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &');
-
-                $tools_amount_nmap++;
-            }
-
             if ( !empty($forbiddenbypassurls) ) {
                 exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $forbiddenbypassurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_forbiddenbypass )
                     . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/forbiddenbypass >/dev/null 2>/dev/null &');
@@ -695,7 +522,179 @@ class VerifyController extends Controller
 
             }
 
+            if ( !empty($nmapips) ) {
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
+                    . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &'); 
+                $tools_amount_nmap++;
+            }
+
             $tools_amount->save(); 
+        } else return Yii::$app->response->statusCode = 403;
+    }
+
+       /**
+     * {@inheritdoc}
+     */
+    public $enableCsrfValidation = false;
+
+
+    /**
+     *
+     * checks active scan result and sends emails
+     *
+     */
+
+    public function actionActive()
+    {
+
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secret === $secretIN) {
+
+            $results = Tasks::find()
+                ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
+                ->where(['!=', 'status', 'Done.'])
+                ->limit(2500)
+                ->all();
+
+            if ($results != NULL) {
+
+                foreach ($results as $result) {
+
+                    $nmap = 0;
+                    $amass = 0;
+                    $dirscan = 0;
+                    $vhost = 0;
+                    $gitscan = 0;
+                    $ips = 0;
+                    $reverseip = 0;
+                    
+                    if ($result->nmap_status === "Done.") $nmap = 1;
+
+                    if ($result->amass_status === "Done.") $amass = 1;
+
+                    if ($result->dirscan_status === "Done.") $dirscan = 1;
+
+                    if ($result->gitscan_status === "Done.") $gitscan = 1;
+
+                    if ($result->reverseip_status === "Done.") $reverseip = 1;
+
+                    if ($result->ips_status === "Done.") $ips = 1;
+
+                    if ($result->vhost_status === "Done.") $vhost = 1;
+
+                    /*if ($result->notify_instrument == "3") {
+                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => "[]", 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
+                        Tasks::deleteAll(['notify_instrument' => 3, 'wayback' => NULL, 'nuclei' => NULL, 'dirscan' => NULL, 'jsa' => NULL, 'taskid' => $result->taskid]);
+                    }*/
+
+                    if ( $nmap===1 || $amass===1 || $dirscan===1 || $ips === 1 || $vhost===1 ){
+                        if ($result->notified == 0 && $result->notification_enabled == 1) {
+
+                            $result->status = "Done.";
+
+                            $result->notified = 1;
+
+                            $result->save(false);
+
+                            $diff = 0;
+
+                            /*$user = User::find()
+                                ->where(['id' => $result->userid])
+                                ->limit(1)
+                                ->one();
+
+                            $email = $user->email;
+
+                            $result->save(false);
+
+                            $this->sendactiveemail($result->taskid, $email, $user->id);*/
+
+                            //$this->sendslack($result->taskid, $diff);
+                        } elseif ($result->notified == 0 && $result->notification_enabled == 0) {
+
+                            $result->status = "Done.";
+
+                            $result->notified = 1;
+
+                            $result->save(false);
+                        }
+                    }
+                }
+            }
+            return 1;
+        } else return Yii::$app->response->statusCode = 403;
+    }
+
+    /**
+     *
+     * checks passive scan results and sends emails
+     *
+     */
+    public function actionPassive()
+    {
+        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secret === $secretIN) {
+
+            $results = PassiveScan::find()
+                ->where(['is_active' => 1])
+                ->andWhere(['needs_to_notify' => 1])
+                ->andWhere(['notifications_enabled' => 1])
+                ->andWhere(['user_notified' => 0])
+                ->limit(10)
+                ->all();
+
+            if ($results != NULL) {
+                foreach ($results as $result) {
+
+                    $diff = 0;
+
+                    //- распарсить и вызвать для каждого нового поддомена дирскан
+                    //- записать поддомены из array_diff в тхт и вызвать гитхаунд
+
+                        if ($pos = strpos($result->notify_instrument, "1") !== false) {
+
+                            if ($result->nmap_previous != null && $result->nmap_new != null){
+                                $diff = array_unique(array_diff($result->nmap_new,$result->nmap_previous));
+                            }
+                        }
+
+                        if ($pos = strpos($result->notify_instrument, "2") !== false) {
+
+                            if ($result->amass_previous != null && $result->amass_new != null) {
+
+                                $diff = array_unique(array_diff($result->amass_new,$result->amass_previous));
+                            }
+                        }
+
+                        if ($pos = strpos($result->notify_instrument, "3") !== false) {
+
+                            if ($result->dirscan_previous != null && $result->dirscan_new != null){
+                                $diff = array_unique(array_diff($result->dirscan_new,$result->dirscan_previous));
+                            }
+
+                        }
+
+                        $result->needs_to_notify = 0;
+
+                        $result->notify_instrument = 0;
+
+                        $result->user_notified = 1;
+
+                        $result->save(false);
+
+                        if ($diff != ""){
+                            $this->sendPassiveSlack($result->scanid, $diff);
+                        }
+                        
+                }
+            }
         } else return Yii::$app->response->statusCode = 403;
     }
 

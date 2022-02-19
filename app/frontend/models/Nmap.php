@@ -89,17 +89,17 @@ class Nmap extends ActiveRecord
         $nmapoutputxml = "/dockerresults/" . $randomid . "nmap.xml";
         $nmapoutputhtml = "/dockerresults/" . $randomid . "nmap.html";
 
-        $scripts = " --script=http-brute --script=ajp-brute --script=ftp-brute --script=vnc-brute --script=svn-brute --script=smb-brute --script-args http-wordpress-brute.threads=1,".
+        $scripts = " --script=http-brute --script=ajp-brute --script=ftp-brute --script='vnc-info,realvnc-auth-bypass,vnc-title,vnc-brute' --script=svn-brute --script=smb-brute --script-args http-wordpress-brute.threads=1,".
         "ajp-brute.timeout=2h,ftp-brute.timeout=2h,vnc-brute.timeout=2h,svn-brute.timeout=2h,smb-brute.timeout=2h,ms-sql-brute.timeout=2h,pgsql-brute.timeout=2h,mysql-brute.timeout=2h,".
-        "http-brute.timeout=10h,brute.delay=1,unpwdb.timelimit=2h,brute.firstonly=1".
+        "http-brute.timeout=10h,brute.delay=1,unpwdb.timelimit=2h,brute.firstonly=1 --script amqp-info  --script 'mongo* and default' ".
         " --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-brute --script mysql-empty-password --script smb-os-discovery --script nfs-ls --script redis-brute".
         " --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua,http-default-accounts.timeout=10h --script ms-sql-brute". 
-        " --script pgsql-brute --script smb-protocols --script 'rmi-dumpregistry or rmi-vuln-classloader' -sC";
+        " --script pgsql-brute --script smb-protocols --script 'rmi-dumpregistry or rmi-vuln-classloader' --script memcached-info --script 'docker-*' --script 'rabbit*' -sC";
     
         //try -f --badsum to bypass IDS 
 
-        exec("sudo docker run --cpu-shares 1024 --rm --net=host --privileged=true --expose=53 -p=53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 53"
-            ." -sU -T5 --randomize-hosts -Pn -sV"
+        exec("sudo docker run --cpu-shares 512 --rm --net=host --privileged=true --expose=53 -p=53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 53"
+            ." -sU -T4 --randomize-hosts -Pn -sV"
             ." -p T:1-65000,U:53,U:111,U:137,U:161,U:162,U:500,U:1434,U:5060,U:11211,U:67-69,U:123,U:135,U:138,U:139,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353,U:49152 -A -R --min-hostgroup 1000"
             ." --script-timeout 2000m --max-scan-delay 10s --max-retries 5 --open --host-timeout 2000m -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
@@ -158,13 +158,13 @@ class Nmap extends ActiveRecord
          
         //sudo /usr/bin/xsltproc -o /root/scan3.html /root/project/docker/conf/configs/nmap.xsl /root/scan3.xml
                 
-        $scripts = " --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-* --script smb-os-discovery --script nfs-ls --script redis-brute".
-                    "--script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols -sC";
+        $scripts = " --script=http-brute --script-args http-wordpress-brute.threads=1,brute.threads=1,brute.delay=2,unpwdb.timelimit=0,brute.firstonly=1 --script http-wordpress-brute --script http-open-proxy --script ftp-* --script rsync-list-modules --script 'mysql-*' --script smb-os-discovery --script nfs-ls --script redis-brute --script amqp-info --script vnc-info,realvnc-auth-bypass,vnc-title --script 'mongo* and default' ".
+                    "--script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua --script ms-sql-brute --script pgsql-brute --script smb-protocols --script memcached-info --script 'docker-*' -sC";
 
 
         //" . escapeshellarg($url) . " Gives Failed to resolve " $url ". , don't know how to fix, left it as is.
             
-        exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T3 -p- -A --host-timeout 4000m --source-port 2002 --script-timeout 1500m -sC --max-rtt-timeout 1500ms -g 2002 -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
+        exec("sudo docker run --expose=53 --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap -sS -T3 -p- -A --host-timeout 4000m --source-port 53 --script-timeout 1500m -sC --max-rtt-timeout 2000ms -g 53 -oX /dockerresults/scan" . $randomid . ".xml --stylesheet /configs/nmap.xsl -R " . $scripts . $url );
 
         exec("sudo /usr/bin/xsltproc -o /dockerresults/nmap" . $randomid . ".html /configs/nmap.xsl /dockerresults/scan" . $randomid . ".xml ");
 

@@ -25,6 +25,7 @@ static/%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c%5cetc%5cpasswd
 static../.git/config
 js
 app_dev.php/_profiler/
+_ignition/execute-solution
 scripts
 .env.local
 srvadm
@@ -33,11 +34,21 @@ content/.json
 java/monitor
 monitor
 ci
+docker-compose.override.yml
+test.env
+docker/Dockerfile.poetry
+docker-compose.dev.yml
+Dockerfile.poetry
 Telerik.Web.UI.WebResource.axd?type=r%61u
 kubernetes.yml
 .env.test
 deploy/kubernetes.yml
 fetch.cgi
+.vault_pass_sandbox.txt
+.vault_pass_prod.txt
+.vault_pass_dev.txt
+.vault_pass.txt
+.vaultpass.txt
 application.wadl
 Accesses.txt
 EemAdminService/EemAdmin?wsdl
@@ -9955,7 +9966,6 @@ __main__.py
 _baks.%EXT%
 _fpclass
 _fragment
-_ignition/execute-solution
 _index.%EXT%
 _proxy
 A

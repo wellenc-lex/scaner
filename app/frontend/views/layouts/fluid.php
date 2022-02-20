@@ -25,68 +25,7 @@ AppAsset::register($this);
 <body>
 <?php $this->beginBody() ?>
 
-
-<?php
-NavBar::begin([
-    'brandLabel' => Yii::$app->name,
-    'brandUrl' => Yii::$app->homeUrl,
-    'options' => [
-        'class' => 'navbar-inverse navbar-fixed-top',
-        'style' => 'height: 50px; max-height: 50px; margin-bottom: 0px; position: fixed; '
-    ],
-]);
-
-$menuItems = [
-    ['label' => 'Home', 'url' => ['/']],
-    ['label' => 'New Scan', 'url' => ['/site/newscan']],
-    ['label' => 'Profile', 'url' => ['/site/profile']],
-    ['label' => 'Contact', 'url' => ['/site/contact']],
-];
-
-if (!Yii::$app->user->isGuest) {
-    if (Yii::$app->user->identity->rights == 1) {
-        $menuItems[3] = ['label' => 'Admin', 'url' => ['/admin']];
-    }
-}
-
-if (Yii::$app->user->isGuest) {
-    $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-    $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
-} else {
-    $menuItems[] = '<li>'
-        . Html::beginForm(['/site/logout'], 'post')
-        . Html::submitButton(
-            'Logout (' . Yii::$app->user->identity->email . ')',
-            ['class' => 'btn btn-link logout']
-        )
-        . Html::endForm()
-        . '</li>';
-}
-echo Nav::widget([
-    'options' => ['class' => 'navbar-nav navbar-right'],
-    'items' => $menuItems,
-]);
-NavBar::end();
-?>
-
 <?= $content ?>
-
-
-<nav id="footer">
-    <div class="container">
-        <div class="pull-left fnav">
-            <p>Copyright & 2019</p>
-        </div>
-        <div class="pull-right fnav">
-            <ul class="footer-social">
-                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
-                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-                <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
 
 <?php $this->endBody() ?>
 </body>

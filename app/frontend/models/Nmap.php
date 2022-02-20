@@ -69,22 +69,15 @@ class Nmap extends ActiveRecord
 
     public function nmapips($input)
     {
+        //if function is being called from outside instead of curl
         if( $taskid == "" ){
             $taskid = (int) $input["taskid"];
         }
 
         if( $randomid == "" ){
             $randomid = (int) $input["randomid"];
-
-            if( $randomid == "" ){
-                $randomid = rand(100000, 1000000000);
-
-                $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
-
-                file_put_contents($scanIPS, $input["ips"] );
-            }
         }
-
+        
         $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
         $nmapoutputxml = "/dockerresults/" . $randomid . "nmap.xml";
         $nmapoutputhtml = "/dockerresults/" . $randomid . "nmap.html";
@@ -100,8 +93,8 @@ class Nmap extends ActiveRecord
 
         exec("sudo docker run --cpu-shares 512 --rm --net=host --privileged=true --expose=53 -p=53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 53"
             ." -sU -T4 --randomize-hosts -Pn -sV"
-            ." -p T:1-65000,U:53,U:111,U:137,U:161,U:162,U:500,U:1434,U:5060,U:11211,U:67-69,U:123,U:135,U:138,U:139,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353,U:49152 -A -R --min-hostgroup 1000"
-            ." --script-timeout 2000m --max-scan-delay 10s --max-retries 5 --open --host-timeout 2000m -oX "
+            ." -p T:1-65000,U:53,U:111,U:137,U:161,U:162,U:500,U:1434,U:5060,U:11211,U:67-69,U:123,U:135,U:138,U:139,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353,U:49152 -A -R --min-hostgroup 5000"
+            ." --script-timeout 2000m --max-scan-delay 10s --max-retries 5 --open --host-timeout 2500m -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
 
         exec("sudo /usr/bin/xsltproc -o " . $nmapoutputhtml . " /configs/nmap.xsl " . $nmapoutputxml . "");

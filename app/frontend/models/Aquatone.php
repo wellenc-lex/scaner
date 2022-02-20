@@ -122,16 +122,26 @@ class Aquatone extends ActiveRecord
 
             $fileaquatone = str_replace('tabindex="-1" role="dialog" aria-hidden="true"', '', $fileaquatone);
 
-            /** Copy the screenshots from the volume to folder in order to be accessible from nginx **/
-            //$movescreenshots = "sudo chmod -R 777 /screenshots/" . $taskid . "/screenshots && cp -R --remove-destination /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/ && sudo rm -r /screenshots/" . $taskid . "/ && sudo rm -r /dockerresults/" . $taskid . "";
+            $fileaquatone = str_replace('modal fade in', 'modal', $fileaquatone);
+
+            $fileaquatone = str_replace('modal fade', 'modal', $fileaquatone);
+
+            /** Link the screenshots from the volume to folder in order to be accessible from nginx **/
 
             $movescreenshots = "sudo chmod -R 777 /screenshots/" . $taskid . "/screenshots && ln -s /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/screenshots/" . $taskid . " ";
 
             //&& sudo chmod -R 777 /var/www/app/frontend/web/screenshots/" . $taskid . "
 
-            $fileaquatone = preg_replace('/\<footer.*\<\/footer\>/', '', $fileaquatone, -1);
+            $fileaquatone = preg_replace('/\<footer.*footer\>/', '', $fileaquatone, -1);
 
-            $fileaquatone = preg_replace('/\<nav.*\<\/nav\>/', '', $fileaquatone, -1);
+            //$fileaquatone = preg_replace('/\<nav.*nav\>/', '', $fileaquatone, -1);
+
+            //{ currentRoute: window.location.hash });
+
+            //pages/by-similarity
+
+
+            //#/pages/by-similarity
 
             $fileaquatone = aquatone::removeEmoji($fileaquatone);
 
@@ -148,7 +158,7 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 30000 -threads 5 -scan-timeout 10000 -ports xlarge -http-timeout 30000 -screenshot-timeout 40000  -out /screenshots/" . $taskid . " -save-body false -similarity 0.85 -screenshot-delay 5000 ";
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 5 -scan-timeout 10000 -ports xlarge -http-timeout 30000 -screenshot-timeout 90000  -out /screenshots/" . $taskid . " -save-body false -similarity 0.85 -screenshot-delay 5000 ";
         }
 //-chrome-path /usr/bin/chromium-browser
         
@@ -158,7 +168,7 @@ class Aquatone extends ActiveRecord
 
         //for nmap results
         if ( preg_match("/(\w\d\_\-)*\.xml/i", $filename) !== 0 ) {
-            $command = "cat " . $filename . " | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 15000 -threads 20 -scan-timeout 10000 -screenshot-timeout 45000 -out /screenshots/" . $taskid . " -save-body false -nmap -similarity 0.85 -screenshot-delay 5000 ";
+            $command = "cat " . $filename . " | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 20 -scan-timeout 10000 -screenshot-timeout 95000 -out /screenshots/" . $taskid . " -save-body false -nmap -similarity 0.85 -screenshot-delay 5000 ";
 
             //echo($command);
         }

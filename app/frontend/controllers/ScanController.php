@@ -50,6 +50,7 @@ class ScanController extends Controller
             if (Yii::$app->user->id === $result['userid']) {
 
                 $this->view->title = $result['host'];
+                $this->layout = 'fluid';
 
                 $host = $result['host'];
 

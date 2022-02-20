@@ -523,8 +523,14 @@ class VerifyController extends Controller
             }
 
             if ( !empty($nmapips) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "ips=' . implode( PHP_EOL, $nmapips ) . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
+                //we put ips to file because curl cant send 10000+ ips.
+                $randomid = rand(100000, 900000000000);
+                $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
+                file_put_contents($scanIPS, $nmapips);
+
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
                     . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &'); 
+
                 $tools_amount_nmap++;
             }
 

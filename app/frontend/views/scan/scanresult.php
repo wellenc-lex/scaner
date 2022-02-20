@@ -10,7 +10,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/scanresult.js', [
     ]
 ]);
 
-$this->registerJsFile('https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js', [
+$this->registerJsFile('https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js', [
     'depends' => [
         JqueryAsset::className()
     ]
@@ -22,7 +22,7 @@ $this->registerJsFile('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootst
     ]
 ]);
 
-$this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js', [
+$this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap4.min.js', [
     'depends' => [
         JqueryAsset::className()
     ]
@@ -44,9 +44,9 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
     <?php if (isset($subtakeover)) $subtakeover = json_decode($subtakeover, true); else $subtakeover = "" ?>
     <?php if (isset($js)) $js = base64_decode($js); else $js = "" ?>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <link rel="stylesheet" href="https://bootswatch.com/3/darkly/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/dataTables.bootstrap4.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
             integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
             crossorigin="anonymous"></script>
@@ -146,7 +146,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.10.19/js/dataTables.bootstra
         <div class="container-fluid">
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav"
+                <ul class="nav"
                     style="text-align: center; display: inline-block; float: none; width: 100%">
                     <a class="navbar-brand" href="/site/profile/"><span class="glyphicon glyphicon-home"></span></a>
                     <?php if ($nmap != ""): ?>

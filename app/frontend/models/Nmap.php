@@ -84,10 +84,10 @@ class Nmap extends ActiveRecord
 
         $scripts = " --script=http-brute --script=ajp-brute --script=ftp-brute --script='vnc-info,realvnc-auth-bypass,vnc-title,vnc-brute' --script=svn-brute --script=smb-brute --script-args http-wordpress-brute.threads=1,".
         "ajp-brute.timeout=2h,ftp-brute.timeout=2h,vnc-brute.timeout=2h,svn-brute.timeout=2h,smb-brute.timeout=2h,ms-sql-brute.timeout=2h,pgsql-brute.timeout=2h,mysql-brute.timeout=2h,".
-        "http-brute.timeout=10h,brute.delay=1,unpwdb.timelimit=2h,brute.firstonly=1 --script amqp-info  --script 'mongo* and default' ".
+        "http-brute.timeout=10h,brute.delay=1,unpwdb.timelimit=2h,brute.firstonly=1 --script amqp-info  --script 'mongo* and default' --script '*dns*' ".
         " --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-brute --script mysql-empty-password --script smb-os-discovery --script nfs-ls --script redis-brute".
         " --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap-fingerprints.lua,http-default-accounts.timeout=10h --script ms-sql-brute". 
-        " --script pgsql-brute --script smb-protocols --script 'rmi-dumpregistry or rmi-vuln-classloader' --script memcached-info --script 'docker-*' --script 'rabbit*' -sC";
+        " --script pgsql-brute --script smb-protocols --script 'rmi-*' --script memcached-info --script 'docker-*' --script amqp-info -sC";
     
         //try -f --badsum to bypass IDS 
 
@@ -107,10 +107,6 @@ class Nmap extends ActiveRecord
 
         return aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
     }
-
-
-
-
 
 //docker run -it --rm rustscan/rustscan:latest -t 5000 -b 100 --scan-order "Random" -a '8.8.8.8,ya.ru' -- -A -sC -Pn -t 2000 -b 100 --scan-order "Random" -a '8.8.8.8,ya.ru' -- -A -sC -a 'hosts.txt'
 

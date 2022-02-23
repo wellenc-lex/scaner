@@ -158,17 +158,14 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 5 -scan-timeout 10000 -ports xlarge -http-timeout 30000 -screenshot-timeout 90000  -out /screenshots/" . $taskid . " -save-body false -similarity 0.85 -screenshot-delay 5000 ";
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 5 -scan-timeout 10000 -ports xlarge -http-timeout 30000 -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -similarity 0.9 -screenshot-delay 5000 ";
         }
 //-chrome-path /usr/bin/chromium-browser
-        
-
-        //-follow-redirect
 
 
         //for nmap results
         if ( preg_match("/(\w\d\_\-)*\.xml/i", $filename) !== 0 ) {
-            $command = "cat " . $filename . " | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 20 -scan-timeout 10000 -screenshot-timeout 95000 -out /screenshots/" . $taskid . " -save-body false -nmap -similarity 0.85 -screenshot-delay 5000 ";
+            $command = "cat " . $filename . " | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 20 -scan-timeout 10000 -screenshot-timeout 95000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -nmap -similarity 0.9 -screenshot-delay 5000 ";
 
             //echo($command);
         }

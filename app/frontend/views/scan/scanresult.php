@@ -299,6 +299,11 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
             <a style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/" rel="noreferrer">https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/</a>
         </div>
+
+        <div style="text-align: center">
+            <a style="vertical-align: middle; text-align: center; font-size:25px"
+                href="https://www.google.com/search?q=%28site:groups.google.com%29%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> site:groups.google.com </a>  
+        </div>
               
         <div style="text-align: center">
             <a style="vertical-align: middle; text-align: center; font-size:25px"
@@ -626,7 +631,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr>   
-                                                                            <td style="word-wrap: break-word; max-width: 100px;">
+                                                                            <td style="word-wrap: break-word;">
                                                                                 <?php echo(nl2br(htmlspecialchars(base64_decode($scan["response"])))); ?>   
                                                                             </td>
                                                                         </tr> 
@@ -647,7 +652,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
             </div>
         </div>
 
-        <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
+        <div class="modal" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -835,7 +840,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
             </div>
         </div>
 
-        <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
+        <div class="modal" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -1051,7 +1056,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
                 </div>
             </div>
 
-            <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
+            <div class="modal" tabindex="-1" role="dialog" aria-hidden="true" id="details_modal">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">

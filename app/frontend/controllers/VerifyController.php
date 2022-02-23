@@ -1,18 +1,15 @@
 <?php
 
 namespace frontend\controllers;
-
 use common\models\User;
 use frontend\models\PassiveScan;
 use frontend\models\Queue;
 use frontend\models\SentEmail;
 use frontend\models\Tasks;
 use frontend\models\ToolsAmount;
-
 use frontend\models\Nmap;
 use Yii;
 use yii\web\Controller;
-
 
 /**
  * Scan controller
@@ -21,9 +18,7 @@ class VerifyController extends Controller
 {
     public function actionQueue()
     {
-
         //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=reverseip, 5=whatweb, 6=ips, 7=vhost, 8=nuclei, 9=jsa
-
         $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
         $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
 
@@ -57,9 +52,9 @@ class VerifyController extends Controller
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
-            $max_amass = 3; $max_ffuf = 150; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
+            $max_amass = 4; $max_ffuf = 150; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 600; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
 
-            $max_nmap = 8; $max_nmap_in_task = 4; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_nmap = 6; $max_nmap_in_task = 4; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -526,7 +521,7 @@ class VerifyController extends Controller
                 //we put ips to file because curl cant send 10000+ ips.
                 $randomid = rand(100000, 900000000000);
                 $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
-                file_put_contents($scanIPS, $nmapips);
+                file_put_contents($scanIPS, implode( PHP_EOL, $nmapips ) );
 
                 exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
                     . '&secret=' . $secret  . '" https://dev.localhost.soft/scan/nmap >/dev/null 2>/dev/null &'); 

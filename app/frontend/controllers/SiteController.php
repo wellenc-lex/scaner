@@ -420,6 +420,8 @@ class SiteController extends Controller
 
                         rsort($urls);
 
+                        $urls = array_unique($urls);
+
                         foreach ($urls as $currenturl){
 
                             if ($currenturl != "") { //if isnt empty
@@ -433,14 +435,24 @@ class SiteController extends Controller
                                 }
 
                                 if( dirscan::bannedsubdomains($currenthost) !== 0 ){
-                                    continue; //no need to ffuf subdomain like docs.smth.com - low chance of juicy fruits here
+                                    
+                                    if ( !isset($url["manual"]) ) //scan created with api call instead of user request
+                                    {
+                                        continue; //no need to ffuf subdomain like docs.smth.com - low chance of juicy fruits here
+                                    }
+
                                 }
 
                                 if( !in_array($currenthost, $hostnames ) ){
 
+                                    if ( isset($url["manual"]) ) //scan created with another api call instead of manual request
+                                    {
+                                        $urltoscan = $currenturl; // saves to db with pdo + checks in newscan model would protect from sqlis and xss
+                                    } else $urltoscan = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff if being created by api call
+
                                     $tasks = new Tasks();
 
-                                    $tasks->host = dirscan::ParseScheme($currenturl).$currenthost;
+                                    $tasks->host = $urltoscan;
 
                                     $queue = new Queue();
                                     
@@ -451,7 +463,7 @@ class SiteController extends Controller
                                         $queue->dirscanIP = dirscan::ParseIP($url["dirscanIp"]);
                                     }
 
-                                    $queue->dirscanUrl = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff
+                                    $queue->dirscanUrl = $urltoscan; 
                                     $queue->save();
 
                                     $tasks->dirscan_status = "Working";

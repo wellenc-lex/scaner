@@ -33,10 +33,12 @@ class Newscan extends Model
 
     public $ips;
 
+
     public $activescan;
     public $passivescan;
     public $notify;
     public $passive;
+    public $manual;
 
     public $gitPassiveUrl;
     public $gitCompany;
@@ -94,6 +96,8 @@ class Newscan extends Model
             [['vhostPort'], 'match', 'pattern' => '/^([0-9\ \.\:\r\n]+)$/'],
 
             [['vhostSsl'], 'boolean'],
+
+            [['manual'], 'boolean'],
 
             [['ips'], 'string', 'length' => [3, 255]],
             [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],

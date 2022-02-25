@@ -19,7 +19,7 @@ class Dirscan extends ActiveRecord
     public function bannedsubdomains($in)
     {
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
-            return 0; //if its used for internal or develop purposes - scan anyway
+            return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
             return preg_match("/link|img|cdn|sentry|support|^ws|wiki|status|static|blog|socket|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|cdn|sentry|url(\d)*/i", $in);
         }
@@ -198,10 +198,10 @@ class Dirscan extends ActiveRecord
     {
         $url = strtolower($url);
 
-        preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n\?]+)/i", $url, $port); //get hostname only
+        preg_match_all("/\:[\d[\r\n\?]+/i", $url, $port); //get hostname only
 
-        if(isset($port[2][1]) && $port[2][1]!="") {
-            $port = ":".$port[2][1]; 
+        if(isset($port[0][0]) && $port[0][0]!="") {
+            $port = $port[0][0]; 
         } else $port = "";
         
         return trim( $port, ' '); // :8443
@@ -326,9 +326,15 @@ class Dirscan extends ActiveRecord
 
             $hostonly = preg_replace("/(\w\d\-\_)*\./", "", $domainfull); //hostname without subdomain and .com at the end
 
+            $firstpartofsubdomain = preg_match('/^[\w\d\-\_]+/', $hostname, $matches); 
+
+            $firstpartofsubdomain = $matches[0];
+
             if ($domainfull == $hostonly) $hostonly = ""; //remove duplicate extension from scan
 
-            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly;
+            if ( ($firstpartofsubdomain == $hostonly) || ($firstpartofsubdomain == $domainfull) ) $firstpartofsubdomain = ""; //remove duplicate extension from scan
+
+            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly.",".$firstpartofsubdomain;
 
             if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
 

@@ -2,8 +2,7 @@
 
 /* @var $this yii\web\View */
 
-$this->title = '';
-$this->params['fluid'] = true;
+$this->title = 'Scan your infrastructure with us';
 
 ?>
 
@@ -23,8 +22,6 @@ $this->params['fluid'] = true;
 <link rel="apple-touch-icon" sizes="72x72" href="img/apple-touch-icon-72x72.png">
 <link rel="apple-touch-icon" sizes="114x114" href="img/apple-touch-icon-114x114.png">
 
-<!-- Bootstrap -->
-<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="fonts/font-awesome/css/font-awesome.css">
 
 

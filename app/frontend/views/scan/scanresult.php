@@ -28,6 +28,8 @@ $this->registerJsFile('https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap
     ]
 ]);
 
+$this->params['fluid'] = true;
+
 ?>
 
 <?php if (!Yii::$app->user->isGuest): ?>

@@ -52,7 +52,7 @@ class VerifyController extends Controller
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
 
-            $max_amass = 4; $max_ffuf = 150; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 600; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
+            $max_amass = 3; $max_ffuf = 100; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 600; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
 
             $max_nmap = 6; $max_nmap_in_task = 4; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 

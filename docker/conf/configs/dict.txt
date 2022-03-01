@@ -18,6 +18,8 @@ DIRC
 Dockerfile
 docker-compose.yml
 Jenkinsfile
+default.%EXT
+database/default.%EXT
 shared/admin/.env
 admin/.env
 admin/config/secrets.yml
@@ -30,6 +32,8 @@ deploy/
 deployer/
 config_app/settings/local.env
 config/settings/local.env
+java/monitor
+monitor
 config_app/local.env
 config/local.env
 config/settings/.env

@@ -436,7 +436,7 @@ class Amass extends ActiveRecord
 
         //$amassconfig = "/configs/amass". rand(1,6). ".ini";
 
-        $amassconfig = "/configs/amass5.ini";
+        $amassconfig = "/configs/amass6.ini";
 
 
 

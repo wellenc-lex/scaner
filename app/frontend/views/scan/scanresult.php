@@ -809,7 +809,7 @@ $this->params['fluid'] = true;
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr>   
-                                                                            <td style="word-wrap: break-word; max-width: 100px;">
+                                                                            <td style="word-wrap: break-word;">
                                                                                 <?php echo(nl2br(htmlspecialchars(base64_decode($scan["resultfile"])))); ?>   
                                                                             </td>
                                                                         </tr> 
@@ -824,7 +824,7 @@ $this->params['fluid'] = true;
                                         <td style=" width: 40px">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px; max-width: 140px; width: 40px;">
+                                                    style="height: 40px; min-height: 40px; width: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <b style="vertical-align: middle;"><?php echo $scan["redirect"]; ?></b>
                                                     </div>
@@ -1035,7 +1035,7 @@ $this->params['fluid'] = true;
                                                     <tbody>
                                                             
                                                             <tr>   
-                                                                <td style="word-wrap: break-word; max-width: 100px;">
+                                                                <td style="word-wrap: break-word;">
                                                                     <?php echo(nl2br(htmlspecialchars(base64_decode($vhost["resultfile"])))); ?>   
                                                                 </td>
                                                             </tr>

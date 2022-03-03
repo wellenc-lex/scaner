@@ -11,6 +11,101 @@ ini_set('max_execution_time', 0);
 
 class Amass extends ActiveRecord
 {
+    public static function amassscan($input)
+    {
+
+        $url = $input["url"];
+        $taskid = (int) $input["taskid"]; if($taskid=="") {
+            $tasks = new Tasks();
+            $taskid = $tasks->taskid;
+        }
+
+        $url = strtolower($url);
+        $url = dirscan::ParseHostname($url);
+
+        $url = str_replace("www.", "", $url);
+
+        $randomid =  (int) $input["queueid"];//rand(1,100000000);
+        htmlspecialchars($url);
+
+        $gauoutputname="/dockerresults/" . $randomid . "uniquegau.txt";
+        $gau = amass::gauhosts($url, $randomid, $gauoutputname);
+
+        $enumoutput = "/dockerresults/" . $randomid . "amass.json";
+
+        $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
+
+        //$amassconfig = "/configs/amass". rand(1,6). ".ini";
+
+        $amassconfig = "/configs/amass7.ini";
+
+
+
+
+
+        if( !file_exists($amassconfig) ){
+            $amassconfig = "/configs/amass1.ini";
+        }
+
+
+
+
+        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
+
+        exec($command);
+
+        if ( file_exists($enumoutput) ) {
+            $fileamass = file_get_contents($enumoutput);
+        } else {
+            sleep(2000);
+            exec($command);
+            
+            if ( !file_exists($enumoutput) ) {
+                exec("sudo rm /dockerresults/" . $randomid . "*");
+            }
+
+            $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
+        }
+
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
+
+        if ( file_exists($inteloutput) ){
+            $intelamass = file_get_contents($inteloutput);
+
+            $intelamass = array_unique(explode(PHP_EOL,$intelamass));
+
+            if ( $intelamass != "" ){
+                amass::saveintelToDB($taskid, $intelamass);
+            }
+        }
+
+        //We need valid json object instead of separate json strings
+        $fileamass = str_replace("}
+{\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
+
+        $fileamass = str_replace("} {", "},{", $fileamass);
+
+        $fileamass = str_replace("}
+{", "},{", $fileamass);
+
+        $fileamass = str_replace("}
+{\"name\"", "},{\"name\"", $fileamass);
+
+        $amassoutput = '[' . $fileamass . ']';
+
+        $aquatoneoutput = "[]"; #aquatone::aquatone($randomid);
+
+        $subtakeover = 0;
+
+        $vhosts = json_encode( amass::vhosts($amassoutput, $gau, $taskid, $randomid) );
+
+        amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
+
+        dirscan::queuedone($input["queueid"]);
+
+        return exec("sudo rm /dockerresults/" . $randomid . "*");
+    }
+
     public static function tableName()
     {
         return 'tasks';
@@ -201,9 +296,11 @@ class Amass extends ActiveRecord
 
                 foreach ($intelamass as $inteldomain) {
 
-                    if ( !in_array($inteldomain, $domains) ) { //if not found in array
-                        $intelresults[] = $inteldomain;
-                        $domains[] = $inteldomain; // all the domains ever found by amass intel
+                    if( !empty($inteldomain) ) {
+                        if ( !in_array($inteldomain, $domains) ) { //if not found in array
+                            $intelresults[] = $inteldomain;
+                            $domains[] = $inteldomain; // all the domains ever found by amass intel
+                        }
                     }
                 }
 
@@ -408,101 +505,6 @@ class Amass extends ActiveRecord
         } else $output="[]";
         
         return $output;
-    }
-
-    public static function amassscan($input)
-    {
-
-        $url = $input["url"];
-        $taskid = (int) $input["taskid"]; if($taskid=="") {
-            $tasks = new Tasks();
-            $taskid = $tasks->taskid;
-        }
-
-        $url = strtolower($url);
-        $url = dirscan::ParseHostname($url);
-
-        $url = str_replace("www.", "", $url);
-
-        $randomid =  (int) $input["queueid"];//rand(1,100000000);
-        htmlspecialchars($url);
-
-        $gauoutputname="/dockerresults/" . $randomid . "uniquegau.txt";
-        $gau = amass::gauhosts($url, $randomid, $gauoutputname);
-
-        $enumoutput = "/dockerresults/" . $randomid . "amass.json";
-
-        $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
-
-        //$amassconfig = "/configs/amass". rand(1,6). ".ini";
-
-        $amassconfig = "/configs/amass6.ini";
-
-
-
-
-
-        if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass1.ini";
-        }
-
-
-
-
-        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
-
-        exec($command);
-
-        if ( file_exists($enumoutput) ) {
-            $fileamass = file_get_contents($enumoutput);
-        } else {
-            sleep(2000);
-            exec($command);
-            
-            if ( !file_exists($enumoutput) ) {
-                exec("sudo rm /dockerresults/" . $randomid . "*");
-            }
-
-            $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
-        }
-
-        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
-
-        if ( file_exists($inteloutput) ){
-            $intelamass = file_get_contents($inteloutput);
-
-            $intelamass = array_unique(explode(PHP_EOL,$intelamass));
-
-            if ( $intelamass != "" ){
-                amass::saveintelToDB($taskid, $intelamass);
-            }
-        }
-
-        //We need valid json object instead of separate json strings
-        $fileamass = str_replace("}
-{\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
-
-        $fileamass = str_replace("} {", "},{", $fileamass);
-
-        $fileamass = str_replace("}
-{", "},{", $fileamass);
-
-        $fileamass = str_replace("}
-{\"name\"", "},{\"name\"", $fileamass);
-
-        $amassoutput = '[' . $fileamass . ']';
-
-        $aquatoneoutput = "[]"; #aquatone::aquatone($randomid);
-
-        $subtakeover = 0;
-
-        $vhosts = json_encode( amass::vhosts($amassoutput, $gau, $taskid, $randomid) );
-
-        amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
-
-        dirscan::queuedone($input["queueid"]);
-
-        return exec("sudo rm /dockerresults/" . $randomid . "*");
     }
 
 }

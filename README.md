@@ -36,7 +36,7 @@ Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compo
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
 
-Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.app/phpmyadmin
+Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.local/phpmyadmin/
 
 Special thanks to these tools developers:
 https://github.com/OWASP/Amass

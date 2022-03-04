@@ -38,8 +38,6 @@ class VerifyController extends Controller
 
             $tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
 
-            $tools_amount_jsa     = (int) exec('sudo docker ps | grep "jsa" | wc -l');
-
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
             $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
@@ -48,13 +46,11 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
+            $max_amass = 1; $max_ffuf = 100; $max_vhost = 10; $max_jsa = 0; $max_nuclei = 1; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
-            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
+            //$max_amass = 2; $max_ffuf = 150; $max_nmap = 6; $max_vhost = 20; $max_nuclei = 0; $max_nuclei_in_task = 600; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 3; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-            $max_amass = 3; $max_ffuf = 100; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 600; $max_jsa = 0; $max_ips = 3; $max_whatweb = 0; $max_whatweb_in_task = 50;
-
-            $max_nmap = 6; $max_nmap_in_task = 4; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -363,39 +359,6 @@ class VerifyController extends Controller
 
                                 $nuclei_in_task++;
                             }
-                        }
-                    }
-                }
-            }
-
-            if( $tools_amount_jsa < $max_jsa ){
-                //JS Analysis
-                $queues = Queue::find()
-                    ->andWhere(['working' => "0"])
-                    ->andWhere(['todelete' => "0"])
-                    ->andWhere(['instrument' => "9"])
-                    ->andWhere(['passivescan' => "0"])
-                    ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_jsa)
-                    ->all();
-
-                foreach ($queues as $results) {
-
-                    if ($results != NULL) {
-
-                        if ($tools_amount_jsa < $max_jsa ) {
-
-                            $results->working = 1;
-
-                            $url = $results->dirscanUrl;
-
-                            if ($url != "") {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url . '&queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret 
-                                    . '" https://dev.localhost.soft/scan/jsa > /dev/null 2>/dev/null &');
-                            }
-                            $results->save();
-
-                            $tools_amount_jsa++;
                         }
                     }
                 }

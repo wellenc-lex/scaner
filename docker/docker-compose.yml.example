@@ -82,7 +82,7 @@ services:
       PMA_HOST: db
       MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
-      PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
+      PMA_ABSOLUTE_URI: "https://scaner.local/phpmyadmin/"
       UPLOAD_LIMIT: 3000000000
     networks:
       - default

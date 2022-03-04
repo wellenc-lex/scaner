@@ -70,16 +70,6 @@ class Dirscan extends ActiveRecord
         $output_ffuf = preg_replace("/(null,{)|(null,.?\[)/", "", $output_ffuf);
 
         if( $output_ffuf === 'null' || $output_ffuf === '[null]' || $output_ffuf === '[]' || $output_ffuf === '[[]]' ||  $output_ffuf === '' ||  $output_ffuf === '{}' ||  $output_ffuf === '[{}]'){
-            
-            $dirscan = new Tasks();
-            $dirscan->host = $hostname;
-            $dirscan->dirscan_status = "Rescan";
-            $dirscan->dirscan = "Rescan";
-            $dirscan->notify_instrument = "3";
-            $dirscan->hidden = "1";
-            $dirscan->date = date("Y-m-d H-i-s");
-
-            $dirscan->save();
 
             return 1; //save empty results to maaybe scan manually later
         } else {

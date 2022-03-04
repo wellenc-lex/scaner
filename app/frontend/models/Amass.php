@@ -297,7 +297,11 @@ class Amass extends ActiveRecord
                 foreach ($intelamass as $inteldomain) {
 
                     if( !empty($inteldomain) ) {
-                        if ( !in_array($inteldomain, $domains) ) { //if not found in array
+                        if ( empty($domains) ){
+                            $domains[] = $inteldomain; // all the domains ever found by amass intel
+                        }
+
+                        else if ( !in_array($inteldomain, $domains) ) { //if not found in array
                             $intelresults[] = $inteldomain;
                             $domains[] = $inteldomain; // all the domains ever found by amass intel
                         }

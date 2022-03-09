@@ -32,7 +32,7 @@ Done. Start the site up:
 
 CD into the docker directory and run:
 
-Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chown -R nginx:nginx /configs && docker exec docker_app_1 ln -s /screenshots/ /var/www/app/frontend/web/
+Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker-app-1:/var/www/app/.env && docker cp conf/configs/ docker-app-1:/ && docker exec docker-app-1 chown -R nginx:nginx /configs
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
 

@@ -93,6 +93,15 @@ $this->params['fluid'] = true;
             display: none;
         }
 
+        .panel {
+            background-color: beige !important;
+        }
+
+        .linkstyle {
+            color: blue !important;
+            font-weight: bolder;
+        }
+
         .cluster:nth-child(even) {
             border-bottom: 1px solid rgb(68, 68, 68) !important;
             padding: 30px 20px 20px 20px !important;
@@ -109,13 +118,18 @@ $this->params['fluid'] = true;
             white-space: nowrap;
         }
 
-        .table > thead > tr > td.warning, .table > tbody > tr > td.warning, .table > tfoot > tr > td.warning, .table > thead > tr > th.warning, .table > tbody > tr > th.warning, .table > tfoot > tr > th.warning, .table > thead > tr.warning > td, .table > tbody > tr.warning > td, .table > tfoot > tr.warning > td, .table > thead > tr.warning > th, .table > tbody > tr.warning > th, .table > tfoot > tr.warning > th {
-            background-color: #f39c12 !important;
-        }
-
         .table > thead > tr > td.success, .table > tbody > tr > td.success, .table > tfoot > tr > td.success, .table > thead > tr > th.success, .table > tbody > tr > th.success, .table > tfoot > tr > th.success, .table > thead > tr.success > td, .table > tbody > tr.success > td, .table > tfoot > tr.success > td, .table > thead > tr.success > th, .table > tbody > tr.success > th, .table > tfoot > tr.success > th {
             background-color: #00bc8c !important;
         }
+
+        .table.dataTable{
+            color: black;
+        }
+
+        .dataTables_wrapper {
+            color: black !important;
+        }
+
 
         ::-webkit-scrollbar {
             height: 7px !important;
@@ -244,7 +258,7 @@ $this->params['fluid'] = true;
                             ?>
                             <tr style="text-align: center" valign="middle">
                                 <td align="center" style="text-align: center" valign="middle" width="35%">
-                                    <a style="vertical-align: middle;"
+                                    <a class='linkstyle' style="vertical-align: middle;"
                                        href="http://<?php echo $json["name"]; ?>" rel="noreferrer"><?php echo $json["name"]; ?></a>
                                 </td>
                                 <td align="center" style="text-align: center" valign="middle" width="35%">
@@ -298,62 +312,62 @@ $this->params['fluid'] = true;
 
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/" rel="noreferrer">https://groups.google.com/a/<?php echo $amass[0]["domain"]; ?>/forum/#!forumsearch/</a>
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=%28site:groups.google.com%29%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> site:groups.google.com </a>  
         </div>
               
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://sites.google.com/a/<?php echo $amass[0]["domain"]; ?>/sites/system/app/pages/meta/dashboard/categories" rel="noreferrer"> https://sites.google.com/a/<?php echo $amass[0]["domain"]; ?>/sites/system/app/pages/meta/dashboard/categories </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://dehashed.com/search?query=<?php echo $amass[0]["domain"]; ?>" rel="noreferrer"> https://dehashed.com/search?query=<?php echo $amass[0]["domain"]; ?> </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href='https://github.com/search?p=1&s=indexed&q="<?php echo $amass[0]["domain"] ?>"&type=Code' rel="noreferrer"> https://github.com/search?p=1&q=<?php echo $amass[0]["domain"]; ?>&type=Code&s=indexed </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=-cdn+-help+-support+-static+-img+-image+site%3A.<?php echo $amass[0]["domain"]; ?>+%28ext%3Axml+%7C+ext%3Aconf+%7C+ext%3Acnf+%7C+ext%3Areg+%7C+ext%3Ainf+%7C+ext%3Ardp+%7C+ext%3Acfg+%7C+ext%3Atxt+%7C+ext%3Aora+%7C+ext%3Aini+%7C+ext%3Aphp+%7C+ext%3Aasp%29" rel="noreferrer"> Google extensions </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=site:<?php echo $amass[0]["domain"]; ?>+intitle:index.of" rel="noreferrer"> Index Of </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=%28site:ideone.com+%7C+site:codebeautify.org+%7C+site:codeshare.io+%7C+site:codepen.io+%7C+site:repl.it+%7C+site:justpaste.it+%7C+site:pastebin.com+%7C+site:jsfiddle.net+%7C+site:trello.com+%7C+site:apiary.io%29%20%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=%28site%3Acodepad.co+%7C+site%3Ascribd.com+%7C+site%3Anpm.runkit.com+%7C+site%3Aycombinator.com+%7C+site%3Acoggle.it+%7C+site%3Apapaly.com+%7C+site%3Aprezi.com+%7C+site%3Ajsdelivr.net+%7C+site%3Asharecode.io+%7C+site%3Azoom.us+%7C+site%3Aproductforums.google.com+%7C+site%3Agitter.im+%7C+site%3Abitbucket.org+%7C+site%3A*.atlassian.net%29%20%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> IDE/Pastebin 2</a>  
         </div>
         
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=site:storage.googleapis.com+%22<?php echo $amass[0]["domain"]; ?>%22+-images" rel="noreferrer"> Google Apis </a>  
         </div>
         
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://www.google.com/search?q=site:amazonaws.com+%22<?php echo $amass[0]["domain"]; ?>%22" rel="noreferrer"> Amazon </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://<?php 
                 $domainfull = substr($amass[0]["domain"], 0, strrpos($amass[0]["domain"], ".")); //hostname without www. and .com at the end
 
@@ -362,17 +376,17 @@ $this->params['fluid'] = true;
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href="https://<?php echo $amass[0]["domain"]; ?>.atlassian.net/servicedesk/customer/user/login" rel="noreferrer"> https://<?php echo $amass[0]["domain"]; ?>.atlassian.net/servicedesk/customer/user/login </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href='https://bitbucket.org/<?php echo $amass[0]["domain"]; ?>/profile/projects' rel="noreferrer"> https://bitbucket.org/<?php echo $amass[0]["domain"]; ?>/profile/projects </a>  
         </div>
 
         <div style="text-align: center">
-            <a style="vertical-align: middle; text-align: center; font-size:25px"
+            <a class='linkstyle' style="vertical-align: middle; text-align: center; font-size:25px"
                 href='https://bitbucket.org/<?php echo $hostonly; ?>/profile/projects' rel="noreferrer"> https://bitbucket.org/<?php echo $hostonly; ?>/profile/projects </a>  
         </div>
 
@@ -411,7 +425,7 @@ $this->params['fluid'] = true;
                             <tr style="text-align: center" valign="middle">
 
                                 <td align="center" style="text-align: center" valign="middle" width="35%">
-                                    <a style="vertical-align: middle;"
+                                    <a class='linkstyle' style="vertical-align: middle;"
                                        href="http://<?php echo $json; ?>" rel="noreferrer"><?php echo $json; ?></a>
                                 </td>
 
@@ -436,7 +450,7 @@ $this->params['fluid'] = true;
         <script>
 
             $(document).ready(function () {
-                $('#table-amassinteltable').DataTable();
+                $('#table-amassinteltable').DataTable({"pageLength": 1000, "order": [[ 0, "desc" ]]});
             });
 
         </script>
@@ -597,7 +611,7 @@ $this->params['fluid'] = true;
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <a style="vertical-align: middle;"
+                                                        <a class='linkstyle' style="vertical-align: middle;"
                                                            href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo $scan["matched"]; ?></a>
                                                     </div>
                                                 </li>
@@ -621,7 +635,7 @@ $this->params['fluid'] = true;
                                                         <div class="page card mb-3">
 
                                                             <div class="card-footer text-muted">
-                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                                <a class='linkstyle' style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
                                                             </div>
 
                                                             <div class="response-headers-container">
@@ -698,6 +712,7 @@ $this->params['fluid'] = true;
         <?php if ($dirscan[0] != '["No file."]' && $dirscan[0] != "No file."): ?>
 
         <style>
+
             .response-headers-container {
                 display: none;
             }
@@ -724,10 +739,10 @@ $this->params['fluid'] = true;
 
         <h3 style="text-align:center" id="dirscan">Dirscan output</h3>
 
-        <div class="panel panel-default">
+        <div class="panel panel-default" style="background-color: black !important;">
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse;">
+                    <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse; background-color: black !important;">
                         <thead>
                         <tr>
                             <th style="text-align:center;">
@@ -762,7 +777,7 @@ $this->params['fluid'] = true;
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: left; width: 540px; white-space: nowrap; overflow:auto; resize: none; ">
-                                                        <a style="vertical-align: middle;"
+                                                        <a class='linkstyle' style="vertical-align: middle;"
                                                            href="<?php echo $scan["url"];?>" rel="noreferrer"><?php echo $scan["url"]; ?></a>
                                                     </div>
                                                 </li>
@@ -797,7 +812,7 @@ $this->params['fluid'] = true;
                                                         <div class="page card mb-3">
 
                                                             <div class="card-footer text-muted">
-                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                                <a class='linkstyle' style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
                                                             </div>
 
                                                             <div class="response-headers-container">
@@ -1178,7 +1193,7 @@ $this->params['fluid'] = true;
                                     echo '<tr style="text-align: left" valign="middle" width="100%">
                                             <td align="left" style="text-align: left" valign="middle">';
 
-                                    echo ("<a style='vertical-align: middle;' href=" . $link . " rel='noreferrer'>" . $link . "</a>");
+                                    echo ("<a class='linkstyle' style='vertical-align: middle;' href=" . $link . " rel='noreferrer'>" . $link . "</a>");
 
                                     echo "</td></tr>";
                                             

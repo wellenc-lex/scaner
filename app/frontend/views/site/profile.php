@@ -468,6 +468,15 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                                 "> Show all pages
                             </div>
 
+                    <div class="btn btn-success btn-xs" style=" margin-left: 5%;" onclick="
+                                    <?php foreach ($amassIntel as $task): ?>
+
+                                            <?php echo('deletefunc(' . $task->taskid . ');'); ?>
+
+                                    <?php endforeach; ?>
+                                "> Delete all intel on page
+                            </div>
+
                 </div>
 
             </div>

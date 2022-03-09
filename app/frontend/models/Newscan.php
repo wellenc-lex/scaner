@@ -47,10 +47,8 @@ class Newscan extends Model
     {
         return [
 
-            [['nmapDomain'], 'string', 'length' => [5, 1000000000]],
             [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
-            [['amassDomain'], 'string', 'length' => [5, 100000]],
             [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:\r\n]+)$/'],
 
             [['dirscanUrl'], 'string'],
@@ -65,7 +63,7 @@ class Newscan extends Model
             [['jsaDomain'], 'string'],
             [['jsaDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
-            [['dirscanIp'], 'string', 'length' => [5, 255]],
+            [['dirscanIp'], 'string', 'length' => [5, 10000]],
             [['dirscanIp'], 'ip'],
 
             [['gitUrl'], 'string', 'length' => [5, 255]],
@@ -99,7 +97,7 @@ class Newscan extends Model
 
             [['manual'], 'boolean'],
 
-            [['ips'], 'string', 'length' => [3, 255]],
+            [['ips'], 'string', 'length' => [3, 100000000000]],
             [['ips'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
 
             [['reverseip'], 'ip'],

@@ -13,11 +13,14 @@ class Amass extends ActiveRecord
 {
     public static function amassscan($input)
     {
+        global $amassconfig;
 
         $url = $input["url"];
         $taskid = (int) $input["taskid"]; if($taskid=="") {
             $tasks = new Tasks();
             $taskid = $tasks->taskid;
+
+            Yii::$app->db->close();
         }
 
         $url = strtolower($url);
@@ -35,9 +38,9 @@ class Amass extends ActiveRecord
 
         $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
-        //$amassconfig = "/configs/amass". rand(1,6). ".ini";
+        $amassconfig = "/configs/amass". rand(1,9). ".ini";
 
-        $amassconfig = "/configs/amass7.ini";
+        //$amassconfig = "/configs/amass7.ini";
 
 
 
@@ -50,7 +53,7 @@ class Amass extends ActiveRecord
 
 
 
-        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2000 -ip -config ".$amassconfig);
 
         exec($command);
 
@@ -61,22 +64,10 @@ class Amass extends ActiveRecord
             exec($command);
             
             if ( !file_exists($enumoutput) ) {
-                exec("sudo rm /dockerresults/" . $randomid . "*");
+                //exec("sudo rm /dockerresults/" . $randomid . "*");
             }
 
             $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
-        }
-
-        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . escapeshellarg($url) . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
-
-        if ( file_exists($inteloutput) ){
-            $intelamass = file_get_contents($inteloutput);
-
-            $intelamass = array_unique(explode(PHP_EOL,$intelamass));
-
-            if ( $intelamass != "" ){
-                amass::saveintelToDB($taskid, $intelamass);
-            }
         }
 
         //We need valid json object instead of separate json strings
@@ -116,7 +107,7 @@ class Amass extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/img|cdn|sentry|support|^ws|wiki|status|socket|docs|url(\d)*/i", $in);
+            return preg_match("/sentry|support|^ws|wiki|status|socket|docs|url(\d)*/i", $in);
         }
     }
 
@@ -206,7 +197,23 @@ class Amass extends ActiveRecord
                 exec("sudo rm /dockerresults/" . $randomid . "*");
             }
         }
-        
+/*
+        $inteloutput = "/dockerresults/1amassINTEL.txt"; 
+        //Intel mail.ru ASNs  -ipv4
+        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru -org Mail.ru,VK company,Mailru");
+
+        if ( file_exists($inteloutput) ){
+            $intelamass = file_get_contents($inteloutput);
+
+            $intelamass = array_unique(explode(PHP_EOL,$intelamass));
+
+            if ( $intelamass != "" ){
+                amass::saveintelToDB(100, $intelamass);
+            }
+        }
+
+        var_dump("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru");
+*/
         return 1;
     }
 
@@ -262,7 +269,7 @@ class Amass extends ActiveRecord
                 $queue->save();
                 */
                 
-                return Yii::$app->db->close();;
+                return Yii::$app->db->close();
 
             } catch (\yii\db\Exception $exception) {
                 var_dump($exception);
@@ -297,6 +304,11 @@ class Amass extends ActiveRecord
                 foreach ($intelamass as $inteldomain) {
 
                     if( !empty($inteldomain) ) {
+
+                        if (preg_match("/^xn\-\-/i", $inteldomain) === 1){
+                            $inteldomain = idn_to_utf8($inteldomain);
+                        }
+
                         if ( empty($domains) ){
                             $domains[] = $inteldomain; // all the domains ever found by amass intel
                         }
@@ -309,7 +321,7 @@ class Amass extends ActiveRecord
                 }
 
                 //if there are unique domains in output
-                if ( $intelresults != "" && $intelresults != "[]" ){
+                if ( !empty($intelresults) ){
 
                     Yii::$app->db->open();
 
@@ -355,7 +367,7 @@ class Amass extends ActiveRecord
 
     public function vhosts($amassoutput, $gau, $taskid, $randomid)
     {
-        global $maindomain; global $wordlist;
+        global $maindomain; global $wordlist; global $amassconfig;
         //get subdomain names from amass and gau to use it as virtual hosts wordlist
 
         /*
@@ -377,12 +389,12 @@ class Amass extends ActiveRecord
 
             if (!empty($amassoutput) ){
 
+                $maindomain = $amassoutput[0]["domain"];
+
                 //Get vhost names from amass scan & wordlist file + use only unique ones
                 foreach ($amassoutput as $amass) {
 
                     $name = $amass["name"];
-
-                    $maindomain = $amass["domain"];
 
                     if (strpos($name, 'https://xn--') === false) {
 
@@ -391,6 +403,21 @@ class Amass extends ActiveRecord
                         amass::dosplit($name);
 
                         amass::split2($name);
+                    }
+                }
+            }
+
+            //if domain is not dummy - execute intel on it.
+            if ( count($amassoutput) > 4){
+                exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
+
+                if ( file_exists($inteloutput) ){
+                    $intelamass = file_get_contents($inteloutput);
+
+                    $intelamass = array_unique(explode(PHP_EOL,$intelamass));
+
+                    if ( $intelamass != "" ){
+                        amass::saveintelToDB($taskid, $intelamass);
                     }
                 }
             }
@@ -429,7 +456,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 5 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 5 -timeout 15 -retries 3 -silent -o ". $output ." -l ". $wordlist ."";
         
         exec($httpx);
 
@@ -442,6 +469,8 @@ class Amass extends ActiveRecord
             $alive = array_unique($alive); 
 
             rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates below
+
+            Yii::$app->db->open();
 
             foreach($alive as $url) {
 
@@ -484,6 +513,8 @@ class Amass extends ActiveRecord
             $queue->ipscan = $maindomain;
             $queue->instrument = 6; //ipscan - find IPS associated with this domain
             $queue->save();
+
+            Yii::$app->db->close();
         }
         
         return 1;

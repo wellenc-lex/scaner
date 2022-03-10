@@ -50,10 +50,11 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini";
         }
 
+        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2000 -ip -config ".$amassconfig);
 
-
-
-        $command = ("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w " . $gauoutputname . " -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2000 -ip -config ".$amassconfig);
+        if (filesize($gauoutputname) != 0){
+            $command = $command . " -w " . $gauoutputname;
+        }
 
         exec($command);
 
@@ -456,7 +457,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 5 -timeout 15 -retries 3 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 10 -timeout 15 -retries 3 -silent -o ". $output ." -l ". $wordlist ."";
         
         exec($httpx);
 
@@ -527,7 +528,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 15 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 

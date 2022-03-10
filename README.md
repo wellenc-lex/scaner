@@ -32,9 +32,14 @@ Done. Start the site up:
 
 CD into the docker directory and run:
 
+WINDOWS USERS SHOULD SET THAT VARIABLE before running the docker-compose file: `set COMPOSE_CONVERT_WINDOWS_PATHS=1`
+
 Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker-app-1:/var/www/app/.env && docker cp conf/configs/ docker-app-1:/ && docker exec docker-app-1 chown -R nginx:nginx /configs
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
+
+
+
 
 Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.local/phpmyadmin/
 

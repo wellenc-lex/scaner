@@ -182,7 +182,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id]);
 
             $donepages = new Pagination([
-                'defaultPageSize' => 50,
+                'defaultPageSize' => 150,
                 'totalCount' => $done->count(),
             ]);
 

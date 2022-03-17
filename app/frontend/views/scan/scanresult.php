@@ -98,8 +98,9 @@ $this->params['fluid'] = true;
         }
 
         .linkstyle {
-            color: blue !important;
+            color: green !important;
             font-weight: bolder;
+            font-size: initial;
         }
 
         .cluster:nth-child(even) {
@@ -123,11 +124,11 @@ $this->params['fluid'] = true;
         }
 
         .table.dataTable{
-            color: black;
+            color: white;
         }
 
         .dataTables_wrapper {
-            color: black !important;
+            color: grey !important;
         }
 
 
@@ -739,7 +740,7 @@ $this->params['fluid'] = true;
 
         <h3 style="text-align:center" id="dirscan">Dirscan output</h3>
 
-        <div class="panel panel-default" style="background-color: black !important;">
+        <div class="panel panel-default" style="background-color: beige !important;">
             <div class="panel-body">
                 <div class="table-responsive">
                     <table id="table-dirscan" class="table table-bordered" style="border-collapse: collapse; background-color: black !important;">
@@ -812,7 +813,7 @@ $this->params['fluid'] = true;
                                                         <div class="page card mb-3">
 
                                                             <div class="card-footer text-muted">
-                                                                <a class='linkstyle' style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
                                                             </div>
 
                                                             <div class="response-headers-container">

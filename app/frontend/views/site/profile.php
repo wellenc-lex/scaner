@@ -154,7 +154,7 @@ $this->registerJsFile(Yii::$app->request->baseUrl . '/js/profile.js', [
                             <div class="btn btn-success btn-xs" style=" margin-left: 5%;" onclick="
                                     <?php foreach ($done as $task): ?>
 
-                                            <?php echo('deletefunc(' . $task->taskid . ');'); ?>
+                                            <?php echo('setTimeout( deletefunc(' . $task->taskid . '), 2000);'); ?>
 
                                     <?php endforeach; ?>
                                 "> Delete all done on page

@@ -2,7 +2,6 @@ docker-compose.yml
 conf/nginx/nginxconfig.txt
 conf/configs/amass.ini
 conf/configs/amass*.ini
-conf/configs/crontab.txt
 conf/configs/githoundconfig.yml
 conf/configs/githoundconfig*.yml
 conf/configs/nuclei-templates/*

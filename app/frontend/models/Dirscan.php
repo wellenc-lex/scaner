@@ -21,7 +21,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
-            return preg_match("/link|support|^ws|wiki|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|sentry|url(\d)*/i", $in);
+            return preg_match("/link|support|^ws|wiki|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|sentry|(url(\d)*)/i", $in);
         }
     }
 
@@ -220,7 +220,7 @@ class Dirscan extends ActiveRecord
                         $output_ffuf[$id]["redirect"] = $results["redirectlocation"];
                         if($localhost==1) $output_ffuf[$id]["localhost"] = 1;
 
-                        if ($results["length"] < 230000 ){
+                        if ($results["length"] < 450000 ){
 
                             $resultfilename = "/ffuf/" . $randomid . "/" . $results["resultfile"] . "";
 
@@ -243,7 +243,7 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 15 --fc 404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
@@ -267,6 +267,10 @@ class Dirscan extends ActiveRecord
 
     public static function dirscan($input)
     {
+
+        sleep( rand(2,200) );
+
+
         global $headers; global $usewordlist; global $randomid;
 
         $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'HTTP_X_REAL_IP: 127.0.0.1' -H 'HTTP_X_FORWARDED_FOR: 127.0.0.1' -H 'X-Hackerone: wellenc_lex' "; 
@@ -299,14 +303,6 @@ class Dirscan extends ActiveRecord
 
             $scanurl = $scheme.$hostname.$port;
 
-            if( dirscan::bannedsubdomains($scanurl) !== 0 ){
-                dirscan::addtonuclei($scanurl);
-                dirscan::queuedone($input["queueid"]);
-
-                return 2; //scanning banned subdomains is pointless
-            }
-
-
             if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
                 dirscan::queuedone($input["queueid"]);
                 return 2; //scanning https port with http scheme is pointless
@@ -314,6 +310,13 @@ class Dirscan extends ActiveRecord
 
             if( $scheme==="http://" && ($port===":8443" || $port===":4443") ){
                 $scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
+            }
+
+            if( dirscan::bannedsubdomains($scanurl) !== 0 ){
+                dirscan::addtonuclei($scanurl);
+                dirscan::queuedone($input["queueid"]);
+
+                return 2; //scanning banned subdomains is pointless
             }
 
             $domainfull = substr($hostname, 0, strrpos($hostname, ".")); //hostname without www. and .com at the end
@@ -328,7 +331,7 @@ class Dirscan extends ActiveRecord
 
             if ( ($firstpartofsubdomain == $hostonly) || ($firstpartofsubdomain == $domainfull) ) $firstpartofsubdomain = ""; //remove duplicate extension from scan
 
-            $extensions = "_,0,~1,1,2,3,bac,cache,jar,go,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly.",".$firstpartofsubdomain;
+            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly.",".$firstpartofsubdomain;
 
             if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
 
@@ -341,7 +344,9 @@ class Dirscan extends ActiveRecord
             $ffuf_output = "/ffuf/" . $randomid . "/" . $randomid . ".json";
             $ffuf_output_localhost = "/ffuf/" . $randomid . "/" . $randomid . "localhost.json";
 
-            $ffuf_string = "sudo docker run --cpu-shares 512 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613 -timeout 20 -recursion -recursion-depth 1 -t 1 -p 1.5 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+            //$ffuf_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 40 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+
+            $ffuf_string = "/tmp/ffuf.binary -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -353,15 +358,20 @@ class Dirscan extends ActiveRecord
 
                 $ip = dirscan::ParseIP($input["ip"]);
 
-                $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 0.1 -H " . escapeshellarg('Host: ' . $hostname) . " -p 0.5 -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output . "";
+                $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -H " . escapeshellarg('Host: ' . $hostname) . " -p 0.5 -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output . "  > /dev/null ";
 
-                $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 0.1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output_localhost . " -ac=0 ";
+                $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 0.1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output_localhost . " -ac=0  > /dev/null ";
 
                 exec($start_dirscan_localhost);
                 $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1);
             }
 
-            exec($start_dirscan);
+            exec($start_dirscan, $exec_output, $retval);
+
+            if ( array_search("exiting", $exec_output) !== false ) {
+                sleep( rand(10,80) );
+                exec($start_dirscan);
+            }
 
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
 
@@ -382,7 +392,13 @@ class Dirscan extends ActiveRecord
                         file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
                         $start_dirscan = $ffuf_string . " -mc all -ac -D -e " . escapeshellarg($extensions) . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output . " ";
-                        exec($start_dirscan);
+                        
+                        exec($start_dirscan, $exec_output);
+
+                        if ( array_search("exiting", $exec_output) !== false ) {
+                            sleep( rand(10,30) );
+                            exec($start_dirscan);
+                        }
 
                         $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0);
                     }
@@ -396,7 +412,7 @@ class Dirscan extends ActiveRecord
                     if( !empty($output_ffuf) && $output_ffuf !== 'null' && $output_ffuf !== '[null]' && $output_ffuf !== '[]' && $output_ffuf !== '[[]]' 
                         &&  $output_ffuf !== '' &&  $output_ffuf !== '{}' &&  $output_ffuf !== '[{}]' ){
 
-                        //isset($output_ffuf[1]);
+                        isset($output_ffuf[1]);
                         
                         $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
                     } 

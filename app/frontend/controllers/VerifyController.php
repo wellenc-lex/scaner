@@ -36,7 +36,9 @@ class VerifyController extends Controller
 
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');      
+            $tools_amount_ffuf    = (int) exec('ps | grep "ffuf.binary" | wc -l');
+
+            //$tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');   
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
@@ -46,9 +48,9 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            $max_amass = 2; $max_ffuf = 0; $max_vhost = 50; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 300;
+            $max_amass = 0; $max_ffuf = 3; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 300; $max_jsa = 0; 
 
-            //$max_amass = 1; $max_ffuf = 50; $max_nmap = 0; $max_vhost = 20; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            //$max_amass = 6; $max_ffuf = 800; $max_nmap = 5; $max_vhost = 200; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
 
             if( $tools_amount_nmap < $max_nmap ){
@@ -126,7 +128,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_ffuf-$tools_amount_ffuf)
+                    ->limit(100)
                     ->all();
 
                 foreach ($queues as $results) {
@@ -263,6 +265,7 @@ class VerifyController extends Controller
 
                     //Ipscan
                     $queues = Queue::find()
+                        ->distinct()
                         ->andWhere(['working' => "0"])
                         ->andWhere(['todelete' => "0"])
                         ->andWhere(['instrument' => "6"])
@@ -302,14 +305,14 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "7"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_vhost-$tools_amount_ffuf)
+                    ->limit( $max_vhost )
                     ->all();
 
                 foreach ($queues as $results) {
 
                     if ($results != NULL) {
 
-                        if ($tools_amount_ffuf < $max_vhost) {
+                        if ($tools_amount_ffuf < ( $max_vhost+$max_ffuf ) ) { // if currently already working ffufs amount less then vhost+max ffuf
 
                             $results->working = 1;
 

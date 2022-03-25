@@ -15,6 +15,8 @@ services:
       - default
     depends_on:
       - db
+    links:
+     - db
     volumes:
       - '../app:/var/www/app'
       - './conf/nginx:/etc/nginx/sites-available'
@@ -31,12 +33,12 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"  
+        max-size: "2m" 
     restart: always  
 
   db:
     image: 'mysql:5.7'
-    command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=1G --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
+    command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=4G --wait_timeout=56000 --net_read_timeout=600 --net_write_timeout=600 --connect_timeout=200 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
     restart: always
     networks:
       - default
@@ -47,12 +49,12 @@ services:
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
       MYSQL_DATABASE: scaner
     volumes:
-      - './database:/var/lib/mysql'
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
+      - './database:/var/lib/mysql'
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"  
+        max-size: "2m" 
 
     #docker exec -i docker_db_1 sh -c 'exec mysql -uroot -p"SupeRsecRetpasSword"' < /root/project/scaner2.sql
 
@@ -66,14 +68,12 @@ services:
     volumes:
       - './conf/configs/crontab.txt:/etc/cron.d/crontab'
       - '/var/run/docker.sock:/var/run/docker.sock'
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"    
   
   phpmyadmin:
     depends_on:
       - db
+    links:
+     - db
     image: phpmyadmin/phpmyadmin
     restart: always
     ports:
@@ -82,14 +82,14 @@ services:
       PMA_HOST: db
       MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
-      PMA_ABSOLUTE_URI: "https://scaner.local/phpmyadmin/"
+      PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
       UPLOAD_LIMIT: 3000000000
     networks:
       - default
     logging:
       driver: "json-file"
       options:
-        max-size: "5m" 
+        max-size: "2m" 
   
   amass:
     image: caffix/amass
@@ -101,45 +101,30 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "2m"    
-
+        max-size: "2m" 
+        
   gau:
-    image: 5631/gau
+    image: sxcurity/gau:latest
     networks:
       - default
     volumes:
       - 'dockerresults:/dockerresults'
     logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"
+      driver: none
   
   nmap:
     image: instrumentisto/nmap
     networks:
       - default
     ports:
-      - '53:53'
+      - '22:22'
     volumes:
       - 'nmap:/nmap'
       - 'configs:/configs'
     logging:
       driver: "json-file"
       options:
-        max-size: "2m"  
-
-  ffuf:
-    image: 5631/ffuf
-    networks:
-      - default
-    volumes:
-      - 'dockerresults:/dockerresults'
-      - 'configs:/configs'
-      - 'ffuf:/ffuf'
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"  
+        max-size: "2m" 
 
   nuclei:
     image: projectdiscovery/nuclei
@@ -148,11 +133,10 @@ services:
     volumes:
       - 'nuclei:/nuclei'
       - 'configs:/root/'
-
     logging:
       driver: "json-file"
       options:
-        max-size: "2m"
+        max-size: "2m" 
   
   httpx:
     image: projectdiscovery/httpx
@@ -164,7 +148,7 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "2m"           
+        max-size: "2m"      
 
   #githound:
   #  image: 5631/githound

@@ -4,9 +4,9 @@ return [
     'components' => [
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => getenv('DB_DSN', 'mysql:host=db;dbname=scaner'),
-            'username' => getenv('DB_USER', 'web'),
-            'password' => getenv('DB_PASSWORD', 'web'),
+            'dsn' => getenv('DB_DSN') ?: 'mysql:host=db;dbname=scaner',
+            'username' => getenv('DB_USER'),
+            'password' => getenv('DB_PASSWORD'),
             'charset' => 'utf8mb4',
             'tablePrefix' => '',
         ],
@@ -25,7 +25,7 @@ return [
 
         'request' => [
             'cookieValidationKey' => getenv('COOKIE_VALIDATION_KEY', "SUPERSECRETCOOKIEkeyll"),
-            'trustedHosts' => explode(',', getenv('PROXY_HOST', '192.168.0.0/24')),
+            'trustedHosts' => explode(',', getenv('PROXY_HOST') ?: '192.168.0.0/24' ),
         ],
     ],
 ];

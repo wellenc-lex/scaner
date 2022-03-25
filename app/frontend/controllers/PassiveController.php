@@ -24,8 +24,8 @@ class PassiveController extends Controller
 
     public function actionIndex()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
-        $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
+        $auth = getenv('Authorization') ?: 'Basic bmdpbng6QWRtaW4=';
 
         $secretIN = Yii::$app->request->post('secret');
 
@@ -97,7 +97,7 @@ class PassiveController extends Controller
     //TODO:вызывать функцию diff, которая ищет и меняет отличия в прошлом и новом скане для всех инструментов и добавлять ее результаты в скан
     public function actionNmap()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nmap();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -134,7 +134,7 @@ class PassiveController extends Controller
 
     public function actionAmass()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new amass();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -171,7 +171,7 @@ class PassiveController extends Controller
 
     public function actionDirscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Dirscan();
 
         $secretIN = Yii::$app->request->post('secret');

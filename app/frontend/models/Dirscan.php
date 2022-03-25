@@ -21,7 +21,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
-            return preg_match("/link|support|^ws|wiki|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|sentry|(url(\d)*)/i", $in);
+            return preg_match("/link|support|^ws|wiki|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|git|zendesk|sentry|(url(\d)*)/i", $in);
         }
     }
 
@@ -267,9 +267,7 @@ class Dirscan extends ActiveRecord
 
     public static function dirscan($input)
     {
-
-        sleep( rand(2,200) );
-
+        sleep( rand(2,200) ); //when we create 100+ ffufs in 30 seconds they all execute autocalibrate, get timeout and die.
 
         global $headers; global $usewordlist; global $randomid;
 
@@ -316,6 +314,7 @@ class Dirscan extends ActiveRecord
                 dirscan::addtonuclei($scanurl);
                 dirscan::queuedone($input["queueid"]);
 
+                Yii::$app->db->close();
                 return 2; //scanning banned subdomains is pointless
             }
 
@@ -425,7 +424,7 @@ class Dirscan extends ActiveRecord
 
             dirscan::queuedone($input["queueid"]);
 
-            Yii::$app->db->close();  
+            Yii::$app->db->close();
 
         }
         

@@ -227,7 +227,7 @@ class ScanController extends Controller
 
     public function actionNmap()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nmap();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -240,7 +240,7 @@ class ScanController extends Controller
 
     public function actionAmass()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Amass();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -253,7 +253,7 @@ class ScanController extends Controller
 
     public function actionAmassrestore()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Amass();
 
         $secretIN = Yii::$app->request->get('secret');
@@ -266,7 +266,7 @@ class ScanController extends Controller
 
     public function actionGitscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Gitscan();
 
         Gitscan::gittofile();
@@ -281,7 +281,7 @@ class ScanController extends Controller
 
     public function actionGittofile()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Gitscan();
 
         $secretIN = $secret;//Yii::$app->request->post('secret');
@@ -294,7 +294,7 @@ class ScanController extends Controller
 
     public function actionDirscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Dirscan();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -307,7 +307,7 @@ class ScanController extends Controller
 
     public function actionNuclei()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nuclei();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -320,7 +320,7 @@ class ScanController extends Controller
 
     public function actionJsa()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new jsa();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -333,7 +333,7 @@ class ScanController extends Controller
 
     public function actionReverseipscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Reverseip();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -346,7 +346,7 @@ class ScanController extends Controller
 
     public function actionIpscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Ipscan();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -359,7 +359,7 @@ class ScanController extends Controller
 
     public function actionVhostscan()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Vhostscan();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -372,7 +372,7 @@ class ScanController extends Controller
 
     public function actionWhatweb()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Whatweb();
 
         $secretIN = Yii::$app->request->post('secret');
@@ -385,7 +385,7 @@ class ScanController extends Controller
 
     public function actionForbiddenbypass()
     {
-        $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Forbiddenbypass();
 
         $secretIN = Yii::$app->request->post('secret');

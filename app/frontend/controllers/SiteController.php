@@ -339,8 +339,8 @@ class SiteController extends Controller
                     $reverseip = 0;
                     $whatweb = 0;
 
-                    $auth = getenv('Authorization', 'Basic bmdpbng6QWRtaW4=');
-                    $secret = getenv('api_secret', 'secretkeyzzzzcbv55');
+                    $auth = getenv('Authorization') ?: 'Basic bmdpbng6QWRtaW4=';
+                    $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
                     //checks if at least 1 instrument exists
 
                     if (isset($url["nmapDomain"]) && $url["nmapDomain"] != "") {
@@ -486,7 +486,7 @@ class SiteController extends Controller
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
-                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/gitscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
 
                         $tasks->userid = Yii::$app->user->id;
                         $tasks->save();
@@ -499,7 +499,7 @@ class SiteController extends Controller
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
                         $reverseip = 1;
-                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://dev.localhost.soft/scan/reverseipscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/reverseipscan > /dev/null 2>/dev/null &');
 
                         $tasks->userid = Yii::$app->user->id;
                         $tasks->save();

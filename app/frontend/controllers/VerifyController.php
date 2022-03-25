@@ -46,10 +46,9 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            $max_amass = 1; $max_ffuf = 100; $max_vhost = 10; $max_jsa = 0; $max_nuclei = 1; $max_nmap = 0; $max_nuclei_in_task = 250; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 300;
+            $max_amass = 2; $max_ffuf = 0; $max_vhost = 50; $max_jsa = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 500; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 300;
 
-
-            //$max_amass = 2; $max_ffuf = 150; $max_nmap = 6; $max_vhost = 20; $max_nuclei = 0; $max_nuclei_in_task = 600; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 3; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            //$max_amass = 1; $max_ffuf = 50; $max_nmap = 0; $max_vhost = 20; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
 
             if( $tools_amount_nmap < $max_nmap ){

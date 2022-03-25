@@ -10,6 +10,7 @@ public../main.py
 public../index.py
 assets../main.py
 assets../index.py
+ansible/deploy.yml
 .%EXT%
 .bash_history
 .zsh_history
@@ -34,13 +35,16 @@ config_app/settings/local.env
 config/settings/local.env
 java/monitor
 monitor
+api/notebook
 config_app/local.env
 config/local.env
 config/settings/.env
+static../config.js
 config_app/.env
 config/.env
 config/settings/prod.env
 config_app/prod.env
+project.%EXT%
 config/prod.env
 config/settings/stage.env
 config_app/stage.env
@@ -70,8 +74,6 @@ scripts
 srvadm
 __clockwork
 content/.json
-java/monitor
-monitor
 ci
 docker-compose.override.yml
 test.env
@@ -164,6 +166,13 @@ lk
 lk.%EXT%
 config
 config.%EXT%
+actuator/gateway/routes/
+login/config.json
+login/users.%EXT%
+login/backup.%EXT%
+..;/
+uploadform
+upload
 swagger.json
 Telerik.Web.UI.WebResource.axd
 api.html
@@ -1446,7 +1455,6 @@ static/temp.%EXT%
 %ff/
 &&
 +CSCOU+/../+CSCOE+/files/file_list.json
-..;/
 ..;/..;/
 ..;/x
 .7z
@@ -2129,7 +2137,6 @@ tomcat
 toolbar
 train
 training
-upload
 uploads
 w3
 android

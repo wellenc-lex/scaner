@@ -328,7 +328,7 @@ class Dirscan extends ActiveRecord
 
             if ( ($firstpartofsubdomain == $hostonly) || ($firstpartofsubdomain == $domainfull) ) $firstpartofsubdomain = ""; //remove duplicate extension from scan
 
-            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly.",".$firstpartofsubdomain;
+            $extensions = "_,0,~1,1,2,3,bac,cache,jar,go,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~,".$hostname.",".$domainfull.",".$hostonly.",".$firstpartofsubdomain;
 
             if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $input["ip"] = $matches[0]; //set IP if wasnt specified by user but is in the url
 

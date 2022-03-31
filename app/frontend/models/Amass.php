@@ -413,7 +413,7 @@ class Amass extends ActiveRecord
 
                 $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
-                exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
+                exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
 
                 if ( file_exists($inteloutput) ){
                     $intelamass = file_get_contents($inteloutput);
@@ -460,19 +460,20 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 15 -timeout 35 -retries 2 -silent -o ". $output ." -l ". $wordlist ."";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 20 -timeout 60 -retries 5 -silent -o ". $output ." -l ". $wordlist ." -sr -srd '/dockerresults/httpxresponses/" . $randomid . "' ";
         
         exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
         if (file_exists($output)) {
+
             $alive = file_get_contents($output);
             $alive = explode(PHP_EOL,$alive);
 
             $alive = array_unique($alive); 
 
-            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates below
+            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
 
             Yii::$app->db->open();
 
@@ -519,6 +520,9 @@ class Amass extends ActiveRecord
             $queue->save();
 
             Yii::$app->db->close();
+
+            //amass::jsscan($output);
+
         } else file_get_contents($output); //we need an error to check it out in debugger and rescan later
         
         return 1;
@@ -544,6 +548,30 @@ class Amass extends ActiveRecord
         } else $output="[]";
         
         return $output;
+    }
+
+    public function jsscan($filename)
+    {
+
+        $jsoutput = $filename ."jsscan";
+
+        $jsscan = "sudo chmod -R 777 ". $filename ." && timeout 10000 /tmp/jsubfinder.binary search --crawl -t 10 -s --sig '/tmp/.jsf_signatures.yaml' -f ". $filename ." -o ". $jsoutput;
+
+        exec($jsscan);
+
+        if (file_exists($jsoutput)) {
+            $output = file_get_contents($jsoutput);
+        } else $output="[]";
+
+        //add found domains to the ffuf+whatweb queue
+        //check if domains which are found corresponds with the scope? or jssub does that by iteself?
+
+
+        //dont forget array_unique for all the domains!
+
+        //add to DB inside this function or in the savetodb one?
+        var_dump($output);
+        return 1;
     }
 
 }

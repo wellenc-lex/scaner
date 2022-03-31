@@ -345,22 +345,29 @@ class SiteController extends Controller
 
                     if (isset($url["nmapDomain"]) && $url["nmapDomain"] != "") {
 
-                        $tasks = new Tasks();
-                    
-                        $nmap = 1;
-                        $tasks->host = rtrim($url["nmapDomain"], ',');
-                        $tasks->nmap_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "1"; //1==nmap
+                        $DomainsAlreadyinDB = Queue::find()
+                            ->andWhere(['LIKE', 'nmap', $url["nmapDomain"] ])
+                            ->exists(); 
 
-                        $queue = new Queue();
-                        $queue->nmap = $url["nmapDomain"];
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 1;
-                        $queue->save();
+                        if( $DomainsAlreadyinDB == 0 ){
 
-                        $tasks->userid = Yii::$app->user->id;
-                        $tasks->notification_enabled = $url["notify"];
-                        $tasks->save();
+                            $tasks = new Tasks();
+                        
+                            $nmap = 1;
+                            $tasks->host = rtrim($url["nmapDomain"], ',');
+                            $tasks->nmap_status = "Working";
+                            $tasks->notify_instrument = $tasks->notify_instrument . "1"; //1==nmap
+
+                            $queue = new Queue();
+                            $queue->nmap = $url["nmapDomain"];
+                            $queue->taskid = $tasks->taskid;
+                            $queue->instrument = 1;
+                            $queue->save();
+
+                            $tasks->userid = Yii::$app->user->id;
+                            $tasks->notification_enabled = $url["notify"];
+                            $tasks->save();
+                        }
                     }
 
                     if (isset($url["amassDomain"]) && $url["amassDomain"] != "") {
@@ -450,29 +457,37 @@ class SiteController extends Controller
                                         $urltoscan = $currenturl; // saves to db with pdo + checks in newscan model would protect from sqlis and xss
                                     } else $urltoscan = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff if being created by api call
 
-                                    $tasks = new Tasks();
+                                    $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                                        ->andWhere(['instrument' => '3'])
+                                        ->andWhere(['=', 'dirscanUrl', $urltoscan])
+                                        ->exists();
 
-                                    $tasks->host = $urltoscan;
+                                    if( $DomainsAlreadyinDB == 0 ){
 
-                                    $queue = new Queue();
-                                    
-                                    $queue->taskid = $tasks->taskid;
-                                    $queue->instrument = 3;
+                                        $tasks = new Tasks();
 
-                                    if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
-                                        $queue->dirscanIP = dirscan::ParseIP($url["dirscanIp"]);
+                                        $tasks->host = $urltoscan;
+
+                                        $queue = new Queue();
+                                        
+                                        $queue->taskid = $tasks->taskid;
+                                        $queue->instrument = 3;
+
+                                        if (isset($url["dirscanIp"]) && $url["dirscanIp"] != "") {
+                                            $queue->dirscanIP = dirscan::ParseIP($url["dirscanIp"]);
+                                        }
+
+                                        $queue->dirscanUrl = $urltoscan; 
+                                        $queue->save();
+
+                                        $tasks->dirscan_status = "Working";
+                                        $tasks->notify_instrument = $tasks->notify_instrument . "3";
+
+                                        $hostnames[] = $currenthost;
+
+                                        $tasks->userid = Yii::$app->user->id;
+                                        $tasks->save();
                                     }
-
-                                    $queue->dirscanUrl = $urltoscan; 
-                                    $queue->save();
-
-                                    $tasks->dirscan_status = "Working";
-                                    $tasks->notify_instrument = $tasks->notify_instrument . "3";
-
-                                    $hostnames[] = $currenthost;
-
-                                    $tasks->userid = Yii::$app->user->id;
-                                    $tasks->save();
                                 }
                             }
                         }
@@ -506,22 +521,31 @@ class SiteController extends Controller
                     }
 
                     if (isset($url["ips"]) && $url["ips"] != "") {
-                        $tasks = new Tasks();
 
-                        $tasks->host = $url["ips"];
-                        $tasks->ips_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "6";
-                        
-                        $ips = 1;
+                        $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                            ->andWhere(['instrument' => '6'])
+                            ->andWhere(['=', 'ipscan', $url["ips"] ])
+                            ->exists();
 
-                        $queue = new Queue();
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 6;
-                        $queue->ipscan = $url["ips"];
-                        $queue->save();
+                        if( $DomainsAlreadyinDB == 0 ){
 
-                        $tasks->userid = Yii::$app->user->id;
-                        $tasks->save();
+                            $tasks = new Tasks();
+
+                            $tasks->host = $url["ips"];
+                            $tasks->ips_status = "Working";
+                            $tasks->notify_instrument = $tasks->notify_instrument . "6";
+                            
+                            $ips = 1;
+
+                            $queue = new Queue();
+                            $queue->taskid = $tasks->taskid;
+                            $queue->instrument = 6;
+                            $queue->ipscan = $url["ips"];
+                            $queue->save();
+
+                            $tasks->userid = Yii::$app->user->id;
+                            $tasks->save();
+                        }
                     }
 
                     if (isset($url["whatwebUrl"]) && $url["whatwebUrl"] != "") {
@@ -548,15 +572,25 @@ class SiteController extends Controller
 
                                 if( !in_array($currenthost, $hostnames ) ){
 
-                                    $queue = new Queue();
-                                    
-                                    $queue->instrument = 5;
+                                    $toscan = dirscan::ParseScheme($currenturl).$currenthost;
 
-                                    $queue->dirscanUrl = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff
-                                    
-                                    $queue->save();
+                                    $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                                        ->andWhere(['instrument' => '5'])
+                                        ->andWhere(['=', 'dirscanUrl', $toscan ])
+                                        ->exists();
 
-                                    $hostnames[] = $currenthost;
+                                    if( $DomainsAlreadyinDB == 0 ){
+
+                                        $queue = new Queue();
+                                        
+                                        $queue->instrument = 5;
+
+                                        $queue->dirscanUrl = $toscan; //slice #? and other stuff
+                                        
+                                        $queue->save();
+
+                                        $hostnames[] = $currenthost;
+                                    }
                                 }
                             }
                         }
@@ -565,68 +599,102 @@ class SiteController extends Controller
                     }
 
                     if ((isset($url["vhostDomain"]) && $url["vhostDomain"] != "") && (isset($url["vhostIp"]) && $url["vhostIp"] != "")) {
-                        $tasks = new Tasks();
 
-                        $tasks->vhost_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "7";
-                        $vhost = 1;
+                        $ips = explode(PHP_EOL, $url["vhostIp"]);
 
-                        $queue = new Queue();
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 7;
+                        $domains = explode(PHP_EOL, $url["vhostDomain"]);
 
+                        foreach ($ips as $currentip){
 
-                        if ((isset($url["vhostPort"]) && $url["vhostPort"] != "")) {
+                            foreach ($domains as $currentdomain){
 
-                            if (isset($url["vhostSsl"]) && $url["vhostSsl"] === 1) {
+                                $tasks = new Tasks();
 
-                                $queue->vhostdomain = $url["vhostDomain"];
-                                $queue->vhostip = $url["vhostIp"];
-                                $queue->vhostport = $url["vhostPort"];
-                                $queue->vhostssl = 1;
+                                $tasks->vhost_status = "Working";
+                                $tasks->notify_instrument = $tasks->notify_instrument . "7";
+                                
+                                $queue = new Queue();
+                                $queue->taskid = $tasks->taskid;
+                                $queue->instrument = 7;
+
+                                if ((isset($url["vhostPort"]) && $url["vhostPort"] != "")) {
+
+                                    if (isset($url["vhostSsl"]) && $url["vhostSsl"] === 1) {
+
+                                        $queue->vhostdomain = $currentdomain;
+                                        $queue->vhostip = $currentip;
+                                        $queue->vhostport = $url["vhostPort"];
+                                        $queue->vhostssl = 1;
+                                    } else {
+
+                                        $queue->vhostdomain = $currentdomain;
+                                        $queue->vhostip = $currentip;
+                                        $queue->vhostport = $url["vhostPort"];
+                                        $queue->vhostssl = 0;
+                                    }
+
+                                } else {
+
+                                    $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                                        ->andWhere(['instrument' => '7'])
+                                        ->andWhere(['=', 'vhostip', $currentip ])
+                                        ->andWhere(['=', 'vhostdomain', $currentdomain ])
+                                        ->exists();
+
+                                    if( $DomainsAlreadyinDB == 0 ){
+
+                                        $queue->vhostdomain = $currentdomain;
+                                        $queue->vhostip = $currentip;
+                                        $queue->vhostport = "80";
+                                        $queue->vhostssl = 0;
+                                    }
+                                }
+
                                 $queue->save();
-
-                            } else {
-
-                                $queue->vhostdomain = $url["vhostDomain"];
-                                $queue->vhostip = $url["vhostIp"];
-                                $queue->vhostport = $url["vhostPort"];
-                                $queue->vhostssl = 0;
-                                $queue->save();
+                                
+                                $tasks->userid = Yii::$app->user->id;
+                                $tasks->save();
                             }
-
-                        } else {
-
-                            $queue->vhostdomain = $url["vhostDomain"];
-                            $queue->vhostip = $url["vhostIp"];
-                            $queue->vhostport = "80";
-                            $queue->vhostssl = 0;
-                            $queue->save();
                         }
-
-                        $tasks->userid = Yii::$app->user->id;
-                        $tasks->save();
-
+                        
+                        $vhost = 1;
                     }
 
                     if ((isset($url["nucleiDomain"]) && $url["nucleiDomain"] != "") ) {
-                        $tasks = new Tasks();
 
-                        $tasks->dirscan_status = "Working";
-                        $tasks->notify_instrument = $tasks->notify_instrument . "8";
+                        $urls = explode(PHP_EOL, $url["nucleiDomain"]);
+
+                        $urls = array_unique($urls); 
+
+                        rsort($urls);
+
+                        $urls = array_unique($urls);
+
+                        foreach ($urls as $currenturl){
+
+                            if ($currenturl != "") { //if isnt empty
+
+                                $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                                        ->andWhere(['instrument' => '8'])
+                                        ->andWhere(['=', 'dirscanUrl', rtrim($currenturl) ])
+                                        ->exists();
+
+                                if( $DomainsAlreadyinDB == 0 ){
+                                    
+                                    $queue = new Queue();
+                                    $queue->instrument = 8;
+                                    $queue->dirscanUrl = rtrim($currenturl); //remove \r\n if theres any
+                                    $queue->save();
+                                }
+                            }
+                        }
+
+
                         $nuclei = 1;
-
-                        $queue = new Queue();
-                        $queue->taskid = $tasks->taskid;
-                        $queue->instrument = 8;
-                        $queue->dirscanUrl = $url["nucleiDomain"];
-                        $queue->save();
-
-                        $tasks->userid = Yii::$app->user->id;
-                        $tasks->save();
                     }
 
                     if ((isset($url["jsaDomain"]) && $url["jsaDomain"] != "") ) {
+
                         $tasks = new Tasks();
 
                         $tasks->js_status = "Working";
@@ -684,6 +752,14 @@ class SiteController extends Controller
                             return $this->redirect(['/site/profile']);
                         }
                     }*/
+
+                    /*
+                    SELECT `date_modified` FROM `queue` WHERE `date_modified` < now() - interval 2 DAY limit 10;
+
+                    Customers::find()
+                        ->where( 'created_at >=(CURDATE() - INTERVAL :p' ), [':p'=>$p])
+                        ->orderBy('id DESC');
+                    */
 
                     if ($nmap == 0 && $amass == 0 && $dirscan == 0 && $gitscan == 0 && $ips == 0 && $vhost == 0 && $race == 0 && $reverseip == 0 && $nuclei == 0 && $jsa == 0 && $whatweb == 0) {
 

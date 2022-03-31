@@ -56,12 +56,16 @@ class Aquatone extends ActiveRecord
     public function readaquatone($taskid)
     {
 
+        //html range parameter in template + default page similar
+
         if (file_exists("/screenshots/" . $taskid . "/aquatone_report.html")) {
             $fileaquatone = file_get_contents("/screenshots/" . $taskid . "/aquatone_report.html");
 
             $fileaquatone = str_replace('screenshotPath":"screenshots/', 'screenshotPath":"../../screenshots/'.$taskid.'/', $fileaquatone);
 
             $fileaquatone = str_replace('<img src="screenshots', '<img src="../../screenshots/'.$taskid.'/', $fileaquatone);
+
+            $fileaquatone = str_replace('clustersToShow: 15', 'clustersToShow: 1000', $fileaquatone);
 
             $fileaquatone = str_replace('<a href="screenshots', '<a href="../../screenshots/'.$taskid.'/', $fileaquatone);
 

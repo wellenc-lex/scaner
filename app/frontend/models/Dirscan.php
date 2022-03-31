@@ -46,6 +46,7 @@ class Dirscan extends ActiveRecord
 
         if($queue!=""){
             $queue->todelete = 1;
+            $queue->date_modified = date("Y-m-d");
             $queue->save();
         }
 
@@ -345,7 +346,7 @@ class Dirscan extends ActiveRecord
 
             //$ffuf_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 40 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
 
-            $ffuf_string = "/tmp/ffuf.binary -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+            $ffuf_string = "/tmp/ffuf.binary -maxtime 400000 -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -425,7 +426,6 @@ class Dirscan extends ActiveRecord
             dirscan::queuedone($input["queueid"]);
 
             Yii::$app->db->close();
-
         }
         
         return 1;

@@ -106,7 +106,7 @@ class Vhostscan extends ActiveRecord
                         $output_vhost_array[$id]["redirect"] = $results["redirectlocation"];
                         $output_vhost_array[$id]["host"] = $results["host"];
 
-                        /*if ($results["length"] < 350000 ){
+                        if ($results["length"] < 350000 ){
                             exec("sudo chmod 777 " . $resultfilename . "");
 
                             $resultfilename = "/ffuf/vhost" . $randomid . "/" . $results["resultfile"] . "";
@@ -114,7 +114,7 @@ class Vhostscan extends ActiveRecord
                             if (file_exists($resultfilename)) {
                                 $output_vhost_array[$id]["resultfile"] = base64_encode(file_get_contents($resultfilename));
                             }
-                        }*/
+                        }
                     }
                 }
             } else $output_vhost_array = "";
@@ -134,7 +134,7 @@ class Vhostscan extends ActiveRecord
 
         //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -timeout 60 -ignore-body -r -u "; 
         
-        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -timeout 60 -ignore-body -r -u ";
+        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 " . $headers . " -maxtime 150000 -ignore-body -r -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
@@ -162,7 +162,7 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 60 -ignore-body -r -u ";
+        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ignore-body -r -u ";
 
         //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 60 -ignore-body -r -u ";
 
@@ -193,8 +193,9 @@ class Vhostscan extends ActiveRecord
 
     public function httpxhosts($amassoutput, $ipstoscan)
     {
-        global $iparray;
         global $randomid;
+
+        $iparray = array();
 
         //Cloudflare ip ranges + private networks - no need to ffuf
         $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
@@ -246,7 +247,9 @@ class Vhostscan extends ActiveRecord
                     }
                 }
             }  
-        } else if ($ipstoscan != 0){
+        }  
+
+        if ($ipstoscan != 0){
             foreach ($ipstoscan as $ip) {
                 if (strpos($ip, '::') === false) { //TODO: add ipv6 support
 
@@ -270,16 +273,14 @@ class Vhostscan extends ActiveRecord
                 }
             }
         }
-        
-        $iparray = array_unique($iparray);
 
         if (!empty($iparray)) {
             $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
             $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
             
-            file_put_contents($wordlist, implode( PHP_EOL, $iparray) );
+            file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o ". $output ." -l ". $wordlist ."";
+            $httpx = "sudo docker run --cpu-shares 512 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 15 -timeout 60 -retries 5 -o ". $output ." -l ". $wordlist ."";
 
             exec($httpx);
 
@@ -410,20 +411,25 @@ class Vhostscan extends ActiveRecord
 
             $task = Tasks::find()
                 ->where(['taskid' => $taskid])
-                ->limit(1)
                 ->one();
 
             Yii::$app->db->close();  
 
             if($task!=""){
 
-                global $iparray; $iparray = array(); $output = array();
+                $output = array();
 
                 if ( $task->ips != "" ){
                     $iparray = explode(" ", $task->ips);
                 }
 
                 $vhostwordlist = json_decode($task->vhostwordlist, true);
+
+                if ( $task->vhostwordlistmanual != "" ){
+                    $vhostwordlistmanual = explode(" ", $task->vhostwordlistmanual);
+
+                    $vhostwordlist = array_unique( array_merge( $vhostwordlist,$vhostwordlistmanual ) );
+                }
 
                 $amassoutput = json_decode($task->amass, true);
 
@@ -433,7 +439,10 @@ class Vhostscan extends ActiveRecord
 
                 if( isset($amassoutput) && !empty($amassoutput) ) {
 
-                    $alive = vhostscan::httpxhosts($amassoutput, 0);
+                    if ( !empty( $iparray ) ){
+                        $alive = vhostscan::httpxhosts($amassoutput, $iparray);
+                    } else $alive = vhostscan::httpxhosts($amassoutput, 0);
+                    
 
                     foreach($alive as $host) {
 

@@ -25,6 +25,7 @@ shared/admin/.env
 admin/.env
 admin/config/secrets.yml
 config/secrets.yml
+.zsh_history
 secrets.yml
 .git/logs/HEAD
 api/config/database.yml 
@@ -18604,3 +18605,9 @@ adminMain
 adminProps
 adminRealm
 adminThreads
+maillogs/kaktam/cloud_JsError.log
+maillogs/
+kaktam/
+kaktam/cloud_JsError.log
+cloud_JsError.log
+static../Dockerfile

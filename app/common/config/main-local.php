@@ -9,6 +9,9 @@ return [
             'password' => getenv('DB_PASSWORD'),
             'charset' => 'utf8mb4',
             'tablePrefix' => '',
+            'attributes' => [
+                PDO::ATTR_TIMEOUT => 100,
+            ],
         ],
 
         'mailer' => [

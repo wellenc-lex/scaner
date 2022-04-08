@@ -6,6 +6,7 @@ use Yii;
 use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
+use frontend\models\Whatweb;
 
 ini_set('max_execution_time', 0);
 
@@ -36,19 +37,19 @@ class Amass extends ActiveRecord
 
         $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
-        $amassconfig = "/configs/amass". rand(1,9). ".ini";
+        $amassconfig = "/configs/amass". rand(10,15). ".ini";
 
-        //$amassconfig = "/configs/amass9.ini";
+        //$amassconfig = "/configs/amass10.ini";
 
 
 
 
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass1.ini";
+            $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 2000 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3000 -ip -config ".$amassconfig);
 
         if (filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -69,7 +70,7 @@ class Amass extends ActiveRecord
             $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
         }
 
-        //We need valid json object instead of separate json strings
+        //convert json strings into one json array to decode it
         $fileamass = str_replace("}
 {\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
@@ -460,7 +461,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 20 -timeout 60 -retries 5 -silent -o ". $output ." -l ". $wordlist ." -sr -srd '/dockerresults/httpxresponses/" . $randomid . "' ";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 45 -timeout 55 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip ";
         
         exec($httpx);
 
@@ -468,10 +469,13 @@ class Amass extends ActiveRecord
 
         if (file_exists($output)) {
 
-            $alive = file_get_contents($output);
-            $alive = explode(PHP_EOL,$alive);
+            //convert json strings into one json array to decode it
+            $output = str_replace("}
+{", "},{", $output);
 
-            $alive = array_unique($alive); 
+            $output = '[' . $output . ']';
+
+            $alive = json_decode($output, true);
 
             rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
 
@@ -479,36 +483,48 @@ class Amass extends ActiveRecord
 
             foreach($alive as $url) {
 
-                if($url != "" && strpos($url, $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+                if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
 
-                    $currenthost = dirscan::ParseHostname($url).dirscan::ParsePort($url);
-
-                    $scheme = dirscan::ParseScheme($url);
-                    $port = dirscan::ParsePort($url); 
+                    $scheme = $url["scheme"];
+                    $port = ":".$url["port"]; 
 
                     if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
                         continue; //scanning https port with http scheme is pointless so we get to the next host
                     }
 
-                    if( !in_array($currenthost, $hostnames ) ){
+                    if( $port===":80" || $port===":443"){
+                        $currenthost = $url["input"];
+                    } else $currenthost = $url["input"].$port;
 
-                        if( amass::bannedwords($currenthost) === 0 ){
+                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                        if( amass::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
 
                             $queue = new Queue();
                             $queue->taskid = $taskid;
-                            $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
+                            $queue->dirscanUrl = $url["scheme"].$currenthost;
                             $queue->instrument = 3; //ffuf
                             $queue->wordlist = 1;
                             $queue->save();
-
-                            $queue = new Queue();
-                            $queue->taskid = $taskid;
-                            $queue->dirscanUrl = dirscan::ParseScheme($url).$currenthost;
-                            $queue->instrument = 5; //whatweb
-                            $queue->save();
-                            
-                            $hostnames[] = $currenthost;
                         }
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $url["scheme"].$currenthost;
+                        $queue->instrument = 5; //whatweb
+                        $queue->save();
+
+                        $whatweb = new Whatweb();
+                        $whatweb->url = $url["scheme"].$currenthost;
+                        $whatweb->ip = $url["host"];
+                        $whatweb->favicon = $url["favicon-mmh3"];
+                        $whatweb->date = date("Y-m-d");
+
+                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+
+                        $whatweb->save();
+
+                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
                     }
                 }
             } 
@@ -520,8 +536,6 @@ class Amass extends ActiveRecord
             $queue->save();
 
             Yii::$app->db->close();
-
-            //amass::jsscan($output);
 
         } else file_get_contents($output); //we need an error to check it out in debugger and rescan later
         
@@ -548,30 +562,6 @@ class Amass extends ActiveRecord
         } else $output="[]";
         
         return $output;
-    }
-
-    public function jsscan($filename)
-    {
-
-        $jsoutput = $filename ."jsscan";
-
-        $jsscan = "sudo chmod -R 777 ". $filename ." && timeout 10000 /tmp/jsubfinder.binary search --crawl -t 10 -s --sig '/tmp/.jsf_signatures.yaml' -f ". $filename ." -o ". $jsoutput;
-
-        exec($jsscan);
-
-        if (file_exists($jsoutput)) {
-            $output = file_get_contents($jsoutput);
-        } else $output="[]";
-
-        //add found domains to the ffuf+whatweb queue
-        //check if domains which are found corresponds with the scope? or jssub does that by iteself?
-
-
-        //dont forget array_unique for all the domains!
-
-        //add to DB inside this function or in the savetodb one?
-        var_dump($output);
-        return 1;
     }
 
 }

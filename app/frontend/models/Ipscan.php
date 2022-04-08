@@ -108,12 +108,12 @@ class Ipscan extends ActiveRecord
 
             //we assume that we get domain without any subdomains in format google.com so queries will be google.com and google
             $hostname = dirscan::ParseHostname($query);
-            preg_match("/^[\w\-\_\d=]+/i", $query, $hostonly);
+            //preg_match("/^[\w\-\_\d=]+/i", $query, $hostonly); its cool for small sites but for big company it gives a LOT out of scope ips
 
             if($hostname != $hostonly[0]){
                 
                 $parsed_queries[] = $hostname;
-                $parsed_queries[] = $hostonly[0];
+                //$parsed_queries[] = $hostonly[0];
 
             }
         }
@@ -123,7 +123,7 @@ class Ipscan extends ActiveRecord
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 
-        exec("sudo docker run --cpu-shares 512 --rm --network=docker_default -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
+        exec("sudo docker run --cpu-shares 256 --rm --network=docker_default -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
             . " -a " . $apikeysfile . " -o " . $outputfile);
             
         $output = file_get_contents($outputfile);

@@ -88,6 +88,8 @@ class Dirscan extends ActiveRecord
         
         //Get dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
+
+            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/*");
             $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
             $output = json_decode($output, true);
 
@@ -105,8 +107,6 @@ class Dirscan extends ActiveRecord
                     $outputarray[$id]["redirect"] = $results["redirectlocation"];
 
                     if ($results["length"] < 350000 ){
-                        exec("sudo chmod -R 755 /ffuf/" . $randomid . "/");
-
                         $outputarray[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
                     }
                 }
@@ -116,6 +116,8 @@ class Dirscan extends ActiveRecord
 
         //Get localhost dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "localhost.json")) {
+
+            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/*");
             $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "localhost.json");
             $output = json_decode($output, true);
 
@@ -134,8 +136,6 @@ class Dirscan extends ActiveRecord
                     $output_localhost_array[$id]["localhost"] = 1;
 
                     if ($results["length"] < 350000 ){
-                        exec("sudo chmod -R 755 /ffuf/" . $randomid . "/");
-
                         $output_localhost_array[$id]["resultfile"] = base64_encode(file_get_contents("/ffuf/" . $randomid . "/" . $results["resultfile"] . ""));
                     }
                 }

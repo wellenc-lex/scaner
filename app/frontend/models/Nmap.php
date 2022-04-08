@@ -78,7 +78,7 @@ class Nmap extends ActiveRecord
             $randomid = (int) $input["randomid"];
         }
         
-        $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
+        $scanIPS = "/dockerresults/" . $randomid . "nmapinputips.txt";
         $nmapoutputxml = "/dockerresults/" . $randomid . "nmap.xml";
         $nmapoutputhtml = "/dockerresults/" . $randomid . "nmap.html";
 
@@ -92,9 +92,9 @@ class Nmap extends ActiveRecord
         //try -f --badsum to bypass IDS 
 
         exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=22 -p=22 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 22"
-            ." -sU -T3 --randomize-hosts -Pn -v -sV"
-            ." -p T:1-65000,U:500,U:1434,U:5060,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 10000"
-            ." --script-timeout 2000m --max-scan-delay 20s --max-retries 8 --open --host-timeout 2500m -oX "
+            ." -sU -T4 --randomize-hosts -Pn -v -sV"
+            ." -p T:1-65000,U:500,U:1434,U:5060,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 1000"
+            ." --script-timeout 4000m --host-timeout 5500m --max-scan-delay 20s --max-retries 3 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
 
         exec("sudo /usr/bin/xsltproc -o " . $nmapoutputhtml . " /configs/nmap/nmap.xsl " . $nmapoutputxml . "");
@@ -105,7 +105,9 @@ class Nmap extends ActiveRecord
 
         $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
 
-        return aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
+        aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
+
+        return 1;//exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
     }
 
 //docker run -it --rm rustscan/rustscan:latest -t 5000 -b 100 --scan-order "Random" -a '8.8.8.8,ya.ru' -- -A -sC -Pn -t 2000 -b 100 --scan-order "Random" -a '8.8.8.8,ya.ru' -- -A -sC -a 'hosts.txt'

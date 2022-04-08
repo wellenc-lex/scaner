@@ -76,7 +76,7 @@ class Nuclei extends ActiveRecord
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --rm --cpu-shares 512 --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -retries 3 -max-host-error 100 -timeout 60 -rl 15 -bs 500 -c 10 " . $exclude . $headers; 
+        $nuclei_start = "sudo docker run --rm --cpu-shares 512 --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -stats -o " . $output . " -json -irr -retries 2 -max-host-error 250 -timeout 80 -silent -rl 35 -bs 1500 -c 25 " . $exclude . $headers; 
 
         exec($nuclei_start); 
 
@@ -132,7 +132,7 @@ class Nuclei extends ActiveRecord
 
         $urls = array_unique($urls);
 
-        exec("sudo mkdir /nuclei/" . $randomid . "/ && sudo chmod 777 /nuclei/" . $randomid . "/ -R && sudo chmod 777 -R /nuclei/" . $randomid . " ");
+        exec( "sudo mkdir /nuclei/" . $randomid . "/ && sudo chmod -R 777 /nuclei/" . $randomid . "/ ");
 
         $urllist = "/nuclei/" . $randomid . "/" . $randomid . "urllist.txt";;
 

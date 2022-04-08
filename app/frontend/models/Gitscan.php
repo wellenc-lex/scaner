@@ -69,7 +69,7 @@ class Gitscan extends ActiveRecord
 
         $taskid = (int) $input["taskid"];
 
-        exec("sudo chmod 777 /dockerresults/ -R && sudo chmod 777 /dockerresults -R");
+        exec("sudo chmod -R 777 /dockerresults/ && sudo chmod -R 777 /dockerresults");
 
         if ($input["passive"] == 1){
 

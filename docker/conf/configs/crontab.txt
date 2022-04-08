@@ -8,13 +8,10 @@
 
 * */23 * * * docker exec docker_app_1 /bin/bash -c "git config --global user.email 'you@example.com'"     
 
-* */21 * * * docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git clean -d -f -x && rm -f LICENSE.md && git rm -rf .github/* && git reset --hard" 
+* */21 * * * docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git fetch origin master && git reset --hard FETCH_HEAD && git clean -df" 
 
-* */22 * * * docker exec docker_app_1 /bin/bash -c "git -C /configs/nuclei-templates/ pull --allow-unrelated-histories https://github.com/projectdiscovery/nuclei-templates"
+* */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && docker pull caffix/amass && docker pull instrumentisto/nmap && docker pull projectdiscovery/httpx"
 
-* */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && sudo docker pull caffix/amass && sudo docker pull instrumentisto/nmap"
+*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod -R 777 /configs/nuclei-templates/"
 
-*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod 777 /configs/nuclei-templates/ -R"
-
-*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +8 -exec rm -rf {} \;"
-
+*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +18 -exec rm -rf {} \;"

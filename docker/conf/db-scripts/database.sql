@@ -252,7 +252,7 @@ ALTER TABLE `tasks` ADD `whatweb` MEDIUMTEXT NULL DEFAULT NULL AFTER `js`;
 ALTER TABLE `tasks` ADD `forbiddenbypass` MEDIUMTEXT NULL DEFAULT NULL AFTER `js`; 
 ALTER TABLE `queue` CHANGE `nmap` `nmap` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL; 
 ALTER TABLE `queue` ADD `date_modified` DATE NULL DEFAULT NULL AFTER `vhostssl`; 
-ALTER TABLE `tasks` ADD `vhostwordlistmanual` TEXT NULL DEFAULT NULL AFTER `vhostwordlist`; 
+ALTER TABLE `tasks` ADD `vhostwordlistmanual` LONGTEXT NULL DEFAULT NULL AFTER `vhostwordlist`; 
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
@@ -270,6 +270,7 @@ ALTER TABLE `amassintel`
 
 INSERT INTO `amassintel` (`id`, `domains`) VALUES ('1', '[]');
 
+CREATE TABLE `scaner`.`whatweb` ( `id` INT NOT NULL AUTO_INCREMENT , `url` VARCHAR(16000) NOT NULL , `ip` VARCHAR(50) NOT NULL , `tech` JSON NULL DEFAULT NULL , `favicon` VARCHAR(100) NOT NULL , `date` DATE NULL DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB; 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

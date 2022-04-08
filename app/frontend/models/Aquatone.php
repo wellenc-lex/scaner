@@ -162,7 +162,7 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 5 -scan-timeout 10000 -ports xlarge -http-timeout 30000 -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -similarity 0.9 -screenshot-delay 5000 ";
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 40000 -threads 25 -scan-timeout 10000 -ports xlarge -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -similarity 0.9 -screenshot-delay 5000 ";
         }
 //-chrome-path /usr/bin/chromium-browser
 
@@ -170,9 +170,7 @@ class Aquatone extends ActiveRecord
         //for nmap results
         if ( preg_match("/(\w\d\_\-)*\.xml/i", $filename) !== 0 ) {
 
-            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 20000 -threads 20 -scan-timeout 10000 -screenshot-timeout 95000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -similarity 0.9 -screenshot-delay 5000 ";
-
-            //echo($command);
+            $command = "/configs/nmap/nmap-parse-output -u " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 60000 -threads 35 -scan-timeout 10000 -screenshot-timeout 110000 -follow-redirect -out /screenshots/" . $taskid . " -save-body false -similarity 0.9 -screenshot-delay 12000 ";
         }
 
         exec($command);
@@ -191,6 +189,8 @@ class Aquatone extends ActiveRecord
                 dirscan::queuedone($queue);
             }
         }
+
+        //exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
 
         return 1;
 

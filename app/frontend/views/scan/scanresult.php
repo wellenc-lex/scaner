@@ -654,7 +654,7 @@ $this->params['fluid'] = true;
                                                         <div class="page card mb-3">
 
                                                             <div class="card-footer text-muted">
-                                                                <a class='linkstyle' style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                                <a class='linkstyle card-link page-details-link' style="vertical-align: middle;" href="#" >Response</a>
                                                             </div>
 
                                                             <div class="response-headers-container">

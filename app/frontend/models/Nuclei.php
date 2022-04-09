@@ -132,7 +132,7 @@ class Nuclei extends ActiveRecord
 
         $urls = array_unique($urls);
 
-        exec( "sudo mkdir /nuclei/" . $randomid . "/ ");
+        exec( "sudo mkdir /nuclei/" . $randomid . "/ && sudo chmod -R 777 /nuclei/" . $randomid . "/ ");
 
         $urllist = "/nuclei/" . $randomid . "/" . $randomid . "urllist.txt";;
 

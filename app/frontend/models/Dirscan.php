@@ -333,7 +333,7 @@ class Dirscan extends ActiveRecord
 
 
             exec("sudo mkdir /ffuf/" . $randomid . "/ "); //create dir for ffuf scan results
-            //exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ ");
+            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/ ");
 
             $output_ffuf = array();
 

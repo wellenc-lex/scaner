@@ -24,7 +24,7 @@ class Whatweb extends ActiveRecord
 
             $randomid = rand(1,1000000000000);
 
-            exec("sudo mkdir /dockerresults/whatweb" . $randomid . " &");
+            exec("sudo mkdir /dockerresults/whatweb" . $randomid . " & && sudo chmod -R 777 /dockerresults/whatweb" . $randomid . " ");
 
             $inputurlsfile = "/dockerresults/whatweb" . $randomid . "/whatwebhttpx.txt";
 

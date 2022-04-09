@@ -118,7 +118,7 @@ class Ipscan extends ActiveRecord
             }
         }
 
-        exec("sudo mkdir /dockerresults/" . $randomid . "/ "); //create dir for ips+nmap+aquatone scan results
+        exec("sudo mkdir /dockerresults/" . $randomid . "/ && sudo chmod -R 777 /dockerresults/" . $randomid . "/"); //create dir for ips+nmap+aquatone scan results
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 

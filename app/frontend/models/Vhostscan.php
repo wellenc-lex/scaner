@@ -402,7 +402,7 @@ class Vhostscan extends ActiveRecord
         
         $randomid = rand(3000,100000000);
 
-        exec("sudo mkdir /ffuf/vhost" . $randomid . " &");
+        exec("sudo mkdir /ffuf/vhost" . $randomid . " & && sudo chmod -R 777 /ffuf/vhost" . $randomid . " ");
 
         sleep( rand(10,150) );
 

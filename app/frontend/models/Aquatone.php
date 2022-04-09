@@ -158,7 +158,7 @@ class Aquatone extends ActiveRecord
 
     public function aquatone($taskid, $filename, $queues)
     {
-        //exec("sudo mkdir /screenshots/" . $taskid . "/");
+        //exec("mkdir /screenshots/" . $taskid . "/");
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {

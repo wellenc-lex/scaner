@@ -25,6 +25,11 @@ RUN sed -i "s/pm.max_children = 4/pm.max_children = 10000/g" "/usr/local/etc/php
 RUN ln -s /etc/nginx/sites-available/site.conf /etc/nginx/sites-enabled/site.conf
 
 #because these volumes are mounted on host and if i try to chown paths they become unavaliable on the host so no modifications cant be made and i can't make changes on the fly && build containers later/etc.
-RUN chmod -R 777 /var/www/app/ && chmod -R 777 /etc/nginx/sites-available/
+#RUN chmod -R 777 /var/www/app/ && chmod -R 777 /etc/nginx/sites-available/
 
 RUN apk add docker sudo libxslt nano
+
+
+#different containers uses different users for files output and chmod -R creates a lot of writes on disk (poor SSDs get TB's writes per day). If i add nginx to the root group it can access all the files(screenshots,scan outputs) without chmod.
+#I cant set UID for other containers like nmap /etc so it works that way. Security sucks but performance improves heavily
+RUN adduser nginx root && adduser www-data root

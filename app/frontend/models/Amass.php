@@ -37,9 +37,10 @@ class Amass extends ActiveRecord
 
         $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
-        $amassconfig = "/configs/amass". rand(10,15). ".ini";
 
-        //$amassconfig = "/configs/amass10.ini";
+
+
+        $amassconfig = "/configs/amass". rand(15,20). ".ini";
 
 
 
@@ -49,7 +50,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3000 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
 
         if (filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -284,7 +285,7 @@ class Amass extends ActiveRecord
         }
     }
 
-    public function saveintelToDB($taskid, $intelamass)
+    public function saveintelToDB($taskid, $intelamass, $maindomain)
     {
         if($intelamass != ""){
 
@@ -335,6 +336,7 @@ class Amass extends ActiveRecord
                     if(!empty($amass) && empty($amass->amass_intel) ){ //if querry exists in db
 
                         $amass->amass_intel  = json_encode($intelresults);
+                        $amass->host = $maindomain;
                         $amass->save();
 
                     } else {
@@ -343,6 +345,7 @@ class Amass extends ActiveRecord
                         $amass->taskid = $taskid;
                         $amass->amass_status = 'Done.';
                         $amass->amass_intel  = json_encode($intelresults);
+                        $amass->host = $maindomain;
                         $amass->notify_instrument = "2";
                         $amass->hidden = 1;
                         $amass->date = date("Y-m-d H-i-s");
@@ -422,7 +425,7 @@ class Amass extends ActiveRecord
                     $intelamass = array_unique(explode(PHP_EOL,$intelamass));
 
                     if ( $intelamass != "" ){
-                        amass::saveintelToDB($taskid, $intelamass);
+                        amass::saveintelToDB($taskid, $intelamass, $maindomain);
                     }
                 }
             }
@@ -461,13 +464,15 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 45 -timeout 55 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip ";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 45 -timeout 85 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip ";
         
         exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
-        if (file_exists($output)) {
+        if (file_exists($output) && filesize($output) != 0) {
+
+            $output = file_get_contents($output);
 
             //convert json strings into one json array to decode it
             $output = str_replace("}
@@ -485,7 +490,7 @@ class Amass extends ActiveRecord
 
                 if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
 
-                    $scheme = $url["scheme"];
+                    $scheme = $url["scheme"]."://";
                     $port = ":".$url["port"]; 
 
                     if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
@@ -502,7 +507,7 @@ class Amass extends ActiveRecord
 
                             $queue = new Queue();
                             $queue->taskid = $taskid;
-                            $queue->dirscanUrl = $url["scheme"].$currenthost;
+                            $queue->dirscanUrl = $scheme.$currenthost;
                             $queue->instrument = 3; //ffuf
                             $queue->wordlist = 1;
                             $queue->save();
@@ -510,12 +515,12 @@ class Amass extends ActiveRecord
 
                         $queue = new Queue();
                         $queue->taskid = $taskid;
-                        $queue->dirscanUrl = $url["scheme"].$currenthost;
+                        $queue->dirscanUrl = $scheme.$currenthost;
                         $queue->instrument = 5; //whatweb
                         $queue->save();
 
                         $whatweb = new Whatweb();
-                        $whatweb->url = $url["scheme"].$currenthost;
+                        $whatweb->url = $scheme.$currenthost;
                         $whatweb->ip = $url["host"];
                         $whatweb->favicon = $url["favicon-mmh3"];
                         $whatweb->date = date("Y-m-d");
@@ -549,7 +554,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "sudo chmod -R 777 /dockerresults/ && timeout 5000 sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 

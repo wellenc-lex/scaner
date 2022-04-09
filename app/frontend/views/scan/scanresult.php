@@ -144,7 +144,7 @@ $this->params['fluid'] = true;
         }
 
         .even{
-            background-color: grey;
+            background-color: beige;
         }
         
 
@@ -897,7 +897,6 @@ $this->params['fluid'] = true;
 
                 $(document).ready(function () {
                     $('#table-dirscan').DataTable({"pageLength": 1000, "order": [[ 1, "desc" ]]});
-
                 });
 
                 $( window ).on( "load", function() {
@@ -1009,13 +1008,13 @@ $this->params['fluid'] = true;
         </style>
 
             <div id="vhostdiv-1">
-            <h3 style="text-align:center; color: rgb(68, 68, 68);" id="vhost-1">Vhost output</h3>
+            <h3 style="text-align:center;" id="vhost-1">Vhost output</h3>
 
-            <div width="150%" class="panel panel-default">
+            <div width="150%" class="panel panel-default" style="background-color: beige !important;">
                 <div class="panel-body">
                     <div class="table-responsive">
                         <table id="table-vhost" class="table table-bordered"
-                               style="border-collapse: collapse">
+                               style="border-collapse: collapse; background-color: black !important;">
                             <thead>
                             <tr>
                                 <th style="text-align:center">
@@ -1047,7 +1046,8 @@ $this->params['fluid'] = true;
                                         <b style="vertical-align: middle;"><?php echo($vhost["status"]); ?> </b>
                                     </td>
                                     <td align="center" style="text-align: center;" valign="middle" width="20%">
-                                        <b style="vertical-align: middle;"><?php echo($vhost["url"]); ?> </b>
+                                        <a class='linkstyle' style="vertical-align: middle;" href='<?php echo($vhost["url"]); ?>'>
+                                            <?php echo($vhost["url"]); ?> </a>
                                     </td>
                                     <td align="center" style="text-align: center;" valign="middle" width="20%">
                                         <b style="vertical-align: middle;"><?php echo($vhost["host"]); ?> </b>
@@ -1056,7 +1056,7 @@ $this->params['fluid'] = true;
                                         <div class="page card mb-3" style="width: 80%;">
 
                                             <div class="card-footer text-muted">
-                                                <a href="#" class="card-link page-details-link">Response</a>
+                                                <a class='linkstyle' href="#" class="card-link page-details-link">Response</a>
                                             </div>
 
                                             <div class="response-headers-container">

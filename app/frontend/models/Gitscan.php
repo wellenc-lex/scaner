@@ -69,8 +69,6 @@ class Gitscan extends ActiveRecord
 
         $taskid = (int) $input["taskid"];
 
-        exec("sudo chmod -R 777 /dockerresults/ && sudo chmod -R 777 /dockerresults");
-
         if ($input["passive"] == 1){
 
             $wayback_result = gitscan::PassiveGitscan($taskid);
@@ -144,9 +142,6 @@ class Gitscan extends ActiveRecord
 
     public static function gittofile()
     {
-
-        exec("sudo chmod 777 /dockerresults/ -R && sudo chmod 777 /dockerresults -R");
-
             $tasks = Tasks::find()
                 ->where(['>','taskid','1']) //gitscan results not null check in Db
                 ->andWhere(['!=','amass','[]'])
@@ -166,7 +161,7 @@ class Gitscan extends ActiveRecord
                     $addresses = array_unique($addresses);
 
                     foreach ($addresses as $address) {
-                        if(preg_match("/(^api|autodiscover|autoconfig|contact|img|cdn|static|sctp|www|^ns[\d\-\_\.]*|\_dc\-mx|^url[\d\-\_\.]*|^docs\.|academy|links|blog|help|status|(.*mail.*\.[\w\d\-\_]*\.[\w\d\-\_]*)|developers|smtp)/i", $address) === 1 ){
+                        if(preg_match("/(^autodiscover|autoconfig|contact|img|cdn|static|sctp|www|^ns[\d\-\_\.]*|\_dc\-mx|^url[\d\-\_\.]*|^docs\.|academy|links|blog|help|status|(.*mail.*\.[\w\d\-\_]*\.[\w\d\-\_]*)|developers|smtp)/i", $address) === 1 ){
 
                             continue;
                         } else $done[] = "\"".$address."\"";

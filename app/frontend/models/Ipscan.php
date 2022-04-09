@@ -101,7 +101,7 @@ class Ipscan extends ActiveRecord
         $apikeysfile = "/configs/ipscankeys/". date("d") . ".json";
 
         if ( !file_exists($apikeysfile) ) {
-            $apikeysfile = "/configs/ipscankeys/30.json";
+            $apikeysfile = "/configs/ipscankeys/1.json";
         }
 
         foreach ($queries as $query){
@@ -119,7 +119,6 @@ class Ipscan extends ActiveRecord
         }
 
         exec("sudo mkdir /dockerresults/" . $randomid . "/ "); //create dir for ips+nmap+aquatone scan results
-        exec("sudo chmod -R 777 /dockerresults/" . $randomid . "/ ");
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 

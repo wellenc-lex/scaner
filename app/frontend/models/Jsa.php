@@ -78,7 +78,6 @@ class jsa extends ActiveRecord
             $port = trim($port, ' ');
 
             exec("sudo mkdir /jsa/" . $randomid . "/ "); //create dir for ffuf scan results
-            exec("sudo chmod -R 777 /jsa/" . $randomid . "/ &");
 
             exec("timeout 80400 sudo docker run --cpu-shares 128 --rm -v jsa:/jsa 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " " . $randomid . " ");
 

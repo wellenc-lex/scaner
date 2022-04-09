@@ -342,7 +342,7 @@ class Dirscan extends ActiveRecord
 
             //$ffuf_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 40 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
 
-            $ffuf_string = "/tmp/ffuf.binary -maxtime 600000 -fc 504,404,429,503,400 -fs 612,613,548 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 1 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+            $ffuf_string = "/tmp/ffuf.binary -maxtime 600000 -fc 504,404,429,503,400 -fs 612,613,548,26 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 1 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

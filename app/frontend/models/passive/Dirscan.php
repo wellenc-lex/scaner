@@ -89,7 +89,6 @@ class Dirscan extends ActiveRecord
         //Get dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . ".json")) {
 
-            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/*");
             $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . ".json");
             $output = json_decode($output, true);
 
@@ -117,7 +116,6 @@ class Dirscan extends ActiveRecord
         //Get localhost dirscan results file from volume
         if (file_exists("/ffuf/" . $randomid . "/" . $randomid . "localhost.json")) {
 
-            exec("sudo chmod -R 777 /ffuf/" . $randomid . "/*");
             $output = file_get_contents("/ffuf/" . $randomid . "/" . $randomid . "localhost.json");
             $output = json_decode($output, true);
 

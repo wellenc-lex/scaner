@@ -119,10 +119,11 @@ class Vhostscan extends ActiveRecord
             $id=0;
             $result_length = array();
 
+            //&& count($results) > 1
+
             if( isset($output["results"]) ) {
-                exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/ ");
                 foreach ($output["results"] as $results) {
-                    if ($results["length"] >= 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
+                    if ($results["length"] > 0 && !in_array($results["length"], $result_length) && $results["length"]!="612" ){
                         $id++;
                         $result_length[] = $results["length"];//so no duplicates gonna be added
                         $output_vhost_array[$id]["url"] = $results["url"];
@@ -304,7 +305,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 50 -timeout 55 -retries 2 -o ". $output ." -l ". $wordlist ."";
+            $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 50 -timeout 65 -retries 2 -o ". $output ." -l ". $wordlist ."";
 
             exec($httpx);
 
@@ -402,7 +403,6 @@ class Vhostscan extends ActiveRecord
         $randomid = rand(3000,100000000);
 
         exec("sudo mkdir /ffuf/vhost" . $randomid . " &");
-        exec("sudo chmod -R 777 /ffuf/vhost" . $randomid . "/ &");
 
         sleep( rand(10,150) );
 

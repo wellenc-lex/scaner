@@ -25,7 +25,6 @@ class Whatweb extends ActiveRecord
             $randomid = rand(1,1000000000000);
 
             exec("sudo mkdir /dockerresults/whatweb" . $randomid . " &");
-            exec("sudo chmod -R 777 /dockerresults/whatweb" . $randomid . "/ &");
 
             $inputurlsfile = "/dockerresults/whatweb" . $randomid . "/whatwebhttpx.txt";
 
@@ -157,7 +156,7 @@ class Whatweb extends ActiveRecord
 
         $jsoutput = $filename ."jsscan";
 
-        $jsscan = "sudo chmod -R 777 ". $filename ." && timeout 1500 /tmp/jsubfinder.binary search --crawl -t 10 -s --sig '/tmp/.jsf_signatures.yaml' -f ". $filename ." -o ". $jsoutput;
+        $jsscan = "timeout 1500 /tmp/jsubfinder.binary search --crawl -t 10 -s --sig '/tmp/.jsf_signatures.yaml' -f ". $filename ." -o ". $jsoutput;
 
         exec($jsscan);
 

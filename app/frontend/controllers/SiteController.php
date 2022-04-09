@@ -15,6 +15,7 @@ use frontend\models\SignupForm;
 use frontend\models\Tasks;
 use frontend\models\Amassintel;
 use frontend\models\Dirscan;
+use frontend\models\Whatweb;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\data\Pagination;
@@ -914,9 +915,75 @@ foreach ($xmls as $xml) {
         $urls = array_unique($urls);
         file_put_contents($wordlist, implode( PHP_EOL, $urls) );
 
-        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 60 -timeout 60 -retries 2 -o ". $output ." -l ". $wordlist ."  "; //-json -tech-detect -title -favicon -ip
+        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 60 -timeout 80 -retries 2 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip  ";
             
         exec($httpx);
+
+        $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
+
+        if (file_exists($output) && filesize($output) != 0) {
+
+            $output = file_get_contents($output);
+
+            //convert json strings into one json array to decode it
+            $output = str_replace("}
+{", "},{", $output);
+
+            $output = '[' . $output . ']';
+
+            $alive = json_decode($output, true);
+
+            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+
+            Yii::$app->db->open();
+
+            foreach($alive as $url) {
+
+                if($url["input"] != "" ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+
+                    $scheme = $url["scheme"]."://";
+                    $port = ":".$url["port"]; 
+
+                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
+                        continue; //scanning https port with http scheme is pointless so we get to the next host
+                    }
+
+                    if( $port===":80" || $port===":443"){
+                        $currenthost = $url["input"];
+                    } else $currenthost = $url["input"].$port;
+
+                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                        if( amass::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = $scheme.$currenthost;
+                            $queue->instrument = 3; //ffuf
+                            $queue->wordlist = 1;
+                            $queue->save();
+                        }
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 5; //whatweb
+                        $queue->save();
+
+                        $whatweb = new Whatweb();
+                        $whatweb->url = $scheme.$currenthost;
+                        $whatweb->ip = $url["host"];
+                        $whatweb->favicon = $url["favicon-mmh3"];
+                        $whatweb->date = date("Y-m-d");
+
+                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+
+                        $whatweb->save();
+
+                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
+                    }
+                }
+            }
+        } 
 
         //other actions from whatweb
 

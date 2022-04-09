@@ -132,7 +132,7 @@ class Aquatone extends ActiveRecord
 
             /** Link the screenshots from the volume to folder in order to be accessible from nginx **/
 
-            $movescreenshots = "sudo chmod -R 777 /screenshots/" . $taskid . "/screenshots && ln -s /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/screenshots/" . $taskid . " ";
+            $movescreenshots = "ln -s /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/screenshots/" . $taskid . " ";
 
             //&& sudo chmod -R 777 /var/www/app/frontend/web/screenshots/" . $taskid . "
 

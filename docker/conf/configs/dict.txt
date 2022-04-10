@@ -19,6 +19,7 @@ java/monitor
 monitor
 DIRC
 Dockerfile
+config/config.yaml
 docker-compose.yml
 Jenkinsfile
 default.%EXT

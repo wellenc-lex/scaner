@@ -554,7 +554,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --fc 504,404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 

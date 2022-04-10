@@ -251,7 +251,7 @@ class Dirscan extends ActiveRecord
 
             foreach ($gau_result as $id => $result) {
                 //wayback saves too much (js,images,xss payloads)
-                if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a||\<\!\-\-|\<\!\-\-\/\/)/i", $result) === 1 ){
+                if(preg_match("/(%22|\"|\">|<|<\/|\<\/|%20| |%0d%0a|\<\!\-\-|\<\!\-\-\/\/)/i", $result) === 1 ){
                     unset($gau_result[$id]);
                 }
             }
@@ -342,7 +342,7 @@ class Dirscan extends ActiveRecord
 
             //$ffuf_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 40 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
 
-            $ffuf_string = "/tmp/ffuf.binary -maxtime 600000 -fc 504,404,429,503,400 -fs 612,613,548,26 -s -timeout 60 -recursion -recursion-depth 1 -t 1 -p 1 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+            $ffuf_string = "/tmp/ffuf.binary -maxtime 700000 -fc 504,404,429,503,400 -fs 612,613,548,26,0 -s -timeout 80 -recursion -recursion-depth 1 -t 1 -p 1 -r -fr 'medium|Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 
@@ -405,13 +405,7 @@ class Dirscan extends ActiveRecord
 
             if ( !isset($input["ip"]) ) {
                 if ( $port == "" ) {
-                    if( !empty($output_ffuf) && $output_ffuf !== 'null' && $output_ffuf !== '[null]' && $output_ffuf !== '[]' && $output_ffuf !== '[[]]' 
-                        &&  $output_ffuf !== '' &&  $output_ffuf !== '{}' &&  $output_ffuf !== '[{}]' ){
-
-                        isset($output_ffuf[1]);
-                        
-                        $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
-                    } 
+                    $gau_result = dirscan::gau($hostname, $randomid); //no need to gau service on specific port. there will be no valid results
                 }
             }
 

@@ -40,7 +40,7 @@ class Amass extends ActiveRecord
 
 
 
-        $amassconfig = "/configs/amass". rand(15,20). ".ini";
+        $amassconfig = "/configs/amass". rand(1,20). ".ini";
 
 
 
@@ -411,24 +411,6 @@ class Amass extends ActiveRecord
                     }
                 }
             }
-
-            //if domain is not dummy - execute intel on it.
-            if ( !empty($amassoutput) && count($amassoutput) > 4){
-
-                $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
-
-                exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -whois -config ".$amassconfig);
-
-                if ( file_exists($inteloutput) ){
-                    $intelamass = file_get_contents($inteloutput);
-
-                    $intelamass = array_unique(explode(PHP_EOL,$intelamass));
-
-                    if ( $intelamass != "" ){
-                        amass::saveintelToDB($taskid, $intelamass, $maindomain);
-                    }
-                }
-            }
         }
 
         if($gau!=""){
@@ -451,6 +433,24 @@ class Amass extends ActiveRecord
         } else $vhostswordlist = array_unique($hostwordlist); // vhostwordlist to save into the DB
         
         amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); // scanned amass subdomains with httpx to get alive hosts + scan it with ffuf later
+
+        //if domain is not dummy - execute intel on it.
+        if (isset($amassoutput) && $amassoutput!= "" && count($amassoutput) > 6){
+
+            $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
+
+            exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 1000 -whois -config ".$amassconfig);
+
+            if ( file_exists($inteloutput) ){
+                $intelamass = file_get_contents($inteloutput);
+
+                $intelamass = array_unique(explode(PHP_EOL,$intelamass));
+
+                if ( $intelamass != "" ){
+                    amass::saveintelToDB($taskid, $intelamass, $maindomain);
+                }
+            }
+        }
 
         return $vhostswordlist;
     }

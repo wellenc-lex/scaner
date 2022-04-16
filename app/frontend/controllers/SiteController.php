@@ -24,6 +24,7 @@ use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use frontend\models\Aquatone;
+use frontend\models\Amass;
 
 ini_set('max_execution_time', 0);
 
@@ -917,7 +918,7 @@ foreach ($xmls as $xml) {
 
         $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 60 -timeout 80 -retries 2 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip  ";
             
-        exec($httpx);
+        //exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 

@@ -16,18 +16,33 @@ class Vhostscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function ipCheck($IP, $CIDR){
+    public function ipCheck($IP){
+
+        //Cloudflare ip ranges + private networks - no need to ffuf
+        $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
+            "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
+            "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
+            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24",
+            "23.74.0.0/23");
+        
+        $output = 0;
+
+        for ($n = 0; $n < count($masks); $n++) { 
+            list ($net, $mask) = explode("/", $masks[$n] );
             
-        list ($net, $mask) = explode("/", $CIDR);
+            $ip_net = ip2long($net);
+            $ip_mask = ~((1 << (32 - $mask)) - 1);
 
-        $ip_net = ip2long($net);
-        $ip_mask = ~((1 << (32 - $mask)) - 1);
+            $ip_ip = ip2long($IP);
 
-        $ip_ip = ip2long($IP);
+            $ip_ip_net = $ip_ip & $ip_mask;
+            
+            $output = ($ip_ip_net == $ip_net);
 
-        $ip_ip_net = $ip_ip & $ip_mask;
+            if ($output == 1) break;
+        }
 
-        return ($ip_ip_net == $ip_net);
+        return $output;
     }
 
     //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
@@ -222,13 +237,6 @@ class Vhostscan extends ActiveRecord
 
         $iparray = array();
 
-        //Cloudflare ip ranges + private networks - no need to ffuf
-        $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
-            "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
-            "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
-            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24",
-            "23.74.0.0/23" );
-
             /*"120.52.22.96/27", "205.251.249.0/24", "180.163.57.128/26", "204.246.168.0/22", "205.251.252.0/23", "54.192.0.0/16", "204.246.173.0/24", "54.230.200.0/21", 
             "120.253.240.192/26", "116.129.226.128/26", "130.176.0.0/17", "108.156.0.0/14", "99.86.0.0/16", "205.251.200.0/21", "223.71.71.128/25", "13.32.0.0/15", "120.253.245.128/26", 
             "13.224.0.0/14", "70.132.0.0/18", "15.158.0.0/16", "13.249.0.0/16", "205.251.208.0/20", "65.9.128.0/18", "130.176.128.0/18", "58.254.138.0/25", "54.230.208.0/20", "116.129.226.0/25", 
@@ -253,16 +261,9 @@ class Vhostscan extends ActiveRecord
 
                         if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
 
-                            $stop = 0;
-
-                            for ($n = 0; $n < count($masks); $n++) { 
-
-                                if (((vhostscan::ipCheck($ip["ip"], $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
-                                    $stop = 1;
-                                    break;
-                                } else $stop = 0;
-
-                            }
+                            if ( vhostscan::ipCheck( $ip["ip"] ) == 1 ) { // if IP is in blocked mask - cloudflare ranges,etc
+                                $stop = 1;
+                            } else $stop = 0;
 
                             if ($stop == 0) { //if ip is allowed
 
@@ -280,19 +281,13 @@ class Vhostscan extends ActiveRecord
 
                     if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
 
-                        $stop = 0;
-
-                        for ($n = 0; $n < count($masks); $n++) { 
-
-                            if (((vhostscan::ipCheck($ip, $masks[$n])) == 1)) { // if IP isnt in blocked mask - cloudflare ranges,etc
+                        if ( vhostscan::ipCheck( $ip ) == 1 ) { // if IP is in blocked mask - cloudflare ranges,etc
                                 $stop = 1;
-                                break;
-                            } else $stop = 0;
-
-                        }
+                        } else $stop = 0;
 
                         if ($stop == 0) { //if ip is allowed
-                            $iparray[] = $ip;
+
+                            $iparray[] = $ip["ip"];
                         }
                     }
                 }
@@ -402,7 +397,7 @@ class Vhostscan extends ActiveRecord
         
         $randomid = rand(3000,100000000);
 
-        exec("sudo mkdir /ffuf/vhost" . $randomid . " & && sudo chmod -R 777 /ffuf/vhost" . $randomid . " ");
+        exec("sudo mkdir /ffuf/vhost" . $randomid . "/ && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/ ");
 
         sleep( rand(10,150) );
 

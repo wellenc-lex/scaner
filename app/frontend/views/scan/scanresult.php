@@ -146,9 +146,10 @@ $this->params['fluid'] = true;
         .even{
             background-color: beige;
         }
-        
 
-
+        .btn-default{
+            color: black;
+        }
 
         ::-webkit-scrollbar {
             height: 7px !important;
@@ -247,6 +248,10 @@ $this->params['fluid'] = true;
     </nav>
 
     <?php if ($nmap != ""): ?>
+
+        <style type="text/css">.even{background-color: grey !important;}</style>
+
+        
         <?php echo $nmap ?>
     <?php endif; ?>
 

@@ -10,7 +10,7 @@
 
 * */21 * * * docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git fetch origin master && git reset --hard FETCH_HEAD && git clean -df" 
 
-* */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && docker pull caffix/amass && docker pull instrumentisto/nmap && docker pull projectdiscovery/httpx"
+* */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && docker pull caffix/amass && docker pull instrumentisto/nmap && docker pull projectdiscovery/httpx && docker pull sxcurity/gau"
 
 */30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod -R 777 /configs/nuclei-templates/"
 

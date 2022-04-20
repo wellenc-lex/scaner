@@ -17,6 +17,7 @@ use frontend\models\Tasks;
 use frontend\models\Vhostscan;
 
 use frontend\models\Whatweb;
+use frontend\models\Aquatone;
 
 use frontend\models\Forbiddenbypass;
 
@@ -131,7 +132,7 @@ class ScanController extends Controller
                 Yii::$app->response->statusCode = 200;
                 
                 if( $task->aquatone != "" ){
-                    exec("sudo rm -r /screenshots/" . $task->taskid . "/ && sudo rm -r /var/www/app/frontend/web/screenshots/" . $task->taskid . " & ");
+                    exec("sudo rm -r /screenshots/" . $task->taskid . "/screenshots && sudo rm -r /var/www/app/frontend/web/screenshots/" . $task->taskid . "/screenshots & ");
                 }
 
                 return $task->delete();
@@ -379,6 +380,19 @@ class ScanController extends Controller
 
         if ($secretIN === $secret) {
             return $model::whatweb(Yii::$app->request->post());
+        }
+
+    }
+
+    public function actionAquatone()
+    {
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
+        $model = new Aquatone();
+
+        $secretIN = Yii::$app->request->post('secret');
+
+        if ($secretIN === $secret) {
+            return $model::aquatonetext(Yii::$app->request->post());
         }
 
     }

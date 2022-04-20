@@ -47,7 +47,7 @@ class Newscan extends Model
     {
         return [
 
-            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n]+)$/'],
+            [['nmapDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \.\:\,\_\-\/\r\n\/]+)$/'],
 
             [['amassDomain'], 'match', 'pattern' => '/^([a-zA-Z0-9\ \,\ \_\.\-\/\:\r\n]+)$/'],
 

@@ -17,9 +17,8 @@ class jsa extends ActiveRecord
 
     public function savetodb($taskid, $hostname, $jsa_output)
     {
-
-        if( $jsa_output == "c2VjcmV0ZmluZGVyIGVycm9yIG5vIGZpbGU=" ){
-            return 1; //no need to save empty results
+        if( $jsa_output == "ZXJyb3Igbm8gZmlsZQ==" ){
+            return 2;
         }
 
         try{
@@ -65,7 +64,7 @@ class jsa extends ActiveRecord
 
             $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1000;
 
-            $randomid = rand(1000,10000000);
+            $randomid = rand(1000,100000000000);
 
             if (strpos($currenturl, 'https://') !== false) {
                 $scheme = "https://";
@@ -81,11 +80,11 @@ class jsa extends ActiveRecord
 
             exec("timeout 80400 sudo docker run --cpu-shares 64 --rm -v jsa:/jsa 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " /jsa/" . $randomid . " ");
 
-            if (file_exists("/jsa/" . $randomid . "/secretfinder.html")) {
-                $secretfinder = file_get_contents("/jsa/" . $randomid . "/secretfinder.html");
-            } else $secretfinder="secretfinder error no file";
+            if (file_exists("/jsa/" . $randomid . "/out.txt")) {
+                $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");
+            } else $trufflehog="error no file";
 
-            $jsa_output = base64_encode($secretfinder); //htmls encoded so there will be no error with inserting into db
+            $jsa_output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
 
             exec("sudo rm -r /jsa/" . $randomid . "/");;
     

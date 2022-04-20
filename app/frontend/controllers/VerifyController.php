@@ -8,6 +8,7 @@ use frontend\models\SentEmail;
 use frontend\models\Tasks;
 use frontend\models\ToolsAmount;
 use frontend\models\Nmap;
+use frontend\models\Vhostscan;
 use Yii;
 use yii\web\Controller;
 
@@ -36,21 +37,21 @@ class VerifyController extends Controller
 
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf    = (int) exec('ps aux | grep "ffuf.binary" | wc -l');
-            
-            //$tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');   
+            $tools_amount_ffuf    = (int) exec('ps aux | grep "ffuf.binary" | wc -l');  
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
+            $tools_amount_jsa  = (int) exec('sudo docker ps | grep "jsa" | wc -l');   
+
             $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');
+            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "jsa" | wc -l');//whatweb
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 2; $max_nuclei_in_task = 200; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 300; $max_jsa = 0; $max_nmap_in_task = 1000;
+            $max_amass = 11; $max_ffuf = 0; $max_vhost = 1000; $max_nuclei = 1; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 2; $max_whatweb = 1; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
 
-            //$max_amass = 0; $max_ffuf = 150; $max_nmap = 1; $max_vhost = 50; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            //$max_amass = 0; $max_ffuf = 150; $max_nmap = 1; $max_vhost = 50; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 150000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -73,8 +74,21 @@ class VerifyController extends Controller
 
                             $nmapintask = explode(" ", $results->nmap);
 
-                            foreach($nmapintask as $id){
-                                $nmapips[] = $id;
+                            foreach($nmapintask as $ip){
+
+                                if (strpos($ip, '::') === false) { //TODO: add ipv6 support
+
+                                    if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
+
+                                        if ( vhostscan::ipCheck( $ip ) == 1 ) { // if IP is in blocked CDN mask - cloudflare ranges,etc
+                                            $stop = 1;
+                                        } else $stop = 0;
+
+                                        if ($stop == 0) { //if ip is allowed
+                                            $nmapips[] = $ip;
+                                        }
+                                    }
+                                }
                             }
 
                             $nmapips = array_unique($nmapips);
@@ -153,42 +167,6 @@ class VerifyController extends Controller
                     }
                 }
             }
-
-            /*
-            //Gitscan
-            $queues = Queue::find()
-                ->andWhere(['working' => "0"])
-                ->andWhere(['todelete' => "0"])
-                ->andWhere(['instrument' => "4"])
-                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC])
-                ->limit(1)
-                ->all();
-
-            foreach ($queues as $results) {
-
-                if ($results != NULL) {
-
-                    
-
-                        if ($tools_amount->gitscan < 0) {
-
-                            if ($tools_amount_amass < 1) {
-
-                                if ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa ) {
-
-                                    $results->working  = 1;
-
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
-
-                                    $results->save();
-
-                                    $tools_amount->gitscan = $tools_amount->gitscan+1;
-                                }
-                            }
-                        }
-                    
-                }
-            } */
 
             if( $tools_amount_whatweb < $max_whatweb ){
                 //Whatweb
@@ -359,6 +337,42 @@ class VerifyController extends Controller
                 }
             }
 
+                        /*
+            //Gitscan
+            $queues = Queue::find()
+                ->andWhere(['working' => "0"])
+                ->andWhere(['todelete' => "0"])
+                ->andWhere(['instrument' => "4"])
+                ->orderBy(['passivescan' => SORT_ASC, 'id' => SORT_DESC])
+                ->limit(1)
+                ->all();
+
+            foreach ($queues as $results) {
+
+                if ($results != NULL) {
+
+                    
+
+                        if ($tools_amount->gitscan < 0) {
+
+                            if ($tools_amount_amass < 1) {
+
+                                if ($tools_amount_ffuf < $max_ffuf && $tools_amount_jsa <= $max_jsa ) {
+
+                                    $results->working  = 1;
+
+                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
+
+                                    $results->save();
+
+                                    $tools_amount->gitscan = $tools_amount->gitscan+1;
+                                }
+                            }
+                        }
+                    
+                }
+            } */
+
 
 
                     /*
@@ -429,10 +443,25 @@ class VerifyController extends Controller
             }
 
             if ( !empty($whatweburls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
-                    . '&secret=' . $secret  . '" https://app/scan/whatweb >/dev/null 2>/dev/null &');
+
+                $randomid = rand(100000, 900000000000);
+                $scanIPS = "/dockerresults/" . $randomid . "aquatoneinput.txt";
+                file_put_contents($scanIPS, implode( PHP_EOL, $whatweburls ) );
+
+                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid
+                    . '&secret=' . $secret  . '" https://app/scan/aquatone >/dev/null 2>/dev/null &'); 
+
+
+                /*exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
+                    . '&secret=' . $secret  . '" https://app/scan/whatweb >/dev/null 2>/dev/null &');*/
+
+                foreach($whatweburls as $urls){
+                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $urls . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
+                    . '&secret=' . $secret  . '" https://app/scan/jsa >/dev/null 2>/dev/null &');
+                }
 
                 $tools_amount_whatweb++;
+
 
             }
 

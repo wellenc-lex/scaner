@@ -37,7 +37,7 @@ class VerifyController extends Controller
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
             $tools_amount_ffuf    = (int) exec('ps aux | grep "ffuf.binary" | wc -l');
-
+            
             //$tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffuf" | wc -l');   
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
@@ -48,10 +48,9 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            $max_amass = 1; $max_ffuf = 450; $max_vhost = 50; $max_nuclei = 1; $max_nmap = 1; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 300; $max_jsa = 0; 
+            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 2; $max_nuclei_in_task = 200; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 300; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            //$max_amass = 6; $max_ffuf = 800; $max_nmap = 5; $max_vhost = 200; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 2; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
-
+            //$max_amass = 0; $max_ffuf = 150; $max_nmap = 1; $max_vhost = 50; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -312,7 +311,7 @@ class VerifyController extends Controller
 
                         if ($results != NULL) {
 
-                            if ($tools_amount_nuclei < $max_nuclei && $tools_amount_amass <= $max_amass && $nuclei_in_task <= $max_nuclei_in_task ) {
+                            if ($tools_amount_nuclei < $max_nuclei ) {
 
                                 $results->working = 1;
 
@@ -448,7 +447,7 @@ class VerifyController extends Controller
             if ( !empty($nmapips) ) {
                 //we put ips to file because curl cant send 10000+ ips.
                 $randomid = rand(100000, 900000000000);
-                $scanIPS = "/dockerresults/" . $randomid . "inputips.txt";
+                $scanIPS = "/dockerresults/" . $randomid . "nmapinputips.txt";
                 file_put_contents($scanIPS, implode( PHP_EOL, $nmapips ) );
 
                 exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
@@ -486,7 +485,7 @@ class VerifyController extends Controller
             $results = Tasks::find()
                 ->select(['tasks.taskid','tasks.notify_instrument', 'tasks.nmap_status','tasks.amass_status', 'tasks.dirscan_status','tasks.gitscan_status', 'tasks.reverseip_status','tasks.ips_status', 'tasks.vhost_status'])
                 ->where(['!=', 'status', 'Done.'])
-                ->limit(2500)
+                ->limit(5000)
                 ->all();
 
             if ($results != NULL) {

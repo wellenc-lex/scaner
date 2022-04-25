@@ -144,7 +144,7 @@ $this->params['fluid'] = true;
         }
 
         .even{
-            background-color: beige;
+            background-color: grey;
         }
 
         .btn-default{
@@ -901,7 +901,7 @@ $this->params['fluid'] = true;
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-dirscan').DataTable({"pageLength": 1000, "order": [[ 1, "desc" ]]});
+                    $('#table-dirscan').DataTable({"pageLength": 1000, "order": [ [ 1, "desc" ], [2,"asc"] ]}); 
                 });
 
                 $( window ).on( "load", function() {
@@ -1061,7 +1061,7 @@ $this->params['fluid'] = true;
                                         <div class="page card mb-3" style="width: 80%;">
 
                                             <div class="card-footer text-muted">
-                                                <a class='linkstyle' href="#" class="card-link page-details-link">Response</a>
+                                               <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
                                             </div>
 
                                             <div class="response-headers-container">

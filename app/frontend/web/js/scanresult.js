@@ -130,20 +130,27 @@ function sendvhost(host) {
 function sendtoscan() {
     var nmaplist = [];
     var dirscanlist = [];
+    var UniqueNmaplist = [];
+    var UniqueDirscanlist = [];
 
     $.each($("input[name='nmap']:checked"), function () {
         page = $(this).closest(".page");
         nmaplist.push(page.find("h5.card-title").text());
+        nmaplist.push($(this).closest(".card.page-card").find(".card-header.text-truncate").text() );
         $(this).prop("checked", false);
     });
-
+    
     $.each($("input[name='dirscan']:checked"), function () {
         page = $(this).closest(".page");
         dirscanlist.push(page.find("h5.card-title").text());
+        dirscanlist.push($(this).closest(".card.page-card").find(".card-header.text-truncate").text() );
         $(this).prop("checked", false);
     });
 
-    var nmapDomain = nmaplist.join(",");
+    var UniqueNmaplist = nmaplist.filter((a) => a);
+    var UniqueDirscanlist = dirscanlist.filter((a) => a);
+
+    var nmapDomain = UniqueNmaplist.join(",");
 
     if (nmapDomain !== "") {
         Newscan = {
@@ -180,9 +187,9 @@ function sendtoscan() {
 
     }
 
-    if (dirscanlist.length != "0") {
-        for (n = 0; n < dirscanlist.length; n++) {
-            dirscanUrl = dirscanlist[n];
+    if (UniqueDirscanlist.length != "0") {
+        for (n = 0; n < UniqueDirscanlist.length; n++) {
+            dirscanUrl = UniqueDirscanlist[n];
 
             Newscan = {
                 "dirscanUrl": dirscanUrl,

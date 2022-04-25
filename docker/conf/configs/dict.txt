@@ -34,6 +34,8 @@ secrets.yml
 .git/logs/HEAD
 api/config/database.yml 
 puppet
+_automation/generate_post.py
+bin/algo-preview-with-docker
 deploy/deployer/
 static/data//etc/passwd
 npm-debug.log

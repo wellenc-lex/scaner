@@ -114,7 +114,7 @@ class Aquatone extends ActiveRecord
         border-bottom: 1px solid rgb(68, 68, 68);
         padding: 30px 20px 20px 20px;
         overflow-x: auto;
-        white-space: nowrap;
+        white-space: normal !important;
     }
 
     .cluster:nth-child(even) {
@@ -143,11 +143,13 @@ class Aquatone extends ActiveRecord
 
             $fileaquatone = str_replace('modal fade', 'modal', $fileaquatone);
 
+            $fileaquatone = str_replace('<div class="page-screenshot-container" style="transform: scale(1);', '<div class="page-screenshot-container" style="transform: scale(1); overflow: hidden;', $fileaquatone);
+
             $fileaquatone = str_replace('return _.chunk(this.pages, 2);', 'return _.chunk(this.pages, 200);', $fileaquatone);
 
             $fileaquatone = str_replace('<a class="navbar-brand" href="#">AQUATONE</a>', '<a class="navbar-brand" href="#/pages/by-similarity">AQUATONE</a>', $fileaquatone);
 
-            $fileaquatone = preg_replace('/\<script type="text/x-template" id="pageCarouselTemplate".*script\>/', '
+            $fileaquatone = preg_replace('~<script type="text\/x\-template" id="pageCarouselTemplate">.+?<\/script>~ism', '
                 <script type="text/x-template" id="pageCarouselTemplate">
                   <div class="page-similarity-cluster carousel slide" :id="\'carousel_\' + id" data-interval="false">
                         <div class="cluster">
@@ -156,19 +158,19 @@ class Aquatone extends ActiveRecord
                           </div>
                         </div>
                     </div>
-                </script>', $fileaquatone, -1);
+                </script>', $fileaquatone);
 
             $fileaquatone = str_replace('overflow: hidden;', 'overflow: auto;', $fileaquatone);
 
-            $fileaquatone = str_replace('alias: \'/pages/single\'', 'alias: \'/pages/by-similarity\'', $fileaquatone);
+            $fileaquatone = str_replace('alias: \'/pages/single\', component: Vue.component(\'SinglePagesPage\'), props: { pages: data.pages } },', 'alias: \'/pages/by-similarity\', component: Vue.component(\'PagesBySimilarityPage\'), props: { pageSimilarityClusters: data.pageSimilarityClusters } },', $fileaquatone);
 
             /** Link the screenshots from the volume to folder in order to be accessible from nginx **/
 
-            $movescreenshots = "ln -s /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/screenshots/" . $taskid . " && sudo chown -R nginx:nginx /screenshots/" . $taskid . "/* ";
+            $movescreenshots = "ln -s /screenshots/" . $taskid . "/screenshots /var/www/app/frontend/web/screenshots/" . $taskid . " && sudo chmod -R 777 /screenshots/" . $taskid . "/* ";
 
             //&& sudo chmod -R 777 /var/www/app/frontend/web/screenshots/" . $taskid . "
 
-            $fileaquatone = preg_replace('/\<footer.*footer\>/', '', $fileaquatone, -1);
+            $fileaquatone = preg_replace('~<footer.*footer>~ims', '', $fileaquatone);
 
             
 
@@ -189,7 +191,7 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --user nginx --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 80000 -threads 55 -scan-timeout 10000 -ports xlarge -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.9 -screenshot-delay 5000 ";
+            $command = "cat ". $filename ." | sudo docker run --user nginx --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 80000 -threads 55 -scan-timeout 10000 -ports xlarge -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.85 -screenshot-delay 5000 ";
         }
 //-chrome-path /usr/bin/chromium-browser
 
@@ -198,7 +200,7 @@ class Aquatone extends ActiveRecord
 
             sleep(5);
 
-            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run  --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 80000 -threads 35 -scan-timeout 10000 -screenshot-timeout 110000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.9 -screenshot-delay 12000 ";
+            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run  --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 80000 -threads 35 -scan-timeout 10000 -screenshot-timeout 110000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.85 -screenshot-delay 12000 ";
         }
 
         exec($command);
@@ -235,10 +237,8 @@ class Aquatone extends ActiveRecord
         $filename = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 80000 -threads 55 -scan-timeout 10000 -screenshot-timeout 90000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.9 -screenshot-delay 5000 ";
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 150000 -threads 25 -screenshot-timeout 200000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.85 -screenshot-delay 5000 ";
         }
-
-        exec("sudo mkdir /screenshots/" . $taskid . " && sudo chmod -R 777 /screenshots/" . $taskid . " "); 
 
         exec($command);
 

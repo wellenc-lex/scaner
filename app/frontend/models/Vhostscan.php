@@ -87,7 +87,7 @@ class Vhostscan extends ActiveRecord
     {
         $output = json_encode( array_unique( array_filter($output) ) );
         
-        if($output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
+        if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
 
             try{
 
@@ -172,9 +172,11 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
-        //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -timeout 60 -ignore-body -r -u "; 
+        //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 1 " . $headers . " -maxtime 100000 -timeout 85 -ignore-body -r -u "; 
         
-        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 3 " . $headers . " -maxtime 150000 -ignore-body -r -ac -acc 'randomtest' -noninteractive -u ";
+        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 3 " . $headers . " -maxtime 150000 -ignore-body -r -noninteractive -u ";
+
+        //-ac -acc 'randomtest'
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "domain.json";
 
@@ -202,9 +204,11 @@ class Vhostscan extends ActiveRecord
 
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
 
-        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 60 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ignore-body -r -ac -acc 'randomtest' -noninteractive -u ";
+        $ffuf_general_string = "/tmp/ffuf.binary -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 429,503,400 -fs 612,613,548 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ignore-body -r  -noninteractive -u ";
 
-        //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 60 -ignore-body -r -u ";
+
+        //-ac -acc 'randomtest'
+        //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 85 -ignore-body -r -u ";
 
         $vhost_file_location = "/ffuf/vhost" . $randomid . "/" . $randomid . "NOdomain.json";
             
@@ -214,12 +218,12 @@ class Vhostscan extends ActiveRecord
         $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
 
         //Asks Host:admin.dev, asdf.dev
-        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.dev' ");
+        /*exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.dev' ");
 
-        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);
+        $output_vhost[] = vhostscan::ReadFFUFResult($vhost_file_location);*/
 
         //Asks Host:admin.local, asdf.local
-        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.local' ");
+        exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: internal.FUZZ' ");
 
         //Asks Host:admin.internal, asdf.internal
         exec($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.internal' ");
@@ -287,7 +291,7 @@ class Vhostscan extends ActiveRecord
 
                         if ($stop == 0) { //if ip is allowed
 
-                            $iparray[] = $ip["ip"];
+                            $iparray[] = $ip;
                         }
                     }
                 }
@@ -300,7 +304,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 50 -timeout 65 -retries 2 -o ". $output ." -l ". $wordlist ."";
+            $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 50 -timeout 100 -retries 2 -o ". $output ." -l ". $wordlist ."";
 
             exec($httpx);
 
@@ -483,6 +487,7 @@ class Vhostscan extends ActiveRecord
                     foreach($alive as $host) {
 
                         if($host!=""){
+                            sleep(5);
                             $output[] = vhostscan::findVhostsWithDomain($host);
                             $output[] = vhostscan::findVhostsNoDomain($host);
                         }

@@ -105,7 +105,7 @@ class Nmap extends ActiveRecord
         ." --script '\"pgsql-brute\"' --script-args '\"pgsql-brute.timeout=8h,brute.firstonly=1\"' --script '\"smb-protocols\"' --script '\"'fcrdns'\"' -sC";*/
 
 
-        /*exec("sudo docker run --cpu-shares 512 --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults --expose=22 -p 22:22 --net=host projectdiscovery/naabu -c 500 -rate 100 -verify -timeout 5000 -p 1-200 -list " 
+        /*exec("sudo docker run --cpu-shares 512 --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults --expose=22 -p 22:22 --net=host projectdiscovery/naabu -exclude-cdn -c 500 -rate 100 -verify -timeout 5000 -p 1-200 -list " 
             . $scanIPS . " -output " . $outputtxt ." -silent -nmap-cli 'nmap -Pn -v -sV --script-timeout 4000m --host-timeout 20000m --max-scan-delay 20s --max-retries 2 --open -oX "
             . $nmapoutputdir . "{{ip}}.xml --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "' ");*/
 
@@ -125,14 +125,9 @@ class Nmap extends ActiveRecord
 
         exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=22 -p 22:22 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 22"
             ." -sU -T4 --randomize-hosts -Pn -v -sV"
-            ." -p T:1-31000,U:500,U:1434,U:5060,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 150000"
-            ." --script-timeout 5000m --host-timeout 20000m --max-scan-delay 10s --min-parallelism 50 --min-rate 300 --max-retries 2 --open -oX "
+            ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 99000"
+            ." --script-timeout 5000m --host-timeout 20000m --max-scan-delay 10s --max-retries 3 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
-
-        /*exec ( "sudo docker run --cpu-shares 512 -v configs:/configs/ -v dockerresults:/dockerresults --privileged=true --expose=22 -p 22:22 --net=host --rm rustscan/rustscan:latest -t 8000 -b 100 "
-            . " --range 1-32000 --scan-order 'Random' -a '" . $scanIPS . "' -- --randomize-hosts -Pn -v -sV -sC -Pn "
-            . " --script-timeout 5000m --host-timeout 5000m --max-scan-delay 10s --max-retries 3 --open -oX "
-            . $nmapoutputxml . " --noninteractive --stylesheet /configs/nmap/nmap.xsl -R " . $scripts); //-- no oX output for all IPs only 1 for 1 -> useless. */
 
         //exec("python3 /configs/nmap/nmapmerger.py -d ". $nmapoutputdir ." -o ". $nmapoutputxml);
 

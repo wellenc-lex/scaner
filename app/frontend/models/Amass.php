@@ -439,7 +439,7 @@ class Amass extends ActiveRecord
 
             $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
-            exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 1000 -whois -config ".$amassconfig);
+            exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 100 -whois -config ".$amassconfig);
 
             if ( file_exists($inteloutput) ){
                 $intelamass = file_get_contents($inteloutput);

@@ -17,12 +17,11 @@ class jsa extends ActiveRecord
 
     public function savetodb($taskid, $hostname, $jsa_output)
     {
-        if( $jsa_output == "ZXJyb3Igbm8gZmlsZQ==" ){
+        if( $jsa_output == "ZXJyb3Igbm8gZmlsZQ==" && !empty($jsa_output) && $jsa_output!=[] ) {
             return 2;
         }
 
         try{
-            
             $jsa = new Tasks();
             $jsa->host = $hostname;
             $jsa->dirscan_status = "Done.";
@@ -34,7 +33,7 @@ class jsa extends ActiveRecord
            
         } catch (\yii\db\Exception $exception) {
 
-            sleep(1000);
+            sleep(3000);
             $jsa = new Tasks();
             $jsa->host = $hostname;
             $jsa->dirscan_status = "Done.";
@@ -52,46 +51,23 @@ class jsa extends ActiveRecord
 
     public static function jsa($input)
     {
-        global $randomid;
 
-        if( $input["url"] != "") $urls = explode(PHP_EOL, $input["url"]); else return 0; //no need to scan without supplied url
+        $randomid = (int) $input["randomid"];
 
-        foreach ($urls as $currenturl){
+        exec("sudo docker run --cpu-shares 128 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " ");
 
-            $hostname = dirscan::ParseHostname($currenturl);
+        if (file_exists("/jsa/" . $randomid . "/out.txt")) {
+            $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");
+        } else $trufflehog="error no file";
 
-            $port = dirscan::ParsePort($currenturl);
+        $jsa_output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
 
-            $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1000;
+        //exec("sudo rm -r /jsa/" . $randomid . "/");;
 
-            $randomid = rand(1000,100000000000);
+        jsa::savetodb($taskid, $hostname, $jsa_output);
 
-            if (strpos($currenturl, 'https://') !== false) {
-                $scheme = "https://";
-            } else $scheme = "http://";
+        dirscan::queuedone($input["queueid"]);
 
-            $hostname = trim($hostname, ' ');
-            $hostname = rtrim($hostname, '/');
-
-            $hostname = trim($hostname, ' ');
-            $port = trim($port, ' ');
-
-            exec("sudo mkdir /jsa/" . $randomid . "/ && sudo chmod -R 777 /jsa/" . $randomid . "/"); //create dir for ffuf scan results
-
-            exec("timeout 80400 sudo docker run --cpu-shares 64 --rm -v jsa:/jsa 5631/jsa " . escapeshellarg($scheme.$hostname.$port) . " /jsa/" . $randomid . " ");
-
-            if (file_exists("/jsa/" . $randomid . "/out.txt")) {
-                $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");
-            } else $trufflehog="error no file";
-
-            $jsa_output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
-
-            exec("sudo rm -r /jsa/" . $randomid . "/");;
-    
-            jsa::savetodb($taskid, $hostname, $jsa_output);
-
-            dirscan::queuedone($input["queueid"]);
-        }
         
         return 1;
     }

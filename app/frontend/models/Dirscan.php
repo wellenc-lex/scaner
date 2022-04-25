@@ -238,9 +238,9 @@ class Dirscan extends ActiveRecord
         //Get subdomains from gau
         $name="/ffuf/" . $randomid . "/" . $randomid . "gau.txt";
 
-        $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
+        $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons,mp4,mp3'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --timeout 90 --fc 504,404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --timeout 110 --fc 504,404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 
@@ -342,7 +342,7 @@ class Dirscan extends ActiveRecord
 
             //$ffuf_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -maxtime 350000 -fc 429,503,400 -fs 612,613,548 -s -timeout 40 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
 
-            $ffuf_string = "/tmp/ffuf.binary -maxtime 700000 -fc 504,404,429,503,400 -fs 612,613,548,26,0 -s -timeout 80 -recursion -recursion-depth 1 -t 1 -p 1 -r -fr 'medium|Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
+            $ffuf_string = "/tmp/ffuf.binary -maxtime 700000 -fc 504,404,429,503,400 -fs 612,613,548,26,0 -s -timeout 80 -recursion -recursion-depth 1 -t 1 -p 2 -r -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium|Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -ac -acc 'randomtest' -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od /ffuf/" . $randomid . "/ -of json ";
 

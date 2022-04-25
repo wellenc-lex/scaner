@@ -29,6 +29,7 @@ backend
 appserver
 aptest
 auth
+puppet
 backup
 beta
 blog

@@ -8,7 +8,9 @@ ENV GOPATH="/root/go/"
 
 RUN go install github.com/ffuf/ffuf@latest && mv $GOPATH/bin/ffuf /tmp/ffuf.binary && chown nginx:nginx /tmp/ffuf.binary
 
-RUN go install github.com/hiddengearz/jsubfinder@latest && wget https://raw.githubusercontent.com/ThreatUnkown/jsubfinder/master/.jsf_signatures.yaml && mv $GOPATH/bin/jsubfinder /tmp/jsubfinder.binary && mv .jsf_signatures.yaml /tmp/.jsf_signatures.yaml && chown nginx:nginx /tmp/jsubfinder.binary && chown nginx:nginx /tmp/.jsf_signatures.yaml
+RUN GO111MODULE=on go install github.com/sw33tLie/sns@latest && mv $GOPATH/bin/sns /tmp/sns.binary && chown nginx:nginx /tmp/sns.binary
+
+#RUN go install github.com/hiddengearz/jsubfinder@latest && wget https://raw.githubusercontent.com/ThreatUnkown/jsubfinder/master/.jsf_signatures.yaml && mv $GOPATH/bin/jsubfinder /tmp/jsubfinder.binary && mv .jsf_signatures.yaml /tmp/.jsf_signatures.yaml && chown nginx:nginx /tmp/jsubfinder.binary && chown nginx:nginx /tmp/.jsf_signatures.yaml
 
 ADD app /var/www/app
 

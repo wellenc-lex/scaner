@@ -128,7 +128,7 @@ class Dirscan extends ActiveRecord
                     }
                 }
 
-                if ( count($forbidden) < 50 && count($forbidden) > 2) {
+                if ( count($forbidden) < 15 && count($forbidden) >= 1) {
                     
                     foreach($forbidden as $forbiddenurl){
 
@@ -240,7 +240,7 @@ class Dirscan extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons,mp4,mp3'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --timeout 110 --fc 504,404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
+        $gau = "timeout 6000 sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 15 --timeout 120 --fc 504,404,302,301 --o ". $name ." " . escapeshellarg($url) . " ";
 
         exec($gau);
 

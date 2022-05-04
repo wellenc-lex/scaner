@@ -7,6 +7,7 @@ use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 use frontend\models\Whatweb;
+use frontend\models\Vhostscan;
 
 ini_set('max_execution_time', 0);
 
@@ -15,6 +16,8 @@ class Amass extends ActiveRecord
     public static function amassscan($input)
     {
         global $amassconfig;
+
+        sleep(rand(1,500));
 
         $url = $input["url"];
         $taskid = (int) $input["taskid"]; if($taskid=="") {
@@ -50,7 +53,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
 
         if (filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -225,6 +228,7 @@ class Amass extends ActiveRecord
 
     public function saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts)
     {
+        global $ips;
         if($amassoutput != "[]" && $amassoutput != '"No file."'){
 
             try{
@@ -246,6 +250,8 @@ class Amass extends ActiveRecord
                     $amass->hidden = 1;
                     $amass->date = date("Y-m-d H-i-s");
 
+                    if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
+
                     $amass->save(); 
                 } else {
                     $amass = new Tasks();
@@ -259,6 +265,8 @@ class Amass extends ActiveRecord
                     $amass->subtakeover = $subtakeover;
                     $amass->hidden = 1;
                     $amass->date = date("Y-m-d H-i-s");
+
+                    if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
 
                     $amass->save();
 
@@ -372,7 +380,7 @@ class Amass extends ActiveRecord
 
     public function vhosts($amassoutput, $gau, $taskid, $randomid)
     {
-        global $maindomain; global $wordlist; global $amassconfig;
+        global $maindomain; global $wordlist; global $amassconfig; global $ips;
         //get subdomain names from amass and gau to use it as virtual hosts wordlist
 
         /*
@@ -408,6 +416,11 @@ class Amass extends ActiveRecord
                         amass::dosplit($name);
 
                         amass::split2($name);
+                    }
+
+                    //add all ips observed by amass to the db to scan them later w nmap
+                    foreach( $amass["addresses"]["ip"] as $ip ){
+                        if ( vhostscan::ipCheck( $ip == 0 ) ) $ips[] = $ip;
                     }
                 }
             }

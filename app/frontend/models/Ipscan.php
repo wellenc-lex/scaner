@@ -37,12 +37,11 @@ class Ipscan extends ActiveRecord
             if(!empty($task)){ //if querry exists in db
 
                 $task->ips_status = "Done.";
-                $task->ips = $output;
+                $task->ips = $task->ips.$output;
                 $task->hidden = 1;
                 $task->date = date("Y-m-d H-i-s");
 
                 $task->save(); 
-
             } else {
                 $task = new Tasks();
                 $task->host = $hostname;

@@ -106,7 +106,7 @@ class Nmap extends ActiveRecord
 
 
         /*exec("sudo docker run --cpu-shares 512 --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults --expose=22 -p 22:22 --net=host projectdiscovery/naabu -exclude-cdn -c 500 -rate 100 -verify -timeout 5000 -p 1-200 -list " 
-            . $scanIPS . " -output " . $outputtxt ." -silent -nmap-cli 'nmap -Pn -v -sV --script-timeout 4000m --host-timeout 20000m --max-scan-delay 20s --max-retries 2 --open -oX "
+            . $scanIPS . " -output " . $outputtxt ." -silent -nmap-cli 'nmap -g 22 -Pn -v -sV --min-hostgroup 500 --script-timeout 4000m --host-timeout 20000m --max-scan-delay 20s --max-retries 2 --open -oX "
             . $nmapoutputdir . "{{ip}}.xml --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "' ");*/
 
 
@@ -123,10 +123,10 @@ class Nmap extends ActiveRecord
         ." --script '(http-default-accounts)' --script-args '(http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h)'  "
         ." --script '(smb-protocols)' --script '('fcrdns')' -sC";*/
 
-        exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=22 -p 22:22 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sT -g 22"
+        exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=22 -p 22:22 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sS -g 22"
             ." -sU -T4 --randomize-hosts -Pn -v -sV"
-            ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 99000"
-            ." --script-timeout 5000m --host-timeout 20000m --max-scan-delay 10s --max-retries 3 --open -oX "
+            ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 10000"
+            ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 10s --max-retries 3 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
 
         //exec("python3 /configs/nmap/nmapmerger.py -d ". $nmapoutputdir ." -o ". $nmapoutputxml);

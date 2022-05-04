@@ -15,18 +15,17 @@ class jsa extends ActiveRecord
         return 'tasks';
     }
 
-    public function savetodb($taskid, $hostname, $jsa_output)
+    public function savetodb($taskid, $output)
     {
-        if( $jsa_output == "ZXJyb3Igbm8gZmlsZQ==" && !empty($jsa_output) && $jsa_output!=[] ) {
+        if( $output == "ZXJyb3Igbm8gZmlsZQ==" && !empty($output) && $output!=[] ) {
             return 2;
         }
 
         try{
             $jsa = new Tasks();
-            $jsa->host = $hostname;
             $jsa->dirscan_status = "Done.";
             $jsa->notify_instrument = $task->notify_instrument."9";
-            $jsa->js = $jsa_output;
+            $jsa->js = $output;
             $jsa->date = date("Y-m-d H-i-s");
 
             $jsa->save();
@@ -35,15 +34,14 @@ class jsa extends ActiveRecord
 
             sleep(3000);
             $jsa = new Tasks();
-            $jsa->host = $hostname;
             $jsa->dirscan_status = "Done.";
             $jsa->notify_instrument = $task->notify_instrument."9";
-            $jsa->js = $jsa_output;
+            $jsa->js = $output;
             $jsa->date = date("Y-m-d H-i-s");
 
             $jsa->save();
             
-            return $exception.$jsa_output;
+            return $exception.$output;
         }
 
         return 1;
@@ -60,15 +58,14 @@ class jsa extends ActiveRecord
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");
         } else $trufflehog="error no file";
 
-        $jsa_output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
+        $output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
 
-        //exec("sudo rm -r /jsa/" . $randomid . "/");;
+        //exec("sudo rm /jsa/" . $randomid . "/out.txt");;
 
-        jsa::savetodb($taskid, $hostname, $jsa_output);
+        jsa::savetodb($taskid, $output);
 
         dirscan::queuedone($input["queueid"]);
 
-        
         return 1;
     }
 

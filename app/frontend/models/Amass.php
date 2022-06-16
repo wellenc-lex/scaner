@@ -49,7 +49,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -w /configs/amasswordlist.txt -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -w /configs/amasswordlist.txt -timeout 3500 -ip -config ".$amassconfig);
 
         if (filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -464,7 +464,7 @@ class Amass extends ActiveRecord
 
             $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
-            exec("sudo docker run --cpu-shares 512 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 100 -whois -config ".$amassconfig);
+            exec("sudo docker run --cpu-shares 512  --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 100 -whois -config ".$amassconfig);
 
             if ( file_exists($inteloutput) ){
                 $intelamass = file_get_contents($inteloutput);
@@ -490,7 +490,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 45 -timeout 250 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256  --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 45 -timeout 250 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

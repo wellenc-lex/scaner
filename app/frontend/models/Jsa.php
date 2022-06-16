@@ -51,7 +51,7 @@ class jsa extends ActiveRecord
     {
         $randomid = (int) $input["randomid"];
 
-        exec("sudo docker run --dns=1.1.1.1 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v /dockerresults/:/dockerresults -v /jsa/:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
+        exec("sudo docker run --dns=8.8.8.8 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v /dockerresults/:/dockerresults -v /jsa/:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
 
         if (file_exists("/jsa/" . $randomid . "/out.txt")) {
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");

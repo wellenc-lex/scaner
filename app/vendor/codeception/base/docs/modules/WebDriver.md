@@ -77,7 +77,7 @@ Docker can ship Selenium Server with all its dependencies and browsers inside a 
 Running tests inside Docker is as easy as pulling [official selenium image](https://github.com/SeleniumHQ/docker-selenium) and starting a container with Chrome:
 
 ```
-docker run --net=host selenium/standalone-chrome
+docker run --dns="8.8.4.4" --net=host selenium/standalone-chrome
 ```
 
 By using `--net=host` we allow selenium to access local websites.

@@ -1,5 +1,4 @@
 <?php
-
 namespace frontend\models;
 
 use Yii;
@@ -8,6 +7,7 @@ use frontend\models\Dirscan;
 use frontend\models\Queue;
 
 ini_set('max_execution_time', 0);
+error_reporting (E_ALL ^ E_NOTICE);
 
 class Nuclei extends ActiveRecord
 {
@@ -16,7 +16,7 @@ class Nuclei extends ActiveRecord
         return 'tasks';
     }
 
-    public function bannedsubdomains($in)
+    public static function bannedsubdomains($in)
     {
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
@@ -25,7 +25,7 @@ class Nuclei extends ActiveRecord
         }
     }
 
-    public function savetodb($taskid, $nuclei)
+    public static function savetodb($taskid, $nuclei)
     {
         try{
             Yii::$app->db->open();
@@ -65,18 +65,21 @@ class Nuclei extends ActiveRecord
         return 1;
     }
 
-
-    public function Nucleiscan($list, $randomid)
+    public static function Nucleiscan($list, $randomid)
     {
 
-        $headers = " -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' "; 
+        $headers = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'ZCACHE_CONTROL: 127.0.0.1' "; 
 
-        $exclude = " -exclude-templates /root/nuclei-templates/helpers -exclude-templates /root/nuclei-templates/dns -exclude-templates /root/nuclei-templates/miscellaneous -exclude-templates /root/nuclei-templates/technologies/tech-detect.yaml -exclude-templates /root/nuclei-templates/technologies/aws -exclude-templates /root/nuclei-templates/technologies/waf-detect.yaml -exclude-templates /root/nuclei-templates/misconfiguration/http-missing-security-headers.yaml -exclude-templates /root/nuclei-templates/misconfiguration/cloudflare-image-ssrf.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2018-15473.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/cors-misconfig.yaml -exclude-templates /root/nuclei-templates/exposures/tokens/generic/ -etags xss -exclude-templates /root/nuclei-templates/token-spray/ -exclude-severity info -exclude-templates /root/nuclei-templates/cves/2018/CVE-2017-5487.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2021-38314.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2016-10940.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/open-redirect.yaml";
-
+        $exclude = " -exclude-templates /root/nuclei-templates/helpers -exclude-templates /root/nuclei-templates/dns -exclude-templates /root/nuclei-templates/miscellaneous -exclude-templates /root/nuclei-templates/technologies/tech-detect.yaml -exclude-templates /root/nuclei-templates/technologies/aws -exclude-templates /root/nuclei-templates/technologies/waf-detect.yaml -exclude-templates /root/nuclei-templates/misconfiguration/http-missing-security-headers.yaml -exclude-templates /root/nuclei-templates/misconfiguration/cloudflare-image-ssrf.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2018-15473.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/cors-misconfig.yaml -exclude-templates /root/nuclei-templates/exposures/tokens/generic/ -etags xss -exclude-templates /root/nuclei-templates/token-spray/ -exclude-severity info -exclude-templates /root/nuclei-templates/cves/2018/CVE-2017-5487.yaml -exclude-templates /root/nuclei-templates/cves/2018/CVE-2021-38314.yaml -exclude-templates /root/nuclei-templates/cves/2016/CVE-2016-10940.yaml -exclude-templates /root/nuclei-templates/vulnerabilities/generic/open-redirect.yaml ";
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --rm --cpu-shares 512 --network=docker_default -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 2 -max-host-error 200 -timeout 90 -silent -rl 35 -bs 1000 -c 15 " . $exclude . $headers;  //-stats
+        $nuclei_start = "sudo docker run --dns 8.8.8.8 --privileged=true --rm --cpu-shares 512 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 4 -max-host-error 50 -timeout 280 -rl 25 -bs 1500 -c 10 -hbs 10 -stats  " . $exclude . $headers;
+
+//-ept network -silent
+        /*$nuclei_start = "sudo /root/bin/bin/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 2 -max-host-error 50 -timeout 180 -headless -silent -rl 25 -bs 2000 -c 25 -hbs 55 " . $exclude . $headers;  //-stats*/
+
+        exec("echo " . $nuclei_start . " >> /dockerresults/out.txt ");
 
         exec($nuclei_start);
 
@@ -115,7 +118,7 @@ class Nuclei extends ActiveRecord
     {
         if( $input["url"] != "") $unparsedurls = explode(PHP_EOL, $input["url"]); else return 0; //no need to scan without supplied url
 
-        $taskid = (int) $input["taskid"]; if($taskid=="") $taskid = 1010;
+        if ( isset( $input["taskid"]) && $taskid!="" ) $taskid = (int) $input["taskid"]; else $taskid = 1010;
 
         $randomid = rand(1,100000000);
 

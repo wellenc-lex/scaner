@@ -5,6 +5,8 @@ defined('YII_ENV') or define('YII_ENV', 'dev');
 ini_set("default_socket_timeout", 1000);
 ini_set('display_errors','1');
 ini_set('memory_limit', '-1');
+
+error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../vendor/yiisoft/yii2/Yii.php';
 require __DIR__ . '/../../common/config/bootstrap.php';

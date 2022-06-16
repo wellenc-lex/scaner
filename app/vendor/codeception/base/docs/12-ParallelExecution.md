@@ -25,12 +25,12 @@ Please make sure you have `docker` or [Docker Toolbox](https://www.docker.com/pr
 
 Run official Codeception image from DockerHub:
 
-    docker run codeception/codeception
+    docker run --dns="8.8.4.4" codeception/codeception
 
 Running tests from a project, by mounting the current path as a host-volume into the container.
 The **default working directory in the container is `/project`**.
 
-    docker run -v ${PWD}:/project codeception/codeception run
+    docker run --dns="8.8.4.4" -v ${PWD}:/project codeception/codeception run
 
 To prepare application and tests to be executed inside containers you will need to use [Docker Compose](https://docs.docker.com/compose/) to run multiple containers and connect them together.
 

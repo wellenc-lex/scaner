@@ -45,15 +45,11 @@ class Amass extends ActiveRecord
 
         $amassconfig = "/configs/amass". rand(1,20). ".ini";
 
-
-
-
-
         if( !file_exists($amassconfig) ){
             $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -w /configs/amasswordlist.txt -timeout 3500 -ip -config ".$amassconfig);
 
         if (filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -106,7 +102,7 @@ class Amass extends ActiveRecord
         return 'tasks';
     }
 
-    public function bannedwords($in)
+    public static function bannedwords($in)
     {
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
@@ -115,7 +111,7 @@ class Amass extends ActiveRecord
         }
     }
 
-     public function dosplit($input){
+     public static function dosplit($input){
         //www.test.google.com -> www test google
         global $wordlist;
         preg_match_all("/(\w[\-\_\d]?)*\./", $input, $out);
@@ -128,7 +124,7 @@ class Amass extends ActiveRecord
         }
     }
 
-    public function split2($input){
+    public static function split2($input){
         //www.test.google.com -> www.test -> www
         global $wordlist;
 
@@ -140,9 +136,9 @@ class Amass extends ActiveRecord
     }
 
     //resume scan after some IO/DB error
-    public function RestoreAmass()
+    public static function RestoreAmass()
     {   
-        exec("find /dockerresults/*amass.json -mtime +3", $notdone);
+        exec("find /dockerresults/*amass.json -mtime +6", $notdone);
 
         foreach ($notdone as $id){
             preg_match("/(\d)+/", $id, $out);
@@ -200,13 +196,27 @@ class Amass extends ActiveRecord
                     dirscan::queuedone($randomid);
                 }
 
+                $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
+
+                if ( file_exists($inteloutput) ){
+                    $intelamass = file_get_contents($inteloutput);
+
+                    $intelamass = array_unique(explode(PHP_EOL, $intelamass));
+
+                    if ( $intelamass != "" ){
+                        amass::saveintelToDB($taskid, $intelamass, $maindomain);
+                    }
+                }
+
                 exec("sudo rm /dockerresults/" . $randomid . "*");
             }
         }
+
+
 /*
         $inteloutput = "/dockerresults/1amassINTEL.txt"; 
         //Intel mail.ru ASNs  -ipv4
-        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru -org Mail.ru,VK company,Mailru");
+        exec("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru -org Mail.ru,VK company,Mailru");
 
         if ( file_exists($inteloutput) ){
             $intelamass = file_get_contents($inteloutput);
@@ -218,7 +228,7 @@ class Amass extends ActiveRecord
             }
         }
 
-        var_dump("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru");
+        var_dump("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru");
 */
         return 1;
     }
@@ -226,7 +236,7 @@ class Amass extends ActiveRecord
 
 
 
-    public function saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts)
+    public static function saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts)
     {
         global $ips;
         if($amassoutput != "[]" && $amassoutput != '"No file."'){
@@ -293,7 +303,7 @@ class Amass extends ActiveRecord
         }
     }
 
-    public function saveintelToDB($taskid, $intelamass, $maindomain)
+    public static function saveintelToDB($taskid, $intelamass, $maindomain)
     {
         if($intelamass != ""){
 
@@ -378,7 +388,7 @@ class Amass extends ActiveRecord
         }
     }
 
-    public function vhosts($amassoutput, $gau, $taskid, $randomid)
+    public static function vhosts($amassoutput, $gau, $taskid, $randomid)
     {
         global $maindomain; global $wordlist; global $amassconfig; global $ips;
         //get subdomain names from amass and gau to use it as virtual hosts wordlist
@@ -419,8 +429,10 @@ class Amass extends ActiveRecord
                     }
 
                     //add all ips observed by amass to the db to scan them later w nmap
-                    foreach( $amass["addresses"]["ip"] as $ip ){
-                        if ( vhostscan::ipCheck( $ip == 0 ) ) $ips[] = $ip;
+                    foreach( $amass["addresses"] as $vhostarr ){
+                        //print_r($vhostarr);
+                        $ip = $vhostarr;
+                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $ips[] = $ip["ip"];
                     }
                 }
             }
@@ -468,16 +480,17 @@ class Amass extends ActiveRecord
         return $vhostswordlist;
     }
 
-    public function httpxhosts($vhostslist, $taskid, $randomid)
+    public static function httpxhosts($vhostslist, $taskid, $randomid)
     {
         global $maindomain;
 
         $wordlist = "/dockerresults/" . $randomid . "hosts.txt";
         $output = "/dockerresults/" . $randomid . "httpx.txt";
+        $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 45 -timeout 85 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip ";
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 45 -timeout 250 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -532,6 +545,12 @@ class Amass extends ActiveRecord
                         $queue->instrument = 5; //whatweb
                         $queue->save();
 
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 8; //nuclei
+                        $queue->save();
+
                         $whatweb = new Whatweb();
                         $whatweb->url = $scheme.$currenthost;
                         $whatweb->ip = $url["host"];
@@ -560,7 +579,7 @@ class Amass extends ActiveRecord
         return 1;
     }
 
-    public function gauhosts($domain, $randomid, $gauoutputname)
+    public static function gauhosts($domain, $randomid, $gauoutputname)
     {
         //Get subdomains from gau
         $name="/dockerresults/" .$randomid. "gau.txt";

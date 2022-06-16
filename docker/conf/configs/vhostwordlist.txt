@@ -1,4 +1,3 @@
-loc
 intra
 staging
 local
@@ -44,6 +43,8 @@ ansible
 consul
 artifactory
 virtual
+api-prod
+api-dev
 dashboard
 kuber
 k8s-dashboard

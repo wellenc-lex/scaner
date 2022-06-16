@@ -15,7 +15,7 @@ class jsa extends ActiveRecord
         return 'tasks';
     }
 
-    public function savetodb($taskid, $output)
+    public static function savetodb($taskid, $output)
     {
         if( $output == "ZXJyb3Igbm8gZmlsZQ==" && !empty($output) && $output!=[] ) {
             return 2;
@@ -32,7 +32,7 @@ class jsa extends ActiveRecord
            
         } catch (\yii\db\Exception $exception) {
 
-            sleep(3000);
+            sleep(5000);
             $jsa = new Tasks();
             $jsa->dirscan_status = "Done.";
             $jsa->notify_instrument = $task->notify_instrument."9";
@@ -49,14 +49,16 @@ class jsa extends ActiveRecord
 
     public static function jsa($input)
     {
-
         $randomid = (int) $input["randomid"];
 
-        exec("sudo docker run --cpu-shares 128 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " ");
+        exec("sudo docker run --dns=1.1.1.1 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v /dockerresults/:/dockerresults -v /jsa/:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
 
         if (file_exists("/jsa/" . $randomid . "/out.txt")) {
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");
         } else $trufflehog="error no file";
+
+        $trufflehog = str_replace('-', '/', $trufflehog);
+        $trufflehog = str_replace('~', '/', $trufflehog);
 
         $output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
 

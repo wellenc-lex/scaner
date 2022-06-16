@@ -17,7 +17,7 @@ class Nmap extends ActiveRecord
         return 'tasks';
     }
 
-    public function saveToDB($taskid, $nmapoutput)
+    public static function saveToDB($taskid, $nmapoutput)
     {
         if($nmapoutput != "[]"){
 
@@ -67,16 +67,12 @@ class Nmap extends ActiveRecord
         }
     }
 
-    public function nmapips($input)
+    public static function nmapips($input)
     {
         //if function is being called from outside instead of curl
-        if( $taskid == "" ){
-            $taskid = (int) $input["taskid"];
-        }
-
-        if( $randomid == "" ){
-            $randomid = (int) $input["randomid"];
-        }
+        if ( isset( $input["taskid"]) && $taskid!="" ) $taskid = (int) $input["taskid"]; else $taskid = "";
+        
+        $randomid = (int) $input["randomid"];
         
         $scanIPS = "/dockerresults/" . $randomid . "nmapinputips.txt";
 
@@ -93,7 +89,7 @@ class Nmap extends ActiveRecord
         ." --script '\"(smb-os-discovery)\"' --script '\"(redis-brute)\"' --script '\"(amqp-info)\"' --script '\"(nfs-ls)\"' --script '\"(svn-brute)\"' --script-args '\"(svn-brute.timeout=8h,brute.firstonly=1)\"' "
         ." --script '\"(smb-brute)\"' --script-args '\"(smb-brute.timeout=8h,brute.firstonly=1)\"' --script '\"(ms-sql-brute)\"' --script-args '\"(ms-sql-brute.timeout=8h,brute.firstonly=1)\"' "
         ." --script '\"(http-default-accounts)\"' --script-args '\"(http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h)\"'  "
-        ." --script '\"(pgsql-brute)\"' --script-args '\"(pgsql-brute.timeout=8h,brute.firstonly=1)\"' --script '\"(smb-protocols)\"' --script '\"('fcrdns')\"' -sC";*/
+        ." --script '\"(pgsql-brute)\"' --script-args '\"(pgsql-brute.timeout=8h,brute.firstonly=1)\"' --script '\"(smb-protocols)\"' --script '\"('smb-enum-shares')\"' --script '\"('fcrdns')\"' -sC";*/
     
         //try -f --badsum to bypass IDS
 
@@ -102,32 +98,51 @@ class Nmap extends ActiveRecord
         ." --script '\"smb-os-discovery\"' --script '\"redis-brute\"' --script '\"amqp-info\"' --script '\"nfs-ls\"' --script '\"svn-brute\"' --script-args '\"svn-brute.timeout=8h,brute.firstonly=1\"' "
         ." --script '\"smb-brute\"' --script-args '\"smb-brute.timeout=8h,brute.firstonly=1\"' --script '\"ms-sql-brute\"' --script-args '\"ms-sql-brute.timeout=8h,brute.firstonly=1\"' "
         ." --script '\"http-default-accounts\"' --script-args '\"http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h\"'  "
-        ." --script '\"pgsql-brute\"' --script-args '\"pgsql-brute.timeout=8h,brute.firstonly=1\"' --script '\"smb-protocols\"' --script '\"'fcrdns'\"' -sC";*/
+        ." --script '\"pgsql-brute\"' --script-args '\"pgsql-brute.timeout=8h,brute.firstonly=1\"' --script '\"smb-protocols\"' --script '\"'fcrdns'\"' -sC"; */
 
 
-        /*exec("sudo docker run --cpu-shares 512 --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults --expose=22 -p 22:22 --net=host projectdiscovery/naabu -exclude-cdn -c 500 -rate 100 -verify -timeout 5000 -p 1-200 -list " 
-            . $scanIPS . " -output " . $outputtxt ." -silent -nmap-cli 'nmap -g 22 -Pn -v -sV --min-hostgroup 500 --script-timeout 4000m --host-timeout 20000m --max-scan-delay 20s --max-retries 2 --open -oX "
-            . $nmapoutputdir . "{{ip}}.xml --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "' ");*/
-
-
-        $scripts = " -A --script '(ajp-brute)' --script-args '(ajp-brute.timeout=8h,brute.firstonly=1)' --script '(ftp-brute)' --script-args '(ftp-brute.timeout=6h)' --script '(*vnc*)' --script-args '(vnc-brute.timeout=8h,brute.firstonly=1)' --script '(mongo* and default)' --script '(dns-zone-transfer)' --script '('dns-nsec-enum')' --script '('rmi-*')' --script '(memcached-info)' --script '('docker-*')'  "
+        /*$scripts = " -A --script '(ajp-brute)' --script-args '(ajp-brute.timeout=8h,brute.firstonly=1)' --script '(ftp-brute)' --script-args '(ftp-brute.timeout=6h)' --script '(*vnc*)' --script-args '(vnc-brute.timeout=8h,brute.firstonly=1)' --script '(mongo* and default)' --script '(dns-zone-transfer)' --script '('dns-nsec-enum')' --script '('rmi-*')' --script '(memcached-info)' --script '('docker-*')'  "
         ." --script '(http-open-proxy)' --script '(ftp-*)' --script '(rsync-list-modules)' --script '(mysql-brute)' --script-args '(mysql-brute.timeout=8h,brute.firstonly=1)' --script '(mysql-empty-password)' "
         ." --script '(smb-os-discovery)' --script '(redis-brute)' --script '(amqp-info)' --script '(nfs-ls)' --script '(svn-brute)' --script-args '(svn-brute.timeout=8h,brute.firstonly=1)' "
         ." --script '(smb-brute)' --script-args '(smb-brute.timeout=8h,brute.firstonly=1)' --script '(ms-sql-brute)' --script-args '(ms-sql-brute.timeout=8h,brute.firstonly=1)' "
         ." --script '(http-default-accounts)' --script-args '(http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h)'  "
-        ." --script '(pgsql-brute)' --script-args '(pgsql-brute.timeout=8h,brute.firstonly=1)' --script '(smb-protocols)' --script '('fcrdns')' -sC";
+        ." --script '(pgsql-brute)' --script-args '(pgsql-brute.timeout=8h,brute.firstonly=1)' --script '(smb-protocols)' --script '('fcrdns')' -sC"; */
 
-        /*$scripts = " -A --script '(mongo* and default)' --script '(dns-zone-transfer)' --script '('dns-nsec-enum')' --script '('rmi-*')' --script '(memcached-info)' --script '('docker-*')'  "
-        ." --script '(http-open-proxy)' --script '(ftp-*)' --script '(rsync-list-modules)' --script '(mysql-empty-password)' "
-        ." --script '(smb-os-discovery)' --script '(amqp-info)' --script '(nfs-ls)' "
-        ." --script '(http-default-accounts)' --script-args '(http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h)'  "
-        ." --script '(smb-protocols)' --script '('fcrdns')' -sC";*/
+        /*$scripts = " -A --script mongo* --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  "
+        ." --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares "
+        ." --script smb-os-discovery --script amqp-info --script nfs-ls "
+        ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h "
+        ." --script smb-protocols --script fcrdns -sC";*/
 
-        exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=22 -p 22:22 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged -sS -g 22"
-            ." -sU -T4 --randomize-hosts -Pn -v -sV"
+        /*$scripts = " -A --script ajp-brute --script-args ajp-brute.timeout=8h,brute.firstonly=1 --script ftp-brute --script-args ftp-brute.timeout=6h --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 --script mongo* --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  --script smb-enum-shares "
+        ." --script http-open-proxy --script ftp-* --script rsync-list-modules --script mysql-brute --script-args mysql-brute.timeout=8h,brute.firstonly=1 --script mysql-empty-password "
+        ." --script smb-os-discovery --script redis-brute --script amqp-info --script nfs-ls --script svn-brute --script-args svn-brute.timeout=8h,brute.firstonly=1 "
+        ." --script smb-brute --script-args smb-brute.timeout=8h,brute.firstonly=1 --script ms-sql-brute --script-args ms-sql-brute.timeout=8h,brute.firstonly=1 "
+        ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h  "
+        ." --script pgsql-brute --script-args pgsql-brute.timeout=8h,brute.firstonly=1 --script smb-protocols --script fcrdns -sC";*/
+
+        $scripts = " -A --script mongo* --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  "
+        ." --script http-open-proxy --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares "
+        ." --script smb-os-discovery --script amqp-info --script nfs-ls --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 "
+        ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h "
+        ." --script smb-protocols --script fcrdns -sC";
+
+        exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=53 -p 53:53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
+            ." -sS -g 53 -sU -T4 --randomize-hosts -Pn -v -sV --min-hostgroup 10000 --randomize-hosts --send-eth -n -sS"
             ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 10000"
             ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 10s --max-retries 3 --open -oX "
-            . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS );
+            . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
+
+
+        /*exec("sudo docker run --dns 1.1.1.1 --rm --cpu-shares 512 --privileged=true --ulimit nofile=1048576:1048576 --network host -v configs:/configs/ -v dockerresults:/dockerresults --expose=53 -p 53:53 projectdiscovery/naabu -exclude-cdn -c 35 -rate 1000 -timeout 10000 -p 1-32000 -list " 
+            . $scanIPS . " -output " . $outputtxt ." -nmap-cli 'nmap -Pn -v -sV --min-hostgroup 500 --script-timeout 8000m --host-timeout 40000m --max-scan-delay 20s --max-retries 3 --open -oX "
+            . $nmapoutputdir . "{{ip}}.xml --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "'  >> /dockerresults/out.txt 2>&1 ");*/
+//-rate 100000
+        /*exec("sudo /root/bin/bin/naabu -exclude-cdn -c 200 -rate 500 -timeout 15000 -p 1-32000 -list " 
+            . $scanIPS . " -output " . $outputtxt ." -nmap-cli 'nmap -g 53 -T4 -Pn -v -sV --randomize-hosts --send-eth -sS --min-hostgroup 1000 --script-timeout 8000m --host-timeout 40000m --max-scan-delay 20s --max-retries 3 --open -oX "
+            . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "'  >> /dockerresults/out.txt 2>&1 ");*/
+
+        exec("echo " . $scanIPS . " >> /dockerresults/out.txt ");
 
         //exec("python3 /configs/nmap/nmapmerger.py -d ". $nmapoutputdir ." -o ". $nmapoutputxml);
 
@@ -135,27 +150,11 @@ class Nmap extends ActiveRecord
 
         if (file_exists($nmapoutputhtml)) {
             $output = file_get_contents($nmapoutputhtml);
+
+            $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
+
+            aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
         } else return 2;
-
-        $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
-
-
-
-
-
-
-
-
-
-
-//pass naabu.txt to the aquatone with cat | 
-
-
-
-
-
-
-        aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
 
         return 1;//exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
     }

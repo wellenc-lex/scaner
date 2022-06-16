@@ -14,7 +14,7 @@ help:
 test: docker-php
 	composer require "yiisoft/yii2:${YII_VERSION}" --prefer-dist
 	composer install --prefer-dist
-	docker run --rm=true -v $(shell pwd):/opt/test yiitest/php:${PHP_VERSION} phpunit --verbose --color
+	docker run --dns="8.8.4.4" --rm=true -v $(shell pwd):/opt/test yiitest/php:${PHP_VERSION} phpunit --verbose --color
 
 docker-php: dockerfiles
 	cd tests/docker/php && sh build.sh

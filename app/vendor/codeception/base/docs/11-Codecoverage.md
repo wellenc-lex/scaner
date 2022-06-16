@@ -136,7 +136,7 @@ Use the `work_dir` option to specify the work directory. When CodeCoverage runs,
 
 Given a docker command similar to:
 ```bash
-docker run -v $(pwd):/workdir -w /workdir...
+docker run --dns="8.8.4.4" -v $(pwd):/workdir -w /workdir...
 ```
 
 Use the below configuration to allow coverage mergers.

@@ -16,15 +16,15 @@ help:
 test: docker-php docker-pgsql adjust-config
 	composer require "yiisoft/yii2:${YII_VERSION}" --prefer-dist
 	composer install --prefer-dist
-	docker run --rm=true -v $(shell pwd):/var/lib/postgresql/data --link $(shell cat tests/dockerids/pgsql):postgres postgres:${PGSQL_VERSION}  sh -c 'psql -h postgres -U postgres -c "CREATE DATABASE yiitest;"; psql -h postgres -U postgres yiitest < /var/lib/postgresql/data/tests/data/pgsql.sql'
-	docker run --rm=true -v $(shell pwd):/opt/test --link $(shell cat tests/dockerids/pgsql):postgres yiitest/php:${PHP_VERSION} phpunit --verbose --color
+	docker run --dns='8.8.4.4' --dns="8.8.4.4" --rm=true -v $(shell pwd):/var/lib/postgresql/data --link $(shell cat tests/dockerids/pgsql):postgres postgres:${PGSQL_VERSION}  sh -c 'psql -h postgres -U postgres -c "CREATE DATABASE yiitest;"; psql -h postgres -U postgres yiitest < /var/lib/postgresql/data/tests/data/pgsql.sql'
+	docker run --dns='8.8.4.4' --dns="8.8.4.4" --rm=true -v $(shell pwd):/opt/test --link $(shell cat tests/dockerids/pgsql):postgres yiitest/php:${PHP_VERSION} phpunit --verbose --color
 
 adjust-config:
 	echo "<?php \$$config['databases']['pgsql']['dsn'] = 'pgsql:host=postgres;port=5432;dbname=yiitest'; \$$config['databases']['pgsql']['fixture'] = null;" > tests/data/config.local.php
 
 docker-pgsql: dockerfiles
 	docker pull postgres:${PGSQL_VERSION}
-	docker run -d -P postgres:${PGSQL_VERSION} > tests/dockerids/pgsql
+	docker run --dns='8.8.4.4' --dns="8.8.4.4" -d -P postgres:${PGSQL_VERSION} > tests/dockerids/pgsql
 	sleep 2
 
 docker-php: dockerfiles
@@ -36,7 +36,7 @@ dockerfiles:
 	mkdir -p tests/dockerids
 
 inspect:
-	docker run -it --rm=true --link $(shell cat tests/dockerids/pgsql):postgres postgres:${PGSQL_VERSION} sh -c 'exec psql -h postgres -U postgres yiitest'
+	docker run --dns='8.8.4.4' --dns="8.8.4.4" -it --rm=true --link $(shell cat tests/dockerids/pgsql):postgres postgres:${PGSQL_VERSION} sh -c 'exec psql -h postgres -U postgres yiitest'
 
 clean:
 	docker stop $(shell cat tests/dockerids/pgsql)

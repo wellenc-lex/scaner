@@ -1040,8 +1040,8 @@ $this->params['fluid'] = true;
                             </tr>
                             </thead>
 
-                            <?php foreach ($vhosts as $vhostbigarray) { foreach ($vhostbigarray as $vhostarray) { foreach ($vhostarray as $vhost) {
-                                ?>
+                            <?php foreach ($vhosts as $vhostbigarray) { foreach ($vhostbigarray as $vhost) {  {
+                                //foreach ($vhostarray as $vhost)?>
 
                                 <tr style="text-align: center" valign="middle">
                                     <td align="center" style="text-align: center;" valign="middle" width="15%">
@@ -1245,7 +1245,7 @@ $this->params['fluid'] = true;
 
         <h3 style="text-align:center; color: rgb(68, 68, 68);" id="jsscan">JS scan output</h3>
 
-        <?php echo $js ?>
+        <?php echo nl2br( $js ) ?>
 
         <script>
 

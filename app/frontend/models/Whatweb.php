@@ -24,31 +24,16 @@ class Whatweb extends ActiveRecord
 
             $randomid = rand(1,1000000000000);
 
-            exec("sudo mkdir /dockerresults/whatweb" . $randomid . " & && sudo chmod -R 777 /dockerresults/whatweb" . $randomid . " ");
+            exec("sudo mkdir /dockerresults/whatweb" . $randomid . " && sudo chmod -R 777 /dockerresults/whatweb" . $randomid . " ");
 
-            $inputurlsfile = "/dockerresults/whatweb" . $randomid . "/whatwebhttpx.txt";
+            $inputurlsfile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
             file_put_contents($inputurlsfile, $input["url"] ); 
         } else return 0; //no need to scan without supplied urls
         
         $whatweboutput = "/dockerresults/whatweb" . $randomid . "/whatweboutput.txt";
 
-        /*exec('sudo docker run --rm -v dockerresults:/dockerresults guidelacour/whatweb \
-            ./whatweb --input-file=' . $inputurlsfile . ' --aggression 3 --max-threads 1 --no-errors --wait=1 \
-            --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36" --log-brief ' . $whatweboutput . ' ');
-*/
-
-        //exec('sudo docker run --cpu-shares 128 --rm -v dockerresults:/dockerresults intrigueio/intrigue-ident --threads 10 --debug --file ' . $inputurlsfile . ' --json ' . $whatweboutput."out");
-
         whatweb::httpxhosts($inputurlsfile, $whatweboutput);
-
-        /*if ( file_exists($whatweboutput) ) {
-            $output = file_get_contents($whatweboutput);
-        }
-
-        if($output != ""){
-            whatweb::savetodb($output);
-        }*/
 
         if( isset($input["queueid"]) ) {
             $queues = explode(PHP_EOL, $input["queueid"]); 
@@ -58,14 +43,13 @@ class Whatweb extends ActiveRecord
             }
         }
 
-        //whatweb::jsscan($inputurlsfile);
 
         //exec("sudo rm -r /dockerresults/whatweb" . $randomid . "/");
 
         return 1;
     }
 
-    public function savetodb($url)
+    public static function savetodb($url)
     {
         try{
             Yii::$app->db->open();
@@ -85,13 +69,15 @@ class Whatweb extends ActiveRecord
     }
 
     
-    public function httpxhosts($inputfile, $output)
+    public static function httpxhosts($inputfile, $output)
     {
         global $randomid;
 
         $wordlist = $inputfile;
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000 -rate-limit 50 -timeout 60 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip ";
+        $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
+
+        $httpx = "sudo docker run --cpu-shares 256 --rm --dns=8.8.8.8 -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 50 -timeout 200 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -107,65 +93,54 @@ class Whatweb extends ActiveRecord
 
             $alive = json_decode($output, true);
 
-            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+            if( !empty($alive) ){
+                rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
 
-            Yii::$app->db->open();
+                Yii::$app->db->open();
 
-            foreach($alive as $url) {
+                foreach($alive as $url) {
 
-                if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+                    if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
 
-                    $scheme = $url["scheme"];
-                    $port = ":".$url["port"]; 
+                        $scheme = $url["scheme"];
+                        $port = ":".$url["port"]; 
 
-                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
-                        continue; //scanning https port with http scheme is pointless so we get to the next host
+                        if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
+                            continue; //scanning https port with http scheme is pointless so we get to the next host
+                        }
+
+                        if( $port===":80" || $port===":443"){
+                            $currenthost = $url["input"];
+                        } else $currenthost = $url["input"].$port;
+
+                        if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                            $whatweb = new Whatweb();
+                            $whatweb->url = $url["scheme"].$currenthost;
+                            $whatweb->ip = $url["host"];
+                            $whatweb->favicon = $url["favicon-mmh3"];
+                            $whatweb->date = date("Y-m-d");
+
+                            if (isset( $url["technologies"] )) {
+                                $whatweb->tech = json_encode( $url["technologies"] );
+
+                                if (preg_match('/Basic/', $whatweb->tech) === 1) {
+
+                                }
+                            }
+
+                            $whatweb->save();
+
+                            $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
+                        }
                     }
-
-                    if( $port===":80" || $port===":443"){
-                        $currenthost = $url["input"];
-                    } else $currenthost = $url["input"].$port;
-
-                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
-
-                        $whatweb = new Whatweb();
-                        $whatweb->url = $url["scheme"].$currenthost;
-                        $whatweb->ip = $url["host"];
-                        $whatweb->favicon = $url["favicon-mmh3"];
-                        $whatweb->date = date("Y-m-d");
-
-                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
-
-                        $whatweb->save();
-
-                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
-                    }
-                }
-            } 
+                } 
+            }
 
             Yii::$app->db->close();
 
         } else file_get_contents($output); //we need an error to check it out in debugger and rescan later
         
-        return 1;
-    }
-
-    //searches secrets and subdomains in JS files with crawl + signatures
-    public function jsscan($filename) //file with subdomains urls
-    {
-
-        $jsoutput = $filename ."jsscan";
-
-        $jsscan = "timeout 1500 /tmp/jsubfinder.binary search --crawl -t 10 -s --sig '/tmp/.jsf_signatures.yaml' -f ". $filename ." -o ". $jsoutput;
-
-        exec($jsscan);
-
-        if (file_exists($jsoutput)) {
-            $output = file_get_contents($jsoutput);
-        } else $output="[]";
-
-        whatweb::httpxhosts($jsoutput); //scan JSscan output file with httpx and scan those later with dirscan + whatweb again and again untill there are no new domains left
-
         return 1;
     }
 

@@ -68,7 +68,10 @@ port = 443
 #[graphdbs.mysql]
 #url = [username:password@]tcp(host[:3306])/database-name?timeout=10s
 
+
 # Settings related to DNS name brute forcing.
+
+
 #[bruteforce]
 #enabled = true
 #recursive = true

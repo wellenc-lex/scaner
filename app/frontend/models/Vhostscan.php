@@ -16,7 +16,7 @@ class Vhostscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function ipCheck($IP){
+    public static function ipCheck($IP){
 
         //Cloudflare ip ranges + private networks - no need to ffuf
         $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
@@ -46,7 +46,7 @@ class Vhostscan extends ActiveRecord
     }
 
     //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
-    public function sliceHost($host){
+    public static function sliceHost($host){
         global $vhostlist; global $domains;
         STATIC $stop = 1;
         while ($stop != 0){
@@ -59,7 +59,7 @@ class Vhostscan extends ActiveRecord
         }
     }
 
-    /*public function dosplit($input){
+    /*public static function dosplit($input){
         //www.test.google.com -> www test google
         global $vhostlist;
         preg_match_all("/(\w[\-\_\d]?)*\./", $input, $out);
@@ -72,7 +72,7 @@ class Vhostscan extends ActiveRecord
         }
     }
 
-    public function split2($input){
+    public static function split2($input){
         //www.test.google.com -> www.test -> www
         global $vhostlist;
 
@@ -83,11 +83,11 @@ class Vhostscan extends ActiveRecord
         }
     }*/
 
-    public function saveToDB($taskid, $output)
+    public static function saveToDB($taskid, $output)
     {
         $output = json_encode( array_unique( array_filter($output) ) );
         
-        if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'){
+        if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'&& $output != '[[1]]'){
 
             try{
 
@@ -123,10 +123,8 @@ class Vhostscan extends ActiveRecord
         }
     }
 
-    public function ReadFFUFResult($filename)
+    public static function ReadFFUFResult($filename, $randomid, $counter)
     {
-        global $randomid;
-
         if (file_exists($filename)) {
             $output = json_decode(file_get_contents($filename), true);
 
@@ -161,12 +159,14 @@ class Vhostscan extends ActiveRecord
         return $output_vhost_array;
     }
 
-    public function FindVhostsWithDomain($host, $responseSize)
+    public static function FindVhostsWithDomain($host, $responseSize)
     {
         global $headers;
         global $randomid;
         global $executeshell;
         global $counter;
+
+        if ( !($responseSize>0) ) $responseSize=0;
 
         $ffuf_general_string = "/tmp/ffuf.binary -of json -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.5 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
@@ -176,29 +176,31 @@ class Vhostscan extends ActiveRecord
         $counter++; exec("sudo mkdir /ffuf/vhost" . $randomid . "/" . $counter . " && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/" . $counter . " ");
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $counter . "/out.json";
 
-        $executeshell = $executeshell . ($ffuf_general_string . escapeshellarg($host ."/") . " -H 'Host: FUZZ.HOSTS' -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS -o " . $outputfile . " &; ". PHP_EOL );
+        $executeshell = $executeshell . ($ffuf_general_string . $host ."/" . " -H 'Host: FUZZ.HOSTS' -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS -o " . $outputfile . " & ". PHP_EOL );
 
         //Asks localhost/domain.com/
         $counter++; exec("sudo mkdir /ffuf/vhost" . $randomid . "/" . $counter . " && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/" . $counter . " ");
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $counter . "/out.json";
 
-        $executeshell = $executeshell . ($ffuf_general_string . escapeshellarg($host ."/HOSTS/") . " -H 'Host: localhost' -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS -o " . $outputfile . " &; ".PHP_EOL);
+        $executeshell = $executeshell . ($ffuf_general_string . $host ."/HOSTS/" . " -H 'Host: localhost' -w /ffuf/vhost" . $randomid . "/domains.txt:HOSTS -o " . $outputfile . " & ".PHP_EOL);
 
         return 1;
     }
 
-    public function findVhostsNoDomain($host, $responseSize)
+    public static function findVhostsNoDomain($host, $responseSize)
     {
 
         //-ac -acc 'randomtest'
-        //$ffuf_general_string = "sudo docker run --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 85 -ignore-body -r -u ";
+        //$ffuf_general_string = "sudo docker run --dns 8.8.4.4 --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 85 -ignore-body -r -u ";
 
         global $headers;
         global $randomid;
         global $executeshell;
         global $counter;
 
-        $ffuf_general_string = "/tmp/ffuf.binary -of json -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.5 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        if ( !($responseSize>0) ) $responseSize=0;
+
+        $ffuf_general_string = "/tmp/ffuf.binary -of json -mc all -fc 429,503,400,502,404 -s -timeout 250 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 2 -p 0.5 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ac -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -208,26 +210,26 @@ class Vhostscan extends ActiveRecord
         $counter++; exec("sudo mkdir /ffuf/vhost" . $randomid . "/" . $counter . " && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/" . $counter . " ");
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $counter . "/out.json";
 
-        $executeshell = $executeshell . ($ffuf_general_string . escapeshellarg($host ."/") . "  -H 'Host: FUZZ' -o " . $outputfile . " &; ".PHP_EOL);
+        $executeshell = $executeshell . ($ffuf_general_string . $host ."/" . "  -H 'Host: FUZZ' -o " . $outputfile . " & ".PHP_EOL);
 
 
         //Asks Host:admin.local, asdf.local
         $counter++; exec("sudo mkdir /ffuf/vhost" . $randomid . "/" . $counter . " && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/" . $counter . " ");
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $counter . "/out.json";
         
-        $executeshell = $executeshell . ($ffuf_general_string . escapeshellarg($host ."/") . "  -H 'Host: internal.FUZZ' -o " . $outputfile . " &; ".PHP_EOL);
+        $executeshell = $executeshell . ($ffuf_general_string . $host ."/" . "  -H 'Host: internal.FUZZ' -o " . $outputfile . " & ".PHP_EOL);
 
 
         //Asks Host:admin.internal, asdf.internal
         $counter++; exec("sudo mkdir /ffuf/vhost" . $randomid . "/" . $counter . " && sudo chmod -R 777 /ffuf/vhost" . $randomid . "/" . $counter . " ");
         $outputfile = "/ffuf/vhost" . $randomid . "/" . $counter . "/out.json";
         
-        $executeshell = $executeshell . ($ffuf_general_string . escapeshellarg($host ."/") . "  -H 'Host: FUZZ.internal' -o " . $outputfile . " &; ".PHP_EOL);
+        $executeshell = $executeshell . ($ffuf_general_string . $host ."/" . "  -H 'Host: FUZZ.internal' -o " . $outputfile . " & ".PHP_EOL);
 
         return 1;
     }
 
-    public function httpxhosts($amassoutput, $ipstoscan)
+    public static function httpxhosts($amassoutput, $ipstoscan)
     {
         global $randomid;
 
@@ -253,7 +255,7 @@ class Vhostscan extends ActiveRecord
             foreach($amassoutput as $json){
                 foreach ($json["addresses"] as $ip) {
 
-                    if (strpos($ip["ip"], '::') === false) { //TODO: add ipv6 support
+                    if (strpos($ip["ip"], ':') === false) { //TODO: add ipv6 support
 
                         if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
 
@@ -273,7 +275,7 @@ class Vhostscan extends ActiveRecord
 
         if ($ipstoscan != 0){
             foreach ($ipstoscan as $ip) {
-                if (strpos($ip, '::') === false) { //TODO: add ipv6 support
+                if (strpos($ip, ':') === false) { //TODO: add ipv6 support
 
                     if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
 
@@ -293,15 +295,21 @@ class Vhostscan extends ActiveRecord
         if (!empty($iparray)) {
             $wordlist = "/ffuf/vhost" . $randomid . "/hosts.txt";
             $output = "/ffuf/vhost" . $randomid . "/httpx.txt";
+
+            $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --cpu-shares 256 --rm -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 25 -timeout 100 -retries 2 -o ". $output ." -l ". $wordlist ."";
+            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -random-agent=false -rate-limit 45 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 
             if (file_exists($output)) {
                 $alive = file_get_contents($output);
+
+                $alive = preg_replace('~http://.*:443~im', '', $alive);
+                $alive = preg_replace('~https://.*:80~im', '', $alive);
+    
                 $alive = explode(PHP_EOL,$alive);
                 $alive = array_unique($alive);
             } else $alive = [];
@@ -311,7 +319,7 @@ class Vhostscan extends ActiveRecord
         } else return 0;
     }
 
-    public function getVHosts($domains, $amassoutput, $vhostwordlist)
+    public static function getVHosts($domains, $amassoutput, $vhostwordlist)
     {
         global $randomid; global $domains; global $vhostlist; global $vhostwordlistmanual;
 
@@ -469,61 +477,71 @@ class Vhostscan extends ActiveRecord
 
                 $amassoutput = json_decode($task->amass, true);
 
-                $maindomain = $amassoutput[0]["domain"];
+                if ( isset( $amassoutput[0]["domain"] ) ) {
 
-                vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
+                    $maindomain = $amassoutput[0]["domain"];
 
-                if( isset($amassoutput) && !empty($amassoutput) ) {
+                    if( !empty($amassoutput) ) {
 
-                    if ( !empty( $iparray ) ){
-                        $alive = vhostscan::httpxhosts($amassoutput, $iparray);
-                    } else $alive = vhostscan::httpxhosts($amassoutput, 0);
-                    
+                        vhostscan::getVHosts(0, $amassoutput, $vhostwordlist);
 
-                    foreach($alive as $host) {
+                        if ( !empty( $iparray ) ){
+                            $alive = vhostscan::httpxhosts($amassoutput, $iparray);
+                        } else $alive = vhostscan::httpxhosts($amassoutput, 0);
 
-                        if($host!=""){
-                            sleep(5);
-                            $responseSize = shell_exec("curl -so /dev/null " . $host . " -w '%{size_download}'");
-                            $output[] = vhostscan::findVhostsWithDomain($host, $responseSize);
-                            $output[] = vhostscan::findVhostsNoDomain($host, $responseSize);
+                        file_put_contents("/ffuf/vhost" . $randomid . "/alive.txt", $alive);
+                        
+                        foreach($alive as $host) {
+
+                            if($host!=""){
+                                sleep(5);
+                                $responseSize = shell_exec("curl -so /dev/null " . $host . " -w '%{size_download}'");
+
+                                vhostscan::findVhostsWithDomain($host, $responseSize);
+                                vhostscan::findVhostsNoDomain($host, $responseSize);
+                            }
                         }
-                    }
+                    } 
+                } 
 
-                } else if ( !empty($iparray) ) {
+                if ( !empty($iparray) ) {
                     $alive = vhostscan::httpxhosts(0, $iparray);
+
+                    file_put_contents("/ffuf/vhost" . $randomid . "/alive2.txt", $alive);
 
                     foreach($alive as $ip) {
 
                         if($ip!=""){
                             sleep(5);
-                            $responseSize = shell_exec("curl -so /dev/null " . $host . " -w '%{size_download}'");
-                            $output[] = vhostscan::findVhostsNoDomain($ip, $responseSize);
+                            $responseSize = shell_exec("curl -so /dev/null " . $ip . " -w '%{size_download}'");
+                            vhostscan::findVhostsNoDomain($ip, $responseSize);
                         }
                     }
                 }
 
-                var_dump($executeshell);
-                passthru("bash <<'END'
-                    echo \"executed in new bash session\";
+                //write  bash command for parallel execution to the file and execute the file.
+                $shellfile = "/ffuf/vhost" . $randomid . "/shell.sh";
+                $runffufs = ("#!/bin/bash
+                    echo \"executed \";
                     pwd;
                     whoami;
                     " . $executeshell . "
-                    wait; >> /ffuf/0bash.txt
-                END");
+                    wait; >> /ffuf/vhost" . $randomid . "/0bash.txt ");
 
+                file_put_contents($shellfile, $runffufs);
+
+                exec("sudo chmod +x " . $shellfile . " && " . $shellfile);
 
                 $i=1;
                 while($i<=$counter){
 
-                    $output[] = vhostscan::ReadFFUFResult("/ffuf/vhost" . $randomid . "/" . $i . "/out.json");
-
+                    $output[] = vhostscan::ReadFFUFResult("/ffuf/vhost" . $randomid . "/" . $i . "/out.json", $randomid, $i);
                     $i++;
                 }
                 
                 $output = array_unique($output);
-                vhostscan::saveToDB( $taskid, $output );
-                //filter empty elemts from output, use alive IPS for later nmap purposes
+
+                if ( count( $output ) > 1 ) vhostscan::saveToDB( $taskid, $output );
             }
 
             dirscan::queuedone($input["queueid"]); //no amass results - maybe task already been deleted

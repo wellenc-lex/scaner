@@ -34,7 +34,7 @@ CD into the docker directory and run:
 
 WINDOWS USERS SHOULD SET THAT VARIABLE before running the docker-compose file: `set COMPOSE_CONVERT_WINDOWS_PATHS=1`
 
-Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chmod -R 777 /configs
+Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chmod -R 777 /configs && docker exec docker_app_1 chmod -R 777 /dockerresults && docker exec docker_app_1 chmod -R 777 /ffuf && docker exec docker_app_1 chmod -R 777 /jsa && docker exec docker_app_1 chmod -R 777 /httpxresponses && docker exec docker_app_1 chmod -R 777 /screenshots && docker exec docker_app_1 chmod -R 777 /nmap && docker exec docker_app_1 chmod -R 777 /nuclei
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
 

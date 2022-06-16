@@ -16,7 +16,7 @@ class Forbiddenbypass extends ActiveRecord
         return 'tasks';
     }
 
-    public function savetodb($output)
+    public static function savetodb($output)
     {
         try{
             Yii::$app->db->open();
@@ -51,7 +51,7 @@ class Forbiddenbypass extends ActiveRecord
 
         if( $input["url"] != "") file_put_contents($inputurlsfile, $input["url"] ); else return 0; //no need to scan without supplied urls
 
-        exec('sudo docker run --rm -v dockerresults:/dockerresults 5631/403bypass /bin/bash -c "cat ' . $inputurlsfile  . ' | ./403bypass.sh > ' . $output . ' "');
+        exec('sudo docker run --dns 8.8.4.4 --rm -v dockerresults:/dockerresults 5631/403bypass /bin/bash -c "cat ' . $inputurlsfile  . ' | ./403bypass.sh > ' . $output . ' "');
 
         if ( file_exists($output) ) {
             $results = file_get_contents($output);

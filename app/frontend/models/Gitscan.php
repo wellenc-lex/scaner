@@ -15,7 +15,7 @@ class Gitscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function PassiveGitscan($taskid)
+    public static function PassiveGitscan($taskid)
     {
         sleep(5); //so the amass passive results are 100% updated in db
 
@@ -46,7 +46,7 @@ class Gitscan extends ActiveRecord
 
         file_put_contents("/dockerresults/" . $taskid . "amassGitscanPassive.txt", implode(PHP_EOL, $done));
 
-        exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanPassive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOut.txt");
+        exec("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanPassive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOut.txt");
 
         $gitout = file_get_contents("/dockerresults/" . $taskid . "amassGitOut.txt");
 
@@ -104,7 +104,7 @@ class Gitscan extends ActiveRecord
 
             file_put_contents("/dockerresults/" . $taskid . "amassGitscanActive.txt", implode(PHP_EOL, $done));
 
-            exec("sudo docker run --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanActive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOutActive.txt");
+            exec("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults 5631/githound --dig-commits --dig-files --subdomain-file /dockerresults/" . $taskid . "amassGitscanActive.txt --config-file /configs/githoundconfig1.yml > /dockerresults/" . $taskid . "amassGitOutActive.txt");
 
             $gitout = file_get_contents("/dockerresults/" . $taskid . "amassGitOutActive.txt");
 

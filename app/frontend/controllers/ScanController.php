@@ -82,7 +82,7 @@ class ScanController extends Controller
      * Output passive scan result
      */
 
-    public function actionPassivescanresult($id)
+    public static function actionPassivescanresult($id)
     {
 
         if (!Yii::$app->user->isGuest) {
@@ -115,7 +115,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionDelete()
+    public static function actionDelete()
     {
 
         if (!Yii::$app->user->isGuest) {
@@ -142,7 +142,7 @@ class ScanController extends Controller
     }
 
 
-    public function actionHide()
+    public static function actionHide()
     {
 
         //0=hide, 1 == unhide
@@ -171,7 +171,7 @@ class ScanController extends Controller
         } else Yii::$app->response->statusCode = 403;
     }
 
-    public function actionActive()
+    public static function actionActive()
     {
         if (!Yii::$app->user->isGuest) {
 
@@ -199,7 +199,7 @@ class ScanController extends Controller
     }
 
 
-    public function actionNotifications()
+    public static function actionNotifications()
     {
         if (!Yii::$app->user->isGuest) {
 
@@ -226,7 +226,7 @@ class ScanController extends Controller
         } else Yii::$app->response->statusCode = 403;
     }
 
-    public function actionNmap()
+    public static function actionNmap()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nmap();
@@ -239,7 +239,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionAmass()
+    public static function actionAmass()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Amass();
@@ -252,7 +252,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionAmassrestore()
+    public static function actionAmassrestore()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Amass();
@@ -265,7 +265,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionGitscan()
+    public static function actionGitscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Gitscan();
@@ -280,7 +280,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionGittofile()
+    public static function actionGittofile()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Gitscan();
@@ -293,7 +293,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionDirscan()
+    public static function actionDirscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Dirscan();
@@ -306,7 +306,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionNuclei()
+    public static function actionNuclei()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nuclei();
@@ -319,7 +319,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionJsa()
+    public static function actionJsa()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new jsa();
@@ -332,7 +332,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionReverseipscan()
+    public static function actionReverseipscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Reverseip();
@@ -345,7 +345,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionIpscan()
+    public static function actionIpscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Ipscan();
@@ -358,7 +358,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionVhostscan()
+    public static function actionVhostscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Vhostscan();
@@ -371,7 +371,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionWhatweb()
+    public static function actionWhatweb()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Whatweb();
@@ -384,7 +384,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionAquatone()
+    public static function actionAquatone()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Aquatone();
@@ -397,7 +397,7 @@ class ScanController extends Controller
 
     }
 
-    public function actionForbiddenbypass()
+    public static function actionForbiddenbypass()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Forbiddenbypass();

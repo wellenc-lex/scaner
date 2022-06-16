@@ -18,7 +18,7 @@ class Ipscan extends ActiveRecord
         return 'tasks';
     }
 
-    public function savetodb($taskid, $hostname, $output)
+    public static function savetodb($taskid, $hostname, $output)
     {
         global $randomid;
 
@@ -37,7 +37,7 @@ class Ipscan extends ActiveRecord
             if(!empty($task)){ //if querry exists in db
 
                 $task->ips_status = "Done.";
-                $task->ips = $task->ips.$output;
+                $task->ips = $task->ips." ".$output;
                 $task->hidden = 1;
                 $task->date = date("Y-m-d H-i-s");
 
@@ -121,10 +121,12 @@ class Ipscan extends ActiveRecord
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 
-        exec("sudo docker run --cpu-shares 256 --rm --network=docker_default -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
+        exec("sudo docker run --dns 8.8.4.4 --cpu-shares 256 --rm --network=docker_default -v /dockerresults/:/dockerresults -v /configs/:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
             . " -a " . $apikeysfile . " -o " . $outputfile);
             
-        $output = file_get_contents($outputfile);
+        if ( file_exists($outputfile) ) {
+            $output = file_get_contents($outputfile);
+        }
 
         ipscan::savetodb($taskid, $hostname, $output);
 

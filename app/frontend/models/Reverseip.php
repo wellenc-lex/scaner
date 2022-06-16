@@ -24,7 +24,7 @@ class Reverseip extends ActiveRecord
 
         $command = "curl --insecure  https://api.hackertarget.com/reverseiplookup/?q=" . $url . "";
 
-        exec($command, $output);
+        //exec($command, $output);
 
         $output = json_encode($output);
 

@@ -54,7 +54,7 @@ class ResetPasswordForm extends Model
      *
      * @return bool if password was reset.
      */
-    public function resetPassword()
+    public static function resetPassword()
     {
         $user = $this->_user;
         $user->setPassword($this->password);

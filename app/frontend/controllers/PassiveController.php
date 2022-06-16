@@ -22,7 +22,7 @@ class PassiveController extends Controller
      * Calls instruments for passive scanning
      */
 
-    public function actionIndex()
+    public static function actionIndex()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $auth = getenv('Authorization') ?: 'Basic bmdpbng6QWRtaW4=';
@@ -48,7 +48,6 @@ class PassiveController extends Controller
                         $queue->taskid = $result->PassiveScanid;
                         $queue->instrument = 1;
                         $queue->save();
-
                     }
 
                     if ($result->amassDomain != "") {
@@ -59,7 +58,6 @@ class PassiveController extends Controller
                         $queue->amassdomain = $result->amassDomain;
                         $queue->instrument = 2;
                         $queue->save();
-
                     }
 
                     if ($result->dirscanUrl != "" && $result->dirscanIP != "") {
@@ -80,7 +78,6 @@ class PassiveController extends Controller
                         $queue->instrument = 3;
                         $queue->dirscanUrl = $result->dirscanUrl;
                         $queue->save();
-
                     }
 
                     $result->last_scan_monthday = date("d");
@@ -95,7 +92,7 @@ class PassiveController extends Controller
     }
 
     //TODO:вызывать функцию diff, которая ищет и меняет отличия в прошлом и новом скане для всех инструментов и добавлять ее результаты в скан
-    public function actionNmap()
+    public static function actionNmap()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Nmap();
@@ -132,7 +129,7 @@ class PassiveController extends Controller
         return 0;
     }
 
-    public function actionAmass()
+    public static function actionAmass()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new amass();
@@ -169,7 +166,7 @@ class PassiveController extends Controller
         return 0;
     }
 
-    public function actionDirscan()
+    public static function actionDirscan()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
         $model = new Dirscan();

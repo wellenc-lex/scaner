@@ -4,13 +4,13 @@ return [
     'components' => [
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => getenv('DB_DSN') ?: 'mysql:host=db;dbname=scaner',
+            'dsn' => getenv('DB_DSN') ?: 'mysql:host=db;dbname=scaner;',
             'username' => getenv('DB_USER'),
             'password' => getenv('DB_PASSWORD'),
             'charset' => 'utf8mb4',
             'tablePrefix' => '',
             'attributes' => [
-                PDO::ATTR_TIMEOUT => 100,
+                PDO::ATTR_TIMEOUT => 120,
             ],
         ],
 

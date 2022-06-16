@@ -184,7 +184,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id]);
 
             $donepages = new Pagination([
-                'defaultPageSize' => 150,
+                'defaultPageSize' => 25,
                 'totalCount' => $done->count(),
             ]);
 
@@ -236,7 +236,7 @@ class SiteController extends Controller
                 ->andWhere(['!=', 'amass_intel', ""]);
 
             $amassIntelpages = new Pagination([
-                'defaultPageSize' => 50,
+                'defaultPageSize' => 25,
                 'totalCount' => $amassIntel->count(),
             ]);
 
@@ -281,7 +281,6 @@ class SiteController extends Controller
 
     public function actionNewscan()
     {
-
         $model = new Newscan();
 
         if (!Yii::$app->user->isGuest) {
@@ -382,41 +381,41 @@ class SiteController extends Controller
                             preg_match_all("/(https?:\/\/)?([\w\-\_\d\.][^\/\:\&\[\r\n\?]+)/i", $currenturl, $domain);
 
                             $currentdomain = $domain[2][0];
-                            
-                            $DomainsAlreadyinDB = Tasks::find()
-                                ->select(['tasks.taskid','tasks.host'])
-                                ->andWhere(['userid' => Yii::$app->user->id])
-                                ->andWhere(['=', 'host', $currentdomain])
-                                ->exists(); 
 
-                            if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
+                            //adds the domain to scan it later continiously
+                            if ($url["passive"] == 1) {
+                                $passive = new PassiveScan();
+                                $passive->userid = Yii::$app->user->id;
+                                $passive->notifications_enabled = 1;
+                                $passive->amassDomain = $currentdomain;
+                                $passive->scanday = date('d', strtotime('+1 day', strtotime($date) ) ); //scan will be created tomorrow
+                                $passive->save();
+                            } else {
+                                $DomainsAlreadyinDB = Tasks::find()
+                                    ->select(['tasks.taskid','tasks.host'])
+                                    ->andWhere(['userid' => Yii::$app->user->id])
+                                    ->andWhere(['=', 'host', $currentdomain])
+                                    ->exists(); 
 
-                                $tasks = new Tasks();
+                                if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
 
-                                $tasks->host = $currentdomain;
-                                $tasks->amass_status = "Working";
-                                $tasks->notify_instrument = "2";
-                                $amass = 1;
+                                    $tasks = new Tasks();
 
-                                $queue = new Queue();
-                                $queue->amassdomain = $currentdomain;
-                                $queue->taskid = $tasks->taskid;
-                                $queue->instrument = 2;
-                                $queue->save();
+                                    $tasks->host = $currentdomain;
+                                    $tasks->amass_status = "Working";
+                                    $tasks->notify_instrument = "2";
+                                    $amass = 1;
 
-                                //adds the domain to scan it later continiously
-                                if ($url["passive"] == 1) {
-                                    $passive = new PassiveScan();
-                                    $passive->userid = Yii::$app->user->id;
-                                    $passive->notifications_enabled = 1;
-                                    $passive->amassDomain = $currentdomain;
-                                    $passive->scanday = rand(1, 30);
-                                    $passive->save();
+                                    $queue = new Queue();
+                                    $queue->amassdomain = $currentdomain;
+                                    $queue->taskid = $tasks->taskid;
+                                    $queue->instrument = 2;
+                                    $queue->save();
+
+                                    $tasks->userid = Yii::$app->user->id;
+                                    $tasks->notification_enabled = $url["notify"];
+                                    $tasks->save();
                                 }
-
-                                $tasks->userid = Yii::$app->user->id;
-                                $tasks->notification_enabled = $url["notify"];
-                                $tasks->save();
                             }
                         }
                     }
@@ -451,7 +450,6 @@ class SiteController extends Controller
                                     {
                                         continue; //no need to ffuf subdomain like docs.smth.com - low chance of juicy fruits here
                                     }
-
                                 }
 
                                 if( !in_array($currenthost, $hostnames ) ){
@@ -459,7 +457,12 @@ class SiteController extends Controller
                                     if ( isset($url["manual"]) ) //scan created with another api call instead of manual request
                                     {
                                         $urltoscan = $currenturl; // saves to db with pdo + checks in newscan model would protect from sqlis and xss
-                                    } else $urltoscan = dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff if being created by api call
+                                    } else $urltoscan = $currenturl; 
+                                    
+                                    /*
+                                    I trust regexp validation in newscan.php. scheme://host slices important directories after hostname, like google.com/admin/, google.com/scripts/ etc
+                                    //dirscan::ParseScheme($currenturl).$currenthost; //slice #? and other stuff if being created by api call
+                                    */
 
                                     $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
                                         ->select(['queue.taskid','queue.dirscanUrl'])
@@ -506,7 +509,7 @@ class SiteController extends Controller
                         $tasks->gitscan_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "4";
                         $gitscan = 1;
-                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["gitUrl"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
 
                         $tasks->userid = Yii::$app->user->id;
                         $tasks->save();
@@ -519,7 +522,7 @@ class SiteController extends Controller
                         $tasks->reverseip_status = "Working";
                         $tasks->notify_instrument = $tasks->notify_instrument . "5";
                         $reverseip = 1;
-                        //exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/reverseipscan > /dev/null 2>/dev/null &');
+                        //exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . $url["reverseip"] . ' & taskid=' . $tasks->taskid . ' & secret=' . $secret . '" https://app/scan/reverseipscan > /dev/null 2>/dev/null &');
 
                         $tasks->userid = Yii::$app->user->id;
                         $tasks->save();
@@ -750,7 +753,7 @@ class SiteController extends Controller
                                 }
                             ]';
 
-                        exec('curl --insecure  -d \'{"count":100,"verbose":false,' . $requests . '}\' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/set/config');
+                        exec('curl --insecure -H \'Connection: close\' --max-time 15  -d \'{"count":100,"verbose":false,' . $requests . '}\' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/set/config');
 
                         exec("curl --insecure  -X POST http://127.0.0.1:8000/start > /dev/null 2>/dev/null &");
 
@@ -886,7 +889,9 @@ foreach ($xmls as $xml) {
 }*/
 
         //sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o /dockerresults/2whatwebhttpx.txt -l /dockerresults/2whatwebhosts.txt
-        $randomid = 2;
+
+/*
+        $randomid = 1;
 
         $wordlist = "/dockerresults/" . $randomid . "whatwebhosts.txt";
         $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
@@ -916,9 +921,11 @@ foreach ($xmls as $xml) {
         $urls = array_unique($urls);
         file_put_contents($wordlist, implode( PHP_EOL, $urls) );
 
-        $httpx = "sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 60 -timeout 80 -retries 2 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip  ";
+        $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
+
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v /dockerresults/:/dockerresults -v /httpxresponses/:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 10 -threads 500 -timeout 100 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
             
-        //exec($httpx);
+        exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
@@ -955,15 +962,6 @@ foreach ($xmls as $xml) {
 
                     if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
 
-                        if( amass::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
-                            $queue = new Queue();
-                            $queue->taskid = $taskid;
-                            $queue->dirscanUrl = $scheme.$currenthost;
-                            $queue->instrument = 3; //ffuf
-                            $queue->wordlist = 1;
-                            $queue->save();
-                        }
-
                         $queue = new Queue();
                         $queue->taskid = $taskid;
                         $queue->dirscanUrl = $scheme.$currenthost;
@@ -985,8 +983,91 @@ foreach ($xmls as $xml) {
                 }
             }
         } 
+        */
 
-        //other actions from whatweb
+        /*
+        $allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.amass'])
+            ->andWhere(['not', ['tasks.amass' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        $urls = array();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    foreach ($json["addresses"] as $ip) {
+
+                        if (strpos($ip["ip"], ':') === false) { //TODO: add ipv6 support
+
+                            if (strpos($ip["ip"], '127.0.0.1') === false) { //no need to scan local ip
+
+                                    $urls[] = $ip["ip"];
+                                
+                            }
+                        }
+                    }
+                }  
+            }
+        }
+
+        $urls = array_unique($urls);
+        
+
+        foreach ($urls as $url) {
+
+            $DomainsAlreadyinDB = Queue::find()
+                ->select(['queue.taskid','queue.nmap'])
+                ->andWhere(['LIKE', 'nmap', $url])
+                ->exists(); 
+
+            if( $DomainsAlreadyinDB == 0 ){
+
+                $queue = new Queue();
+                $queue->nmap = $url;
+                $queue->instrument = 1;
+                $queue->save();
+            }
+
+        }
+
+        //other actions from whatweb*/
+
+/*
+        //vhosts
+        $allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.ips'])
+            ->andWhere(['not', ['tasks.ips' => null] ])
+            ->all();
+
+        Yii::$app->db->close();
+
+        $taskids = array();
+
+        global $ips;
+        $ips = "";
+
+        foreach ($allresults as $results) {
+
+            if( strpos($ips, $results->ips) === false  ){
+                $taskids[] = $results->taskid;
+            }
+
+            $ips = $ips.$results->ips;
+        }
+
+        foreach ($taskids as $taskid) {
+            $queue = new Queue();
+            $queue->taskid = $taskid;
+            $queue->instrument = 7;
+            $queue->save();
+        }
+*/
 
         return $this->render('about');
     }

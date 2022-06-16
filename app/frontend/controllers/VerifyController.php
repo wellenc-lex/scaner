@@ -1,5 +1,4 @@
 <?php
-
 namespace frontend\controllers;
 use common\models\User;
 use frontend\models\PassiveScan;
@@ -11,13 +10,13 @@ use frontend\models\Nmap;
 use frontend\models\Vhostscan;
 use Yii;
 use yii\web\Controller;
-
+error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 /**
  * Scan controller
  */
 class VerifyController extends Controller
 {
-    public function actionQueue()
+    public static function actionQueue()
     {
         //instrument id 1=nmap, 2=amass, 3=dirscan, 4=git, 5=whatweb, 6=ips, 7=vhost, 8=nuclei, 9=jsa
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
@@ -76,7 +75,7 @@ class VerifyController extends Controller
 
                             foreach($nmapintask as $ip){
 
-                                if (strpos($ip, '::') === false) { //TODO: add ipv6 support
+                                if (strpos($ip, ':') === false) { //TODO: add ipv6 support
 
                                     if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
 
@@ -122,7 +121,7 @@ class VerifyController extends Controller
 
                             $url = $results->amassdomain;
 
-                            exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/amass > /dev/null 2>/dev/null &');
+                            exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/amass > /dev/null 2>/dev/null &');
 
                             $results->save();
 
@@ -141,7 +140,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit($max_ffuf)
+                    ->limit(100)
                     ->all();
 
                 foreach ($queues as $results) {
@@ -156,9 +155,9 @@ class VerifyController extends Controller
                             $dirscanip = $results->dirscanIP;
 
                             if ($dirscanip != "") {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://app/scan/dirscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . $dirscanurl . ' &ip=' . $dirscanip . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . ' &wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://app/scan/dirscan > /dev/null 2>/dev/null &');
                             } else {
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &queueid=' . $results->id . '&wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://app/scan/dirscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $dirscanurl . ' &taskid=' . $results->taskid . ' &queueid=' . $results->id . '&wordlist=' . $results->wordlist . ' &secret=' . $secret . '" https://app/scan/dirscan > /dev/null 2>/dev/null &');
                             }
                             $results->save();
 
@@ -226,7 +225,7 @@ class VerifyController extends Controller
 
                                 if($query=="") $query=$results->dirscanUrl;
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "query=' . $query . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/ipscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "query=' . $query . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/ipscan > /dev/null 2>/dev/null &');
 
                                 $results->save();
 
@@ -259,11 +258,11 @@ class VerifyController extends Controller
                             if ($results->vhostport != "" && $results->vhostdomain != "" && $results->vhostip != ""){
                                 if ( $results->vhostssl == 1 ) $ssl = "1"; else $ssl = "0";
 
-                                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid
+                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid
                                         . ' & secret=' . $secret . '& domain=' . $results->vhostdomain . ' & ip=' . $results->vhostip
                                         . ' & port=' . $results->vhostport . ' & ssl=' . $ssl .'" https://app/scan/vhostscan > /dev/null 2>/dev/null &');
 
-                            } else exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/vhostscan > /dev/null 2>/dev/null &');
+                            } else exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/vhostscan > /dev/null 2>/dev/null &');
 
                             $results->save();
 
@@ -361,7 +360,7 @@ class VerifyController extends Controller
 
                                     $results->working  = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "active=1&queueid=' . $results->id . '&taskid=' . $results->taskid . ' & secret=' . $secret . '" https://app/scan/gitscan > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -384,7 +383,7 @@ class VerifyController extends Controller
 
                                     $results->working = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/nmap > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $results->nmap . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/nmap > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -398,7 +397,7 @@ class VerifyController extends Controller
 
                                     $results->working  = 1;
 
-                                    exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/amass > /dev/null 2>/dev/null &');
+                                    exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $results->amassdomain . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/amass > /dev/null 2>/dev/null &');
 
                                     $results->save();
 
@@ -414,11 +413,11 @@ class VerifyController extends Controller
 
                                     if ($dirscanip != "") {
 
-                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "ip=' . $results->dirscanIP . ' & url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/dirscan > /dev/null 2>/dev/null &');
+                                        exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "ip=' . $results->dirscanIP . ' & url= ' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/dirscan > /dev/null 2>/dev/null &');
 
                                     } else {
                                         
-                                        exec('curl --insecure -H \'Authorization: ' . $auth . '\' --data "url=' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/dirscan > /dev/null 2>/dev/null &');
+                                        exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $results->dirscanUrl . ' & scanid=' . $results->taskid . ' & secret=' . $secret . '" https://app/passive/dirscan > /dev/null 2>/dev/null &');
 
                                     }
                                     $results->save();
@@ -435,7 +434,7 @@ class VerifyController extends Controller
             
             //first we get a lot of results into one big url list and then create only 1 docker container to scan all these links. it really saves a lot of memory.
             if ( !empty($nucleiurls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_nuclei )
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_nuclei )
                     . '&secret=' . $secret  . '" https://app/scan/nuclei >/dev/null 2>/dev/null &');
 
                 $tools_amount_nuclei++;
@@ -448,25 +447,23 @@ class VerifyController extends Controller
                 $scanIPS = "/dockerresults/" . $randomid . "aquatoneinput.txt";
                 file_put_contents($scanIPS, implode( PHP_EOL, $whatweburls ) );
 
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid
+                exec("sudo chmod 777 ".$scanIPS);
+
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid
                     . '&secret=' . $secret  . '" https://app/scan/aquatone >/dev/null 2>/dev/null &'); 
 
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "queueid=' . implode( PHP_EOL, $queues_array_whatweb ) . '&randomid=' . $randomid
+                    . '&secret=' . $secret  . '" https://app/scan/jsa >/dev/null 2>/dev/null &'); 
 
-                /*exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
-                    . '&secret=' . $secret  . '" https://app/scan/whatweb >/dev/null 2>/dev/null &');*/
-
-                foreach($whatweburls as $urls){
-                    exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . $urls . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
-                    . '&secret=' . $secret  . '" https://app/scan/jsa >/dev/null 2>/dev/null &');
-                }
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $whatweburls ) . '&queueid=' . implode( PHP_EOL, $queues_array_whatweb )
+                    . '&secret=' . $secret  . '" https://app/scan/whatweb >/dev/null 2>/dev/null &');
 
                 $tools_amount_whatweb++;
-
 
             }
 
             if ( !empty($forbiddenbypassurls) ) {
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $forbiddenbypassurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_forbiddenbypass )
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $forbiddenbypassurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_forbiddenbypass )
                     . '&secret=' . $secret  . '" https://app/scan/forbiddenbypass >/dev/null 2>/dev/null &');
 
                 $tools_amount_forbiddenbypass++;
@@ -479,7 +476,7 @@ class VerifyController extends Controller
                 $scanIPS = "/dockerresults/" . $randomid . "nmapinputips.txt";
                 file_put_contents($scanIPS, implode( PHP_EOL, $nmapips ) );
 
-                exec('curl --insecure -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
                     . '&secret=' . $secret  . '" https://app/scan/nmap >/dev/null 2>/dev/null &'); 
 
                 $tools_amount_nmap++;
@@ -501,7 +498,7 @@ class VerifyController extends Controller
      *
      */
 
-    public function actionActive()
+    public static function actionActive()
     {
 
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
@@ -591,7 +588,7 @@ class VerifyController extends Controller
      * checks passive scan results and sends emails
      *
      */
-    public function actionPassive()
+    public static function actionPassive()
     {
         $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
 
@@ -635,7 +632,6 @@ class VerifyController extends Controller
                             if ($result->dirscan_previous != null && $result->dirscan_new != null){
                                 $diff = array_unique(array_diff($result->dirscan_new,$result->dirscan_previous));
                             }
-
                         }
 
                         $result->needs_to_notify = 0;
@@ -677,7 +673,6 @@ class VerifyController extends Controller
         $mail->userid = $userid;
 
         return $mail->save();
-
     }
 
     private function sendactiveemail($scanid, $email, $userid)
@@ -710,7 +705,6 @@ class VerifyController extends Controller
         $text = "Your scan with ID: " . $scanid . " was successfully done and waiting for you in your profile!";
 
         exec("curl -X POST -H 'Content-type: application/json' --data '{'text':". json_encode($text) . "'} " . $slack_url . "");
-
 
         return 1;
     }

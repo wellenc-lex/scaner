@@ -36,7 +36,7 @@ class VerifyController extends Controller
 
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf    = (int) exec('ps aux | grep "ffuf.binary" | wc -l');  
+            $tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffufs" | wc -l');  
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
@@ -44,13 +44,13 @@ class VerifyController extends Controller
 
             $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');   
 
-            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "jsa" | wc -l');//whatweb
+            $tools_amount_whatweb = (int) exec('sudo docker ps | grep "whatweb" | wc -l');//whatweb
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');  
 
-            $max_amass = 11; $max_ffuf = 0; $max_vhost = 1000; $max_nuclei = 1; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 2; $max_whatweb = 1; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
+            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
 
-            //$max_amass = 0; $max_ffuf = 150; $max_nmap = 1; $max_vhost = 50; $max_nuclei = 1; $max_nuclei_in_task = 1500; $max_ips = 1; $max_whatweb = 0; $max_whatweb_in_task = 50;  $max_nmap_in_task = 150000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 5; $max_ffuf = 0; $max_nmap = 1; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 1000; $max_ips = 2; $max_whatweb = 1; $max_whatweb_in_task = 350;  $max_nmap_in_task = 10000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -291,6 +291,14 @@ class VerifyController extends Controller
                             if ($tools_amount_nuclei < $max_nuclei ) {
 
                                 $results->working = 1;
+
+                                if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
+                                    continue; //scanning cdn is pointless
+                                }
+
+                                if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
+                                    continue; //scanning cdn is pointless
+                                }
 
                                 $nucleiurls[] = $results->dirscanUrl;
 

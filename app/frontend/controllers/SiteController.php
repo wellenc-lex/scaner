@@ -890,7 +890,7 @@ foreach ($xmls as $xml) {
 
         //sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o /dockerresults/2whatwebhttpx.txt -l /dockerresults/2whatwebhosts.txt
 
-/*
+
         $randomid = 1;
 
         $wordlist = "/dockerresults/" . $randomid . "whatwebhosts.txt";
@@ -923,7 +923,7 @@ foreach ($xmls as $xml) {
 
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
 
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v /dockerresults/:/dockerresults -v /httpxresponses/:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 10 -threads 500 -timeout 100 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 50 -threads 500 -timeout 45 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
             
         exec($httpx);
 
@@ -983,7 +983,7 @@ foreach ($xmls as $xml) {
                 }
             }
         } 
-        */
+        
 
         /*
         $allresults = Tasks::find()

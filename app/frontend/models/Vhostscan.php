@@ -11,117 +11,7 @@ ini_set('max_execution_time', 0);
 
 class Vhostscan extends ActiveRecord
 {
-    public static function tableName()
-    {
-        return 'tasks';
-    }
-
-    public static function ipCheck($IP){
-
-        //Cloudflare ip ranges + private networks - no need to ffuf
-        $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
-            "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
-            "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
-            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24",
-            "23.74.0.0/23");
-        
-        $output = 0;
-
-        for ($n = 0; $n < count($masks); $n++) { 
-            list ($net, $mask) = explode("/", $masks[$n] );
-            
-            $ip_net = ip2long($net);
-            $ip_mask = ~((1 << (32 - $mask)) - 1);
-
-            $ip_ip = ip2long($IP);
-
-            $ip_ip_net = $ip_ip & $ip_mask;
-            
-            $output = ($ip_ip_net == $ip_net);
-
-            if ($output == 1) break;
-        }
-
-        return $output;
-    }
-
-    //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
-    public static function sliceHost($host){
-        global $vhostlist; global $domains;
-        STATIC $stop = 1;
-        while ($stop != 0){
-            $outputValue = preg_replace('/\.(\w[\-\_\d]?)*$/', '', $host, 1, $stop);
-            
-            array_push($vhostlist, $outputValue);
-            array_push($domains, $outputValue); //http://localhost/GOOGLE-STAGE.COM/ -> source code listings?
-
-            vhostscan::sliceHost($outputValue);
-        }
-    }
-
-    /*public static function dosplit($input){
-        //www.test.google.com -> www test google
-        global $vhostlist;
-        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $out);
-
-        if($out[0][0]!=""){
-            $word = implode("", $out[0]);
-            $word = rtrim($word, ".");
-            $vhostlist[] = $word;
-            vhostscan::dosplit($word);
-        }
-    }
-
-    public static function split2($input){
-        //www.test.google.com -> www.test -> www
-        global $vhostlist;
-
-        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $matches);
-
-        foreach($matches[0] as $match){
-            $vhostlist[] = rtrim($match, "."); 
-        }
-    }*/
-
-    public static function saveToDB($taskid, $output)
-    {
-        $output = json_encode( array_unique( array_filter($output) ) );
-        
-        if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'&& $output != '[[1]]'){
-
-            try{
-
-                Yii::$app->db->open();
-
-                $task = new Tasks();
-                
-                $task->vhost_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."7";
-                $task->vhost = $output;
-                $task->host = "Vhost";
-                $task->date = date("Y-m-d H-i-s");
-
-                $task->save();
-                
-                return 1;
-
-            } catch (\yii\db\Exception $exception) {
-                sleep(360);
-
-                $task = new Tasks();
-                        
-                $task->vhost_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."7";
-                $task->vhost = $output;
-                $task->host = "Vhost";
-                $task->date = date("Y-m-d H-i-s");
-
-                Yii::$app->db->close();
-                
-                return file_put_contents("/dockerresults/".$taskid."vhosterror", $output);
-            }
-        }
-    }
+    
 
     public static function ReadFFUFResult($filename, $randomid, $counter)
     {
@@ -551,6 +441,119 @@ class Vhostscan extends ActiveRecord
             return 1;
         }
     }
+
+    public static function tableName()
+    {
+        return 'tasks';
+    }
+
+    public static function ipCheck($IP){
+
+        //Cloudflare ip ranges + private networks - no need to ffuf
+        $masks = array("103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/12", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22",
+            "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "199.60.103.0/24",
+            "173.245.48.0/20", "198.41.128.0/17", "172.16.0.0/12", "172.67.0.0/12", "192.168.0.0/16", "10.0.0.0/8","185.71.64.0/22","185.121.240.0/22", "104.101.221.0/24",
+            "184.51.125.0/24", "184.51.154.0/24", "184.51.33.0/24", "23.15.11.0/24", "23.15.12.0/24","23.15.13.0/24","23.200.22.0/24","23.56.209.0/24","23.62.225.0/24",
+            "23.74.0.0/23");
+        
+        $output = 0;
+
+        for ($n = 0; $n < count($masks); $n++) { 
+            list ($net, $mask) = explode("/", $masks[$n] );
+            
+            $ip_net = ip2long($net);
+            $ip_mask = ~((1 << (32 - $mask)) - 1);
+
+            $ip_ip = ip2long($IP);
+
+            $ip_ip_net = $ip_ip & $ip_mask;
+            
+            $output = ($ip_ip_net == $ip_net);
+
+            if ($output == 1) break;
+        }
+
+        return $output;
+    }
+
+    //www.test.google-stage.com -> www.test.google-stage -> www.test -> www 
+    public static function sliceHost($host){
+        global $vhostlist; global $domains;
+        STATIC $stop = 1;
+        while ($stop != 0){
+            $outputValue = preg_replace('/\.(\w[\-\_\d]?)*$/', '', $host, 1, $stop);
+            
+            array_push($vhostlist, $outputValue);
+            array_push($domains, $outputValue); //http://localhost/GOOGLE-STAGE.COM/ -> source code listings?
+
+            vhostscan::sliceHost($outputValue);
+        }
+    }
+
+    /*public static function dosplit($input){
+        //www.test.google.com -> www test google
+        global $vhostlist;
+        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $out);
+
+        if($out[0][0]!=""){
+            $word = implode("", $out[0]);
+            $word = rtrim($word, ".");
+            $vhostlist[] = $word;
+            vhostscan::dosplit($word);
+        }
+    }
+
+    public static function split2($input){
+        //www.test.google.com -> www.test -> www
+        global $vhostlist;
+
+        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $matches);
+
+        foreach($matches[0] as $match){
+            $vhostlist[] = rtrim($match, "."); 
+        }
+    }*/
+
+    public static function saveToDB($taskid, $output)
+    {
+        $output = json_encode( array_unique( array_filter($output) ) );
+        
+        if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'&& $output != '[[1]]'){
+
+            try{
+
+                Yii::$app->db->open();
+
+                $task = new Tasks();
+                
+                $task->vhost_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."7";
+                $task->vhost = $output;
+                $task->host = "Vhost";
+                $task->date = date("Y-m-d H-i-s");
+
+                $task->save();
+                
+                return 1;
+
+            } catch (\yii\db\Exception $exception) {
+                sleep(360);
+
+                $task = new Tasks();
+                        
+                $task->vhost_status = "Done.";
+                $task->notify_instrument = $task->notify_instrument."7";
+                $task->vhost = $output;
+                $task->host = "Vhost";
+                $task->date = date("Y-m-d H-i-s");
+
+                Yii::$app->db->close();
+                
+                return file_put_contents("/dockerresults/".$taskid."vhosterror", $output);
+            }
+        }
+    }
+    
 }
 
 

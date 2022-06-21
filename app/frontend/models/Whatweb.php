@@ -77,7 +77,7 @@ class Whatweb extends ActiveRecord
 
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm --dns=8.8.8.8 -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 50 -timeout 200 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256 --rm --dns=8.8.8.8 -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 25 -timeout 200 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

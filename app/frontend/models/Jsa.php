@@ -66,7 +66,9 @@ class jsa extends ActiveRecord
 
         jsa::savetodb($taskid, $output);
 
-        dirscan::queuedone($input["queueid"]);
+        foreach ($input["queueid"] as $id) {
+            dirscan::queuedone($id);
+        }
 
         return 1;
     }

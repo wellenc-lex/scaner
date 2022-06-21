@@ -43,6 +43,8 @@ ENV GOPATH="/root/go/"
 
 #RUN GO111MODULE=on go install github.com/sw33tLie/sns@latest && mv $GOPATH/bin/sns /tmp/sns.binary && chown nginx:nginx /tmp/sns.binary
 
+RUN go install github.com/ffuf/ffuf@latest && mv $GOPATH/bin/ffuf /tmp/ffuf.binary && go install github.com/lc/gau/v2/cmd/gau@latest && mv $GOPATH/bin/gau /tmp/gau.binary
+
 ADD app /var/www/app
 
 RUN rm -rf /etc/nginx/sites-enabled/*

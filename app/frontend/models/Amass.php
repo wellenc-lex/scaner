@@ -40,9 +40,6 @@ class Amass extends ActiveRecord
 
         $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
-
-
-
         $amassconfig = "/configs/amass". rand(1,20). ".ini";
 
         if( !file_exists($amassconfig) ){
@@ -67,7 +64,11 @@ class Amass extends ActiveRecord
                 //exec("sudo rm /dockerresults/" . $randomid . "*");
             }
 
-            $fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
+            if ( file_exists($enumoutput) ) {
+                $fileamass = file_get_contents($enumoutput);
+            } else dirscan::queuedone($input["queueid"]); return 0;
+
+            //$fileamass = file_get_contents($enumoutput); // to get the error in the debug panel and investigate why there were no amass file created
         }
 
         //convert json strings into one json array to decode it
@@ -442,7 +443,7 @@ class Amass extends ActiveRecord
             
             foreach($gau as $subdomain){
                 
-                if (strpos(strval($subdomain), strval($maindomain)) !== false && amass::bannedwords($subdomain) === 0 ) {
+                if (strpos($subdomain, $maindomain) !== false && amass::bannedwords($subdomain) === 0 ) {
 
                     $hostwordlist[] = dirscan::ParseHostname($subdomain);
 
@@ -490,7 +491,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256  --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 45 -threads 100 -timeout 50 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256 --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 15 -timeout 120 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -508,72 +509,74 @@ class Amass extends ActiveRecord
 
             $alive = json_decode($output, true);
 
-            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+            if ( !empty($alive) ){
 
-            Yii::$app->db->open();
+                rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
 
-            foreach($alive as $url) {
+                Yii::$app->db->open();
 
-                if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+                foreach($alive as $url) {
 
-                    $scheme = $url["scheme"]."://";
-                    $port = ":".$url["port"]; 
+                    if($url["input"] != "" && strpos($url["input"], $maindomain) !== false ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
 
-                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
-                        continue; //scanning https port with http scheme is pointless so we get to the next host
-                    }
+                        $scheme = $url["scheme"]."://";
+                        $port = ":".$url["port"]; 
 
-                    if( $port===":80" || $port===":443"){
-                        $currenthost = $url["input"];
-                    } else $currenthost = $url["input"].$port;
+                        if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
+                            continue; //scanning https port with http scheme is pointless so we get to the next host
+                        }
 
-                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+                        if( $port===":80" || $port===":443"){
+                            $currenthost = $url["input"];
+                        } else $currenthost = $url["input"].$port;
 
-                        if( amass::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
+                        if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                            if( amass::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
+
+                                $queue = new Queue();
+                                $queue->taskid = $taskid;
+                                $queue->dirscanUrl = $scheme.$currenthost;
+                                $queue->instrument = 3; //ffuf
+                                $queue->wordlist = 1;
+                                $queue->save();
+                            }
 
                             $queue = new Queue();
                             $queue->taskid = $taskid;
                             $queue->dirscanUrl = $scheme.$currenthost;
-                            $queue->instrument = 3; //ffuf
-                            $queue->wordlist = 1;
+                            $queue->instrument = 5; //whatweb
                             $queue->save();
+
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = $scheme.$currenthost;
+                            $queue->instrument = 8; //nuclei
+                            $queue->save();
+
+                            $whatweb = new Whatweb();
+                            $whatweb->url = $scheme.$currenthost;
+                            $whatweb->ip = $url["host"];
+                            $whatweb->favicon = $url["favicon-mmh3"];
+                            $whatweb->date = date("Y-m-d");
+
+                            if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+
+                            $whatweb->save();
+
+                            $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
                         }
-
-                        $queue = new Queue();
-                        $queue->taskid = $taskid;
-                        $queue->dirscanUrl = $scheme.$currenthost;
-                        $queue->instrument = 5; //whatweb
-                        $queue->save();
-
-                        $queue = new Queue();
-                        $queue->taskid = $taskid;
-                        $queue->dirscanUrl = $scheme.$currenthost;
-                        $queue->instrument = 8; //nuclei
-                        $queue->save();
-
-                        $whatweb = new Whatweb();
-                        $whatweb->url = $scheme.$currenthost;
-                        $whatweb->ip = $url["host"];
-                        $whatweb->favicon = $url["favicon-mmh3"];
-                        $whatweb->date = date("Y-m-d");
-
-                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
-
-                        $whatweb->save();
-
-                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
                     }
-                }
-            } 
+                } 
 
-            $queue = new Queue();
-            $queue->taskid = $taskid;
-            $queue->ipscan = $maindomain;
-            $queue->instrument = 6; //ipscan - find IPS associated with this domain
-            $queue->save();
+                $queue = new Queue();
+                $queue->taskid = $taskid;
+                $queue->ipscan = $maindomain;
+                $queue->instrument = 6; //ipscan - find IPS associated with this domain
+                $queue->save();
 
-            Yii::$app->db->close();
-
+                Yii::$app->db->close();
+            }
         } else file_get_contents($output); //we need an error to check it out in debugger and rescan later
         
         return 1;

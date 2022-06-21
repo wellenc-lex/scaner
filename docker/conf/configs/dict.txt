@@ -32,6 +32,10 @@ kube-addons.sh
 database/default.%EXT
 ui/#/apps
 distributors/admin/area/prox.py
+?path=/etc/passwd
+?this=1
+logs/admin/igc.log
+logs/admin/
 distributors/admin/area/
 distributors/admin/
 settings.%EXT
@@ -98,6 +102,15 @@ stage_create_service_prod.sh
 stage_deploy.sh
 stage_deploy_dev.sh
 stage_deploy_prod.sh
+;/internal/
+;/internal
+;/internal/v1
+;/api/internal/
+;/internal/api/
+;/v1/
+;/internal/v1/auth
+;/v1/internal/
+;/internal/api
 token.json
 service.yaml
 propel.json

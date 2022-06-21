@@ -126,8 +126,8 @@ class Nmap extends ActiveRecord
         ." --script smb-os-discovery --script amqp-info --script nfs-ls --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 "
         ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h "
         ." --script smb-protocols --script fcrdns -sC";
-
-        exec("sudo docker run --cpu-shares 512 --rm --privileged=true --expose=53 -p 53:53 -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
+//--expose=53 -p 53:53
+        exec("sudo docker run --cpu-shares 512 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
             ." -sS -g 53 -sU -T4 --randomize-hosts -Pn -v -sV --min-hostgroup 10000 --randomize-hosts --send-eth -n -sS"
             ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 10000"
             ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 10s --max-retries 3 --open -oX "

@@ -196,7 +196,7 @@ class Dirscan extends ActiveRecord
 
         file_put_contents($shellfile, $runffufs);
 
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 512  --rm 5631/ffufs " . $shellfile);
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 

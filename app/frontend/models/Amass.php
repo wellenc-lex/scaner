@@ -32,7 +32,7 @@ class Amass extends ActiveRecord
 
         $url = str_replace("www.", "", $url);
 
-        $randomid =  (int) $input["queueid"];//rand(1,100000000);
+        $randomid =  (int) $input["queueid"];
         htmlspecialchars($url);
 
         $gauoutputname="/dockerresults/" . $randomid . "uniquegau.txt";
@@ -46,7 +46,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 256 --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlist.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 256 --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
 
         if (file_exists($gauoutputname) && filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -139,7 +139,7 @@ class Amass extends ActiveRecord
     //resume scan after some IO/DB error
     public static function RestoreAmass()
     {   
-        exec("find /dockerresults/*amass.json -mtime +1", $notdone);
+        exec("find /dockerresults/*amass.json -mtime +3", $notdone);
 
         foreach ($notdone as $id){
             preg_match("/(\d)+/", $id, $out);
@@ -170,7 +170,7 @@ class Amass extends ActiveRecord
 
                 $subtakeover = 0;
 
-                if($amassoutput != "[]" && $amassoutput != "[{}]" && !empty($amassoutput)){
+                if($amassoutput != "[]" && $amassoutput != "[{}]" && !empty($amassoutput) ){
 
                     Yii::$app->db->open();  
                     
@@ -411,7 +411,7 @@ class Amass extends ActiveRecord
 
             $amassoutput = json_decode($amassoutput, true);
 
-            if (!empty($amassoutput) ){
+            if ( !empty($amassoutput) && $amassoutput != NULL ){
 
                 $maindomain = $amassoutput[0]["domain"];
 
@@ -439,7 +439,7 @@ class Amass extends ActiveRecord
             }
         }
 
-        if($gau!=""){
+        if($gau!="" && !empty($amassoutput) ){
             
             foreach($gau as $subdomain){
                 
@@ -461,7 +461,7 @@ class Amass extends ActiveRecord
         amass::httpxhosts(array_unique($hostwordlist), $taskid, $randomid); // scanned amass subdomains with httpx to get alive hosts + scan it with ffuf later
 
         //if domain is not dummy - execute intel on it.
-        if (isset($amassoutput) && $amassoutput!= "" && count($amassoutput) > 6){
+        if (isset($amassoutput) && $amassoutput!= "" && count($amassoutput) > 6 && !empty($maindomain) ){
 
             $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
@@ -491,7 +491,7 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 15 -timeout 120 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256 --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 15 -threads 100 -timeout 120 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

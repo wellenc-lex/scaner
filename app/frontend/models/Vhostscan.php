@@ -58,7 +58,7 @@ class Vhostscan extends ActiveRecord
 
         if ( !($responseSize>0) ) $responseSize=0;
 
-        $ffuf_general_string = "/tmp/ffuf.binary -of json -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.5 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.5 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -90,7 +90,7 @@ class Vhostscan extends ActiveRecord
 
         if ( !($responseSize>0) ) $responseSize=0;
 
-        $ffuf_general_string = "/tmp/ffuf.binary -of json -mc all -fc 429,503,400,502,404 -s -timeout 250 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 2 -p 0.5 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ac -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -mc all -fc 429,503,400,502,404 -s -timeout 250 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 2 -p 0.5 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ac -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -190,7 +190,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -random-agent=false -rate-limit 25 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
+            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880-random-agent=false -rate-limit 25 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 
@@ -420,7 +420,7 @@ class Vhostscan extends ActiveRecord
 
                 file_put_contents($shellfile, $runffufs);
 
-                exec("sudo chmod +x " . $shellfile . " && " . $shellfile);
+                exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
                 $i=1;
                 while($i<=$counter){
@@ -434,7 +434,12 @@ class Vhostscan extends ActiveRecord
                 if ( count( $output ) > 1 ) vhostscan::saveToDB( $taskid, $output );
             }
 
-            dirscan::queuedone($input["queueid"]); //no amass results - maybe task already been deleted
+            
+            $queue = explode(PHP_EOL, $input["queueid"]);
+
+            foreach ($queue as $id) {
+                dirscan::queuedone($id);
+            }
 
             //exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
 

@@ -36,7 +36,7 @@ class VerifyController extends Controller
 
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf    = (int) exec('sudo docker ps | grep "ffufs" | wc -l');
+            $tools_amount_ffuf    = (int) exec('ps -ea | grep "ffufs" | wc -l'); // ps aux | grep "ffuf" | wc -l
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
@@ -50,7 +50,7 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
 
-            $max_amass = 5; $max_ffuf = 3500; $max_nmap = 3; $max_vhost = 20; $max_nuclei = 1; $max_nuclei_in_task = 550; $max_ips = 2; $max_whatweb = 2; $max_whatweb_in_task = 350;  $max_nmap_in_task = 5000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 3; $max_ffuf = 5; $max_nmap = 2; $max_vhost = 0; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 2; $max_whatweb =1; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -140,7 +140,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(800)
+                    ->limit(500)
                     ->all();
 
                 $counter = 1;

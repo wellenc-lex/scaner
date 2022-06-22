@@ -74,7 +74,7 @@ class Nuclei extends ActiveRecord
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 
-        $nuclei_start = "sudo docker run --dns 8.8.8.8  --privileged=true --rm --cpu-shares 512 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 3 -max-host-error 50 -timeout 300 -rl 20 -bs 600 -c 25 -hbs 35 " . $exclude . $headers;
+        $nuclei_start = "sudo docker run --dns 8.8.8.8  --privileged=true --rm --cpu-shares 512 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 3 -max-host-error 50 -timeout 300 -rl 20 -bs 500 -c 25 -hbs 35 " . $exclude . $headers;
 
 //-ept network -silent -stats
         /*$nuclei_start = "sudo /root/bin/bin/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 2 -max-host-error 50 -timeout 180 -headless -silent -rl 25 -bs 2000 -c 25 -hbs 55 " . $exclude . $headers;  //-stats*/

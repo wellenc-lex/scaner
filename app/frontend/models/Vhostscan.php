@@ -190,7 +190,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880-random-agent=false -rate-limit 25 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
+            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -rate-limit 25 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 
@@ -424,14 +424,13 @@ class Vhostscan extends ActiveRecord
 
                 $i=1;
                 while($i<=$counter){
-
                     $output[] = vhostscan::ReadFFUFResult("/ffuf/vhost" . $randomid . "/" . $i . "/out.json", $randomid, $i);
                     $i++;
                 }
                 
                 $output = array_unique($output);
 
-                if ( count( $output ) > 1 ) vhostscan::saveToDB( $taskid, $output );
+                if ( count( $output ) > 0 ) vhostscan::saveToDB( $taskid, $output );
             }
 
             
@@ -542,7 +541,8 @@ class Vhostscan extends ActiveRecord
                 return 1;
 
             } catch (\yii\db\Exception $exception) {
-                sleep(360);
+                
+                sleep(2000);
 
                 $task = new Tasks();
                         

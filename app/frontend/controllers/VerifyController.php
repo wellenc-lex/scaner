@@ -50,7 +50,7 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
 
-            $max_amass = 3; $max_ffuf = 5; $max_nmap = 2; $max_vhost = 0; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 2; $max_whatweb =1; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 4; $max_ffuf = 6; $max_nmap = 5; $max_vhost = 1; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb =3; $max_whatweb_in_task = 500;  $max_nmap_in_task = 3000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -239,7 +239,7 @@ class VerifyController extends Controller
 
                                 if($query=="") $query=$results->dirscanUrl;
 
-                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "query=' . $query . ' &queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/ipscan > /dev/null 2>/dev/null &');
+                                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "query=' . $query . '&queueid=' . $results->id . '&taskid=' . $results->taskid . '&secret=' . $secret . '" https://app/scan/ipscan > /dev/null 2>/dev/null &');
 
                                 $results->save();
 
@@ -258,7 +258,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "7"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit( $max_vhost )
+                    ->limit(2)
                     ->all();
 
                 foreach ($queues as $results) {

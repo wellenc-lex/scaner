@@ -216,7 +216,6 @@ class Dirscan extends ActiveRecord
             $gau_result = dirscan::gau($outputdir . "gau.txt");
 
             $output_ffuf =  array_filter( array_unique( $output_ffuf ) );
-            $gau_result = array_unique($gau_result);
 
             if ( count( $output_ffuf ) > 0 ) dirscan::savetodb($urls[$counter]["taskid"], $output_ffuf, $gau_result, $urls[$counter]["url"]);
 
@@ -451,7 +450,7 @@ class Dirscan extends ActiveRecord
             $gau_result = array_map('htmlentities', $gau_result);
             $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
 
-            return $gau_result;
+            return array_unique($gau_result);
         } else return array();
     }
 

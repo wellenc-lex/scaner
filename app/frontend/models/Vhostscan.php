@@ -390,6 +390,9 @@ class Vhostscan extends ActiveRecord
                                 vhostscan::findVhostsWithDomain($host, $responseSize);
                                 vhostscan::findVhostsNoDomain($host, $responseSize);
                             }
+
+                            if ( count($alive) > 500) $executeshell = $executeshell . " sleep 500 ".PHP_EOL;
+                            if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1500 ".PHP_EOL;
                         }
                     } 
                 } 
@@ -406,11 +409,14 @@ class Vhostscan extends ActiveRecord
                             $responseSize = shell_exec("curl -so /dev/null " . $ip . " -w '%{size_download}'");
                             vhostscan::findVhostsNoDomain($ip, $responseSize);
                         }
+
+                        if ( count($alive) > 500) $executeshell = $executeshell . " sleep 500 ".PHP_EOL;
+                        if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1500 ".PHP_EOL;
                     }
                 }
 
                 //write  bash command for parallel execution to the file and execute the file.
-                $shellfile = "/ffuf/vhost" . $randomid . "/shell.sh";
+                $shellfile = "/ffuf/vhost" . $randomid . "/vhost.sh";
                 $runffufs = ("#!/bin/bash
                     echo \"executed \";
                     pwd;

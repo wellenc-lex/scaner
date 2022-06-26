@@ -62,8 +62,6 @@ class jsa extends ActiveRecord
 
         $output = base64_encode($trufflehog); //htmls encoded so there will be no error with inserting into db
 
-        //exec("sudo rm /jsa/" . $randomid . "/out.txt");;
-
         jsa::savetodb($taskid, $output);
 
         $queue = explode(PHP_EOL, $input["queueid"]);

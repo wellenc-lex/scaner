@@ -32,6 +32,12 @@ kube-addons.sh
 database/default.%EXT
 ui/#/apps
 distributors/admin/area/prox.py
+fffffffff.php
+ffffffff.php
+a.php
+aa.php
+aaa.php
+aaaa.php
 ?path=/etc/passwd
 ?this=1
 logs/admin/igc.log
@@ -76212,7 +76218,6 @@ a.htaccess
 a.industry.sql
 a.key
 a.pem
-a.php
 a.sql
 a/.git/config
 a1a013190e45c263c029ae5e27edcdb7.js

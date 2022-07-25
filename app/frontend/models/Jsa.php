@@ -21,28 +21,32 @@ class jsa extends ActiveRecord
             return 2;
         }
 
-        try{
-            $jsa = new Tasks();
-            $jsa->dirscan_status = "Done.";
-            $jsa->notify_instrument = $task->notify_instrument."9";
-            $jsa->js = $output;
-            $jsa->date = date("Y-m-d H-i-s");
+        do{
+            try{
+                $tryAgain = false;
+                $jsa = new Tasks();
+                $jsa->dirscan_status = "Done.";
+                $jsa->notify_instrument = $task->notify_instrument."9";
+                $jsa->js = $output;
+                $jsa->date = date("Y-m-d H-i-s");
 
-            $jsa->save();
-           
-        } catch (\yii\db\Exception $exception) {
+                $jsa->save();
+               
+            } catch (\yii\db\Exception $exception) {
 
-            sleep(5000);
-            $jsa = new Tasks();
-            $jsa->dirscan_status = "Done.";
-            $jsa->notify_instrument = $task->notify_instrument."9";
-            $jsa->js = $output;
-            $jsa->date = date("Y-m-d H-i-s");
+                $tryAgain = true;
+                sleep(6000);
 
-            $jsa->save();
+                $jsa = new Tasks();
+                $jsa->dirscan_status = "Done.";
+                $jsa->notify_instrument = $task->notify_instrument."9";
+                $jsa->js = $output;
+                $jsa->date = date("Y-m-d H-i-s");
+
+                $jsa->save();
+            }
             
-            return $exception.$output;
-        }
+        } while($tryAgain);
 
         return 1;
     }
@@ -51,7 +55,7 @@ class jsa extends ActiveRecord
     {
         $randomid = (int) $input["randomid"];
 
-        exec("sudo docker run --dns=8.8.8.8 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
+        exec("sudo docker run --net=container:vpn1 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
 
         if (file_exists("/jsa/" . $randomid . "/out.txt")) {
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");

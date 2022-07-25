@@ -121,7 +121,7 @@ class Ipscan extends ActiveRecord
 
         file_put_contents($queriesfile, implode( PHP_EOL, $parsed_queries) );
 
-        exec("sudo docker run --dns 8.8.4.4 --cpu-shares 256 --rm -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
+        exec("sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v configs:/configs/ 5631/passivequeries python3 passivequery.py -i " . $queriesfile  
             . " -a " . $apikeysfile . " -o " . $outputfile);
             
         if ( file_exists($outputfile) ) {

@@ -36,11 +36,13 @@ class VerifyController extends Controller
 
             $tools_amount_amass   = (int) exec('sudo docker ps | grep "amass" | wc -l');
 
-            $tools_amount_ffuf    = (int) exec('ps -ea | grep "ffufs" | wc -l'); // ps aux | grep "ffuf" | wc -l
+            $tools_amount_ffuf    = (int) exec('ps -ea | grep "shell.sh" | wc -l'); // ps aux | grep "ffuf" | wc -l
+
+            $tools_amount_vhost   = (int) exec('ps -ea | grep "vhost" | wc -l');
 
             $tools_amount_ips     = (int) exec('sudo docker ps | grep "passivequery" | wc -l');
 
-            $tools_amount_jsa  = (int) exec('sudo docker ps | grep "jsa" | wc -l');
+            $tools_amount_jsa     = (int) exec('sudo docker ps | grep "jsa" | wc -l');
 
             $tools_amount_nuclei  = (int) exec('sudo docker ps | grep "nuclei" | wc -l');
 
@@ -48,9 +50,11 @@ class VerifyController extends Controller
 
             $tools_amount_forbiddenbypass = (int) exec('sudo docker ps | grep "403bypass" | wc -l');
 
-            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 10; $max_jsa = 0; $max_nmap_in_task = 150000;
+            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 4; $max_ffuf = 6; $max_nmap = 5; $max_vhost = 1; $max_nuclei = 0; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb =3; $max_whatweb_in_task = 500;  $max_nmap_in_task = 3000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 2; $max_ffuf = 3; $max_nmap = 10; $max_vhost = 2; $max_nuclei = 2; $max_nuclei_in_task = 200; $max_ips = 1; $max_whatweb =1; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+
+           // $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -98,6 +102,8 @@ class VerifyController extends Controller
                         }
                     }
                 }
+
+                $tools_amount_nmap++;
             }
             
             if( $tools_amount_amass < $max_amass ){
@@ -140,43 +146,52 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(500)
+                    ->limit(10)
                     ->all();
 
-                $counter = 1;
+                $counter = 1; 
 
                 foreach ($queues as $results) {
 
                     if ($results != NULL) {
 
-                        if ( $tools_amount_ffuf < $max_ffuf ) {
+                        $dontscan = 0;
 
-                            $results->working = 1;
+                        $results->working = 1;
 
+                        if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
+                            $dontscan=1; //scanning cdn is pointless
+                        }
+
+                        if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
+                            $dontscan=1; //scanning cdn is pointless
+                        }
+
+                        if (preg_match("/.*wg\d*.ok.ru/i", $results->dirscanUrl) === 1) {
+                           $dontscan=1; //scanning cdn is pointless
+                        }
+
+                        if ( $dontscan === 1 ) {
+                            
+                            $results->todelete = 1;
                             $results->save();
 
-                            if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
-                                continue; //scanning cdn is pointless
-                            }
-
-                            if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
-                                continue; //scanning cdn is pointless
-                            }
-
-                            $ffufurls[$counter]["url"]= $results->dirscanUrl;
-                            
-                            $ffufurls[$counter]["ip"]= $results->dirscanIP ?: "0";
-
-                            $ffufurls[$counter]["queueid"]= $results->id;
-
-                            $ffufurls[$counter]["taskid"]= $results->taskid ?: "0";
-
-                            $ffufurls[$counter]["wordlist"]= $results->wordlist ?: "0";
-
-                            $counter++;
-
-                            $tools_amount_ffuf++;
+                            continue;
                         }
+
+                        $ffufurls[$counter]["url"]= $results->dirscanUrl;
+                        
+                        $ffufurls[$counter]["ip"]= $results->dirscanIP ?: "0";
+
+                        $ffufurls[$counter]["queueid"]= $results->id;
+
+                        $ffufurls[$counter]["taskid"]= $results->taskid ?: "0";
+
+                        $ffufurls[$counter]["wordlist"]= $results->wordlist ?: "0";
+
+                        $counter++;
+
+                        $results->save();
                     }
                 }
             }
@@ -210,6 +225,8 @@ class VerifyController extends Controller
                         }
                     }
                 }
+
+                $tools_amount_whatweb++;
             }
 
             if( $tools_amount_ips < $max_ips ){
@@ -250,7 +267,7 @@ class VerifyController extends Controller
                 }
             }
 
-            if( $tools_amount_ffuf < $max_vhost+$max_ffuf ){
+            if( $tools_amount_vhost < $max_vhost ){
                 //Vhost
                 $queues = Queue::find()
                     ->andWhere(['working' => "0"])
@@ -258,14 +275,14 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "7"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(2)
+                    ->limit(1)
                     ->all();
 
                 foreach ($queues as $results) {
 
                     if ($results != NULL) {
 
-                        if ($tools_amount_ffuf < ( $max_vhost+$max_ffuf ) ) { // if currently already working ffufs amount less then vhost+max ffuf
+                        if ($tools_amount_vhost < $max_vhost ) { // if currently already working ffufs amount less then vhost+max ffuf
 
                             $results->working = 1;
 
@@ -280,7 +297,7 @@ class VerifyController extends Controller
 
                             $results->save();
 
-                            $tools_amount_ffuf++;                 
+                            $tools_amount_vhost++;                 
                         }
                     }
                 }
@@ -309,25 +326,39 @@ class VerifyController extends Controller
 
                                 $queues_array_nuclei[] = $results->id;
 
+                                $dontscan = 0;
+
+                                $results->working = 1;
+
                                 $results->save();
 
                                 if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
-                                    continue; //scanning cdn is pointless
+                                    $dontscan=1; //scanning cdn is pointless
                                 }
 
                                 if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
-                                    continue; //scanning cdn is pointless
+                                    $dontscan=1; //scanning cdn is pointless
                                 }
 
                                 if (preg_match("/.*wg\d*.ok.ru/i", $results->dirscanUrl) === 1) {
-                                    continue; //scanning cdn is pointless
+                                   $dontscan=1; //scanning cdn is pointless
                                 }
+
+                                if ( $dontscan === 1 ) {
+                                    $results->todelete = 1;
+                                    $results->save();
+                                    continue;
+                                }
+
+                                $results->save();
 
                                 $nucleiurls[] = $results->dirscanUrl;
                             }
                         }
                     }
                 }
+
+                $tools_amount_nuclei++;
             }
 
             if( $tools_amount_forbiddenbypass < $max_forbiddenbypass ){
@@ -361,7 +392,35 @@ class VerifyController extends Controller
                 }
             }
 
-                        /*
+            if( $tools_amount_authbypass < $tools_amount_authbypass ){
+                //401 http basic bypass
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "11"])
+                    ->andWhere(['passivescan' => "0"])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->limit(50)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        $results->working = 1;
+
+                        $authbypassurls[] = $results->dirscanUrl;
+
+                        $queues_array_authbypass[] = $results->id;
+
+                        $results->save();
+
+                        $authbypass_in_task++;
+                    }
+                }
+            }
+
+            /*
             //Gitscan
             $queues = Queue::find()
                 ->andWhere(['working' => "0"])
@@ -461,8 +520,6 @@ class VerifyController extends Controller
             if ( !empty($nucleiurls) ) {
                 exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $nucleiurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_nuclei )
                     . '&secret=' . $secret  . '" https://app/scan/nuclei >/dev/null 2>/dev/null &');
-
-                $tools_amount_nuclei++;
             }
 
             if ( !empty($ffufurls) ) {
@@ -495,7 +552,6 @@ class VerifyController extends Controller
                     . '&secret=' . $secret  . '" https://app/scan/forbiddenbypass >/dev/null 2>/dev/null &');
 
                 $tools_amount_forbiddenbypass++;
-
             }
 
             if ( !empty($nmapips) ) {
@@ -506,8 +562,13 @@ class VerifyController extends Controller
 
                 exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "randomid=' . $randomid . '&queueid=' . implode( PHP_EOL, $queues_array_nmap )
                     . '&secret=' . $secret  . '" https://app/scan/nmap >/dev/null 2>/dev/null &'); 
+            }
 
-                $tools_amount_nmap++;
+            if ( !empty($authbypassurls) ) {
+                exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\'  --data "url=' . implode( PHP_EOL, $authbypassurls ) . '&queueid=' . implode( PHP_EOL, $queues_array_authbypass )
+                    . '&secret=' . $secret  . '" https://app/scan/authbypass >/dev/null 2>/dev/null &');
+
+                $tools_amount_forbiddenbypass++;
             }
 
             $tools_amount->save(); 

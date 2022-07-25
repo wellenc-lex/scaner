@@ -40,13 +40,13 @@ class Amass extends ActiveRecord
 
         $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
-        $amassconfig = "/configs/amass". rand(1,20). ".ini";
+        $amassconfig = "/configs/amass/amass". rand(1,25). ".ini";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass1.ini.example";
+            $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --cpu-shares 128 --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amasswordlistALL1.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --cpu-shares 32 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlistALL2.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
 
         if (file_exists($gauoutputname) && filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -217,7 +217,7 @@ class Amass extends ActiveRecord
 /*
         $inteloutput = "/dockerresults/1amassINTEL.txt"; 
         //Intel mail.ru ASNs  -ipv4
-        exec("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru -org Mail.ru,VK company,Mailru");
+        exec("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru -org Mail.ru,VK company,Mailru");
 
         if ( file_exists($inteloutput) ){
             $intelamass = file_get_contents($inteloutput);
@@ -229,7 +229,7 @@ class Amass extends ActiveRecord
             }
         }
 
-        var_dump("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru");
+        var_dump("sudo docker run --dns 8.8.4.4 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -asn 47764,60476,47541,47542 -o ". $inteloutput . " -active -whois -config /configs/amass/amass". rand(1,9). ".ini -d vk.com,vk.company,mail.ru,skillbox.ru,gb.ru,skillfactory.ru");
 */
         return 1;
     }
@@ -242,65 +242,67 @@ class Amass extends ActiveRecord
         global $ips;
         if($amassoutput != "[]" && $amassoutput != '"No file."'){
 
-            try{
-                Yii::$app->db->open();
+            do{
+                try{
+                    $tryAgain = false;
+                    Yii::$app->db->open();
 
-                $amass = Tasks::find()
-                    ->where(['taskid' => $taskid])
-                    ->limit(1)
-                    ->one();
+                    $amass = Tasks::find()
+                        ->where(['taskid' => $taskid])
+                        ->limit(1)
+                        ->one();
 
-                if(!empty($amass) && $amass->amass == "" ){ //if querry exists in db
+                    if(!empty($amass) && $amass->amass == "" ){ //if querry exists in db
 
-                    $amass->amass_status = 'Done.';
-                    $amass->amass = $amassoutput;
-                    $amass->notify_instrument = $amass->notify_instrument."2";
-                    $amass->aquatone = $aquatoneoutput;
-                    $amass->vhostwordlist = $vhosts;
-                    $amass->subtakeover = $subtakeover;
-                    $amass->hidden = 1;
-                    $amass->date = date("Y-m-d H-i-s");
+                        $amass->amass_status = 'Done.';
+                        $amass->amass = $amassoutput;
+                        $amass->notify_instrument = $amass->notify_instrument."2";
+                        $amass->aquatone = $aquatoneoutput;
+                        $amass->vhostwordlist = $vhosts;
+                        $amass->subtakeover = $subtakeover;
+                        $amass->hidden = 1;
+                        $amass->date = date("Y-m-d H-i-s");
 
-                    if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
+                        if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
 
-                    $amass->save(); 
-                } else {
-                    $amass = new Tasks();
+                        $amass->save(); 
+                    } else {
+                        $amass = new Tasks();
+                        
+                        $amass->taskid = $taskid;
+                        $amass->amass_status = 'Done.';
+                        $amass->amass = $amassoutput;
+                        $amass->notify_instrument = $amass->notify_instrument."2";
+                        $amass->aquatone = $aquatoneoutput;
+                        $amass->vhostwordlist = $vhosts;
+                        $amass->subtakeover = $subtakeover;
+                        $amass->hidden = 1;
+                        $amass->date = date("Y-m-d H-i-s");
+
+                        if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
+
+                        $amass->save();
+
+                    }
+
+                    /*
+                    //add git scan to queue
+                    $queue = new Queue();
+                    $queue->taskid = $taskid;
+                    $queue->instrument = 4;
+                    $queue->save();
+                    */
                     
-                    $amass->taskid = $taskid;
-                    $amass->amass_status = 'Done.';
-                    $amass->amass = $amassoutput;
-                    $amass->notify_instrument = $amass->notify_instrument."2";
-                    $amass->aquatone = $aquatoneoutput;
-                    $amass->vhostwordlist = $vhosts;
-                    $amass->subtakeover = $subtakeover;
-                    $amass->hidden = 1;
-                    $amass->date = date("Y-m-d H-i-s");
+                    return Yii::$app->db->close();
 
-                    if ( !empty($ips) ) $amass->ips = implode(" ", array_unique($ips) );
+                } catch (\yii\db\Exception $exception) {
+                    sleep(6000);
 
-                    $amass->save();
+                    $tryAgain = true;
 
+                    amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
                 }
-
-                /*
-                //add git scan to queue
-                $queue = new Queue();
-                $queue->taskid = $taskid;
-                $queue->instrument = 4;
-                $queue->save();
-                */
-                
-                return Yii::$app->db->close();
-
-            } catch (\yii\db\Exception $exception) {
-                var_dump($exception);
-                sleep(1000);
-
-                amass::saveToDB($taskid, $amassoutput, $aquatoneoutput, $subtakeover, $vhosts);
-
-                return $exception.json_encode($output);
-            }
+            } while($tryAgain);
         }
     }
 
@@ -308,84 +310,87 @@ class Amass extends ActiveRecord
     {
         if($intelamass != ""){
 
-            try{
+            do{
+                try{
+                    $tryAgain = false;
 
-                $intelresults = array();
-
-                Yii::$app->db->open();
-
-                $all = Amassintel::find()
-                    ->where(['id' => "1"])
-                    ->limit(1)
-                    ->one();
-
-                Yii::$app->db->close();
-
-                $domains = json_decode($all->domains, true);
-
-                foreach ($intelamass as $inteldomain) {
-
-                    if( !empty($inteldomain) ) {
-
-                        if (preg_match("/^xn\-\-/i", $inteldomain) === 1){
-                            $inteldomain = idn_to_utf8($inteldomain);
-                        }
-
-                        if ( empty($domains) ){
-                            $domains[] = $inteldomain; // all the domains ever found by amass intel
-                        }
-
-                        else if ( !in_array($inteldomain, $domains) ) { //if not found in array
-                            $intelresults[] = $inteldomain;
-                            $domains[] = $inteldomain; // all the domains ever found by amass intel
-                        }
-                    }
-                }
-
-                //if there are unique domains in output
-                if ( !empty($intelresults) ){
+                    $intelresults = array();
 
                     Yii::$app->db->open();
 
-                    $amass = Tasks::find()
-                    ->where(['taskid' => $taskid])
-                    ->limit(1)
-                    ->one();
+                    $all = Amassintel::find()
+                        ->where(['id' => "1"])
+                        ->limit(1)
+                        ->one();
 
-                    if(!empty($amass) && empty($amass->amass_intel) ){ //if querry exists in db
+                    Yii::$app->db->close();
 
-                        $amass->amass_intel  = json_encode($intelresults);
-                        $amass->host = $maindomain;
-                        $amass->save();
+                    $domains = json_decode($all->domains, true);
 
-                    } else {
-                        $amass = new Tasks();
-                        
-                        $amass->taskid = $taskid;
-                        $amass->amass_status = 'Done.';
-                        $amass->amass_intel  = json_encode($intelresults);
-                        $amass->host = $maindomain;
-                        $amass->notify_instrument = "2";
-                        $amass->hidden = 1;
-                        $amass->date = date("Y-m-d H-i-s");
+                    foreach ($intelamass as $inteldomain) {
 
-                        $amass->save(); 
+                        if( !empty($inteldomain) ) {
+
+                            if (preg_match("/^xn\-\-/i", $inteldomain) === 1){
+                                $inteldomain = idn_to_utf8($inteldomain);
+                            }
+
+                            if ( empty($domains) ){
+                                $domains[] = $inteldomain; // all the domains ever found by amass intel
+                            }
+
+                            else if ( !in_array($inteldomain, $domains) ) { //if not found in array
+                                $intelresults[] = $inteldomain;
+                                $domains[] = $inteldomain; // all the domains ever found by amass intel
+                            }
+                        }
                     }
 
-                    $all->domains = json_encode( array_unique($domains) );
-                    $all->save(); 
+                    //if there are unique domains in output
+                    if ( !empty($intelresults) ){
+
+                        Yii::$app->db->open();
+
+                        $amass = Tasks::find()
+                        ->where(['taskid' => $taskid])
+                        ->limit(1)
+                        ->one();
+
+                        if(!empty($amass) && empty($amass->amass_intel) ){ //if querry exists in db
+
+                            $amass->amass_intel  = json_encode($intelresults);
+                            $amass->host = $maindomain;
+                            $amass->save();
+
+                        } else {
+                            $amass = new Tasks();
+                            
+                            $amass->taskid = $taskid;
+                            $amass->amass_status = 'Done.';
+                            $amass->amass_intel  = json_encode($intelresults);
+                            $amass->host = $maindomain;
+                            $amass->notify_instrument = "2";
+                            $amass->hidden = 1;
+                            $amass->date = date("Y-m-d H-i-s");
+
+                            $amass->save(); 
+                        }
+
+                        $all->domains = json_encode( array_unique($domains) );
+                        $all->save(); 
+                    }
+                    
+                    return Yii::$app->db->close();
+
+                } catch (\yii\db\Exception $exception) {
+                    var_dump($exception);
+                    sleep(6000);
+
+                    $tryAgain = true;
+
+                    amass::saveintelToDB($taskid, $intelamass);
                 }
-                
-                return Yii::$app->db->close();
-
-            } catch (\yii\db\Exception $exception) {
-                var_dump($exception);
-                sleep(1000);
-
-                amass::saveintelToDB($taskid, $intelamass);
-
-                return $exception.json_encode(array_unique($output));
-            }
+            } while($tryAgain);
         }
     }
 
@@ -465,7 +470,7 @@ class Amass extends ActiveRecord
 
             $inteloutput = "/dockerresults/" . $randomid . "amassINTEL.txt";
 
-            exec("sudo docker run --cpu-shares 512  --network=host --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 100 -whois -config ".$amassconfig);
+            exec("sudo docker run --cpu-shares 32 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass intel -d  " . $maindomain . " -o " . $inteloutput . " -active -timeout 100 -whois -config ".$amassconfig);
 
             if ( file_exists($inteloutput) ){
                 $intelamass = file_get_contents($inteloutput);
@@ -491,7 +496,8 @@ class Amass extends ActiveRecord
         
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
-        $httpx = "sudo docker run --cpu-shares 256 --network=host --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -random-agent=false -rate-limit 15 -threads 100 -timeout 120 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        //--net=container:vpn1
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 100 -threads 100  -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

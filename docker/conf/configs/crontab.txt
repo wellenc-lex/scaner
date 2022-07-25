@@ -13,5 +13,3 @@
 * */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && docker pull caffix/amass && docker pull instrumentisto/nmap && docker pull projectdiscovery/httpx && docker pull sxcurity/gau"
 
 */30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod -R 777 /configs/nuclei-templates/"
-
-*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +18 -exec rm -rf {} \;"

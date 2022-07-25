@@ -121,23 +121,30 @@ class Nmap extends ActiveRecord
         ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h  "
         ." --script pgsql-brute --script-args pgsql-brute.timeout=8h,brute.firstonly=1 --script smb-protocols --script fcrdns -sC";*/
 
-        $scripts = " -A --script mongo* --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  "
+        $scripts = " -A --script mongo* --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-* --script ajp-brute "
         ." --script http-open-proxy --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares "
         ." --script smb-os-discovery --script amqp-info --script nfs-ls --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 "
         ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h "
         ." --script smb-protocols --script fcrdns -sC";
-//--expose=53 -p 53:53
-        exec("sudo docker run --cpu-shares 512 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
-            ." -sS -g 53 -sU -T4 --randomize-hosts -Pn -v -sV --min-hostgroup 10000 --randomize-hosts --send-eth -n -sS"
-            ." -p T:1-31000,U:500,U:1434,U:11211,U:445,U:514,U:520,U:631,U:1434,U:1900,U:4500,U:5353 --min-hostgroup 10000"
-            ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 10s --max-retries 3 --open -oX "
+// --net=container:vpn1 --expose=53 -p 53:53
+        
+
+
+        //--script rsync-brute --script-args userdb=/configs/passwords/users,passdb=/configs/passwords/passwords
+
+
+
+        exec("sudo docker run --net=host --cpu-shares 1024 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
+            ." -g 80 -T4 --randomize-hosts -v -sV --min-hostgroup 1000 --randomize-hosts -n -sS"
+            ." -p T:1-31000 --min-hostgroup 10000"
+            ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 15s --max-retries 3 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
 
 
-        /*exec("sudo docker run --dns 1.1.1.1 --rm --cpu-shares 512 --privileged=true --ulimit nofile=1048576:1048576 --network host -v configs:/configs/ -v dockerresults:/dockerresults --expose=53 -p 53:53 projectdiscovery/naabu -exclude-cdn -c 35 -rate 1000 -timeout 10000 -p 1-32000 -list " 
+        /*exec("sudo docker run --rm --cpu-shares 512 --privileged=true --ulimit nofile=1048576:1048576 --network host -v configs:/configs/ -v dockerresults:/dockerresults --expose=53 -p 53:53 projectdiscovery/naabu -exclude-cdn -c 35 -rate 1000 -timeout 10000 -p 1-32000 -list " 
             . $scanIPS . " -output " . $outputtxt ." -nmap-cli 'nmap -Pn -v -sV --min-hostgroup 500 --script-timeout 8000m --host-timeout 40000m --max-scan-delay 20s --max-retries 3 --open -oX "
             . $nmapoutputdir . "{{ip}}.xml --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "'  >> /dockerresults/out.txt 2>&1 ");*/
-//-rate 100000
+    
         /*exec("sudo /root/bin/bin/naabu -exclude-cdn -c 200 -rate 500 -timeout 15000 -p 1-32000 -list " 
             . $scanIPS . " -output " . $outputtxt ." -nmap-cli 'nmap -g 53 -T4 -Pn -v -sV --randomize-hosts --send-eth -sS --min-hostgroup 1000 --script-timeout 8000m --host-timeout 40000m --max-scan-delay 20s --max-retries 3 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . "'  >> /dockerresults/out.txt 2>&1 ");*/

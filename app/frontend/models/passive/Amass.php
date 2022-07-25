@@ -54,7 +54,7 @@ class Amass extends ActiveRecord
         $randomid = rand(10000, 1000000);
         htmlspecialchars($url);
 
-        $command = "sudo docker run --dns 8.8.4.4 --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -timeout 1200 -config /configs/amass.ini";
+        $command = "sudo docker run --cpu-shares 32 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /wordlists/all.txt -d  " . escapeshellarg($url) . " -json /dockerresults/" . $randomid . "amass.json -active -brute -ip -timeout 1200 -config /configs/amass.ini";
 
         exec($command);
 

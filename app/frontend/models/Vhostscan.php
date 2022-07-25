@@ -190,7 +190,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --dns=8.8.4.4 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -rate-limit 25 -timeout 120 -retries 3 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
+            $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -t 150 -rate-limit 25 -timeout 60 -retries 2 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 
@@ -391,8 +391,8 @@ class Vhostscan extends ActiveRecord
                                 vhostscan::findVhostsNoDomain($host, $responseSize);
                             }
 
-                            if ( count($alive) > 500) $executeshell = $executeshell . " sleep 500 ".PHP_EOL;
-                            if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1500 ".PHP_EOL;
+                            if ( count($alive) > 500) $executeshell = $executeshell . " sleep 300 ".PHP_EOL;
+                            if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1000 ".PHP_EOL;
                         }
                     } 
                 } 
@@ -410,8 +410,8 @@ class Vhostscan extends ActiveRecord
                             vhostscan::findVhostsNoDomain($ip, $responseSize);
                         }
 
-                        if ( count($alive) > 500) $executeshell = $executeshell . " sleep 500 ".PHP_EOL;
-                        if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1500 ".PHP_EOL;
+                        if ( count($alive) > 500) $executeshell = $executeshell . " sleep 300 ".PHP_EOL;
+                        if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1000 ".PHP_EOL;
                     }
                 }
 
@@ -426,7 +426,7 @@ class Vhostscan extends ActiveRecord
 
                 file_put_contents($shellfile, $runffufs);
 
-                exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
+                exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn1 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
                 $i=1;
                 while($i<=$counter){
@@ -530,38 +530,38 @@ class Vhostscan extends ActiveRecord
         
         if( $output !='[[""]]' && $output != "[]" && $output != "[[[]]]" && $output != '[["No file."]]'&& $output != '[[1]]'){
 
-            try{
+            do{
+                try{
+                    $tryAgain = false;
+                    Yii::$app->db->open();
 
-                Yii::$app->db->open();
+                    $task = new Tasks();
+                    
+                    $task->vhost_status = "Done.";
+                    $task->notify_instrument = $task->notify_instrument."7";
+                    $task->vhost = $output;
+                    $task->host = "Vhost";
+                    $task->date = date("Y-m-d H-i-s");
 
-                $task = new Tasks();
-                
-                $task->vhost_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."7";
-                $task->vhost = $output;
-                $task->host = "Vhost";
-                $task->date = date("Y-m-d H-i-s");
+                    $task->save();
+                } catch (\yii\db\Exception $exception) {
+                    
+                    $tryAgain = true;
+                    sleep(6000);
 
-                $task->save();
-                
-                return 1;
+                    $task = new Tasks();
+                            
+                    $task->vhost_status = "Done.";
+                    $task->notify_instrument = $task->notify_instrument."7";
+                    $task->vhost = $output;
+                    $task->host = "Vhost";
+                    $task->date = date("Y-m-d H-i-s");
 
-            } catch (\yii\db\Exception $exception) {
-                
-                sleep(2000);
-
-                $task = new Tasks();
-                        
-                $task->vhost_status = "Done.";
-                $task->notify_instrument = $task->notify_instrument."7";
-                $task->vhost = $output;
-                $task->host = "Vhost";
-                $task->date = date("Y-m-d H-i-s");
-
-                Yii::$app->db->close();
-                
-                return file_put_contents("/dockerresults/".$taskid."vhosterror", $output);
-            }
+                    Yii::$app->db->close();
+                    
+                    file_put_contents("/dockerresults/".$taskid."vhosterror", $output);
+                }
+            } while($tryAgain);
         }
     }
     

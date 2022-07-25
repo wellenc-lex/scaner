@@ -48,26 +48,6 @@ class Whatweb extends ActiveRecord
 
         return 1;
     }
-
-    public static function savetodb($url)
-    {
-        try{
-            Yii::$app->db->open();
-
-            
-
-            Yii::$app->db->close();
-            
-        } catch (\yii\db\Exception $exception) {
-
-            sleep(2000);
-
-            whatweb::savetodb($url);
-        }
-
-        return 1;
-    }
-
     
     public static function httpxhosts($inputfile, $output)
     {
@@ -77,7 +57,7 @@ class Whatweb extends ActiveRecord
 
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm --dns=8.8.8.8 -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 25 -timeout 200 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 100 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -94,7 +74,7 @@ class Whatweb extends ActiveRecord
             $alive = json_decode($output, true);
 
             if( !empty($alive) ){
-                rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+                rsort($alive); //rsort so https:// will be at the top and we get less duplicates with http:// below
 
                 Yii::$app->db->open();
 
@@ -113,25 +93,11 @@ class Whatweb extends ActiveRecord
                             $currenthost = $url["input"];
                         } else $currenthost = $url["input"].$port;
 
-                        if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+                        if( !in_array( $currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
 
-                            $whatweb = new Whatweb();
-                            $whatweb->url = $url["scheme"].$currenthost;
-                            $whatweb->ip = $url["host"];
-                            $whatweb->favicon = $url["favicon-mmh3"];
-                            $whatweb->date = date("Y-m-d");
+                            whatweb::savetodb($url);
 
-                            if (isset( $url["technologies"] )) {
-                                $whatweb->tech = json_encode( $url["technologies"] );
-
-                                if (preg_match('/Basic/', $whatweb->tech) === 1) {
-
-                                }
-                            }
-
-                            $whatweb->save();
-
-                            $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
+                            $hostnames[] = $currenthost; //we add https://google.com to get rid of http://google.com:443 because thats duplicate
                         }
                     }
                 } 
@@ -144,5 +110,37 @@ class Whatweb extends ActiveRecord
         return 1;
     }
 
+
+    public static function savetodb($url)
+    {
+        do{
+            try{
+                $tryAgain = false;
+                $whatweb = new Whatweb();
+                $whatweb->url = $url["scheme"].$currenthost;
+                $whatweb->ip = $url["host"];
+                $whatweb->favicon = $url["favicon-mmh3"];
+                $whatweb->date = date("Y-m-d");
+
+                if (isset( $url["technologies"] )) {
+                    $whatweb->tech = json_encode( $url["technologies"] );
+
+                    if (preg_match('/Basic/', $whatweb->tech) === 1) {
+                        $queue = new Queue();
+                        $queue->dirscanUrl = $whatweb->url;
+                        $queue->instrument = 11; //whatweb
+                        $queue->save();
+                    }
+                }
+
+                $whatweb->save();
+            } catch (\yii\db\Exception $exception) {
+                $tryAgain = true;
+                sleep(1000);
+
+                whatweb::savetodb($url);
+            }
+        } while($tryAgain);
+    }
 }
 

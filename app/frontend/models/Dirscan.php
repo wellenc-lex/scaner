@@ -15,7 +15,7 @@ class Dirscan extends ActiveRecord
     {
         global $headers; global $usewordlist; global $randomid; global $executeshell; global $counter; global $blacklist; $counter = 0;
 
-        $headers = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'HTTP_X_REAL_IP: 127.0.0.1' -H 'HTTP_X_FORWARDED_FOR: 127.0.0.1' -H 'Connection: close' -H 'X-BugBounty-Hackerone: wellenc_lex' -H 'h1:bugbounty-wellenc_lex' "; 
+        $headers = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'HTTP_X_REAL_IP: 127.0.0.1' -H 'HTTP_X_FORWARDED_FOR: 127.0.0.1' "; //-H 'Connection: close' -H 'X-BugBounty-Hackerone: wellenc_lex' -H 'h1:bugbounty-wellenc_lex' 
 
         if( !empty($input["url"]) ) $urls = json_decode($input["url"], true); else return 0; //no need to scan without supplied url explode(PHP_EOL, $input["url"]);
 
@@ -119,7 +119,7 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-            $ffuf_string = "sleep 3 && /go/bin/ffuf -maxtime 990000 -fc 504,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 300 -recursion -recursion-depth 1 -t 1 -p 2  -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium|Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Welcome to CentOS' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/bin/ffuf -maxtime 990000 -fc 504,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 200 -recursion -recursion-depth 1 -t 1 -p 1.5  -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium|Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Welcome to CentOS' -r -ac -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 
@@ -196,7 +196,7 @@ class Dirscan extends ActiveRecord
 
         file_put_contents($shellfile, $runffufs);
 
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn1 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 
@@ -272,28 +272,42 @@ class Dirscan extends ActiveRecord
 
         if( !empty($output_ffuf ) ){
 
-            try{
-                Yii::$app->db->open();
-                global $usewordlist;
+            do{
+                try{
+                    $tryAgain = false;
+                    Yii::$app->db->open();
+                    global $usewordlist;
 
-                if($usewordlist==0){
+                    if($usewordlist==0){
 
-                    $dirscan = Tasks::find()
-                        ->where(['taskid' => $taskid])
-                        ->limit(1)
-                        ->one();
+                        $dirscan = Tasks::find()
+                            ->where(['taskid' => $taskid])
+                            ->limit(1)
+                            ->one();
 
-                    if(!empty($dirscan) && ($dirscan->dirscan == "")) { //if task exists in db
+                        if(!empty($dirscan) && ($dirscan->dirscan == "")) { //if task exists in db
 
-                        $dirscan->dirscan_status = "Done.";
-                        $dirscan->dirscan = $output_ffuf;
-                        $dirscan->notify_instrument = $dirscan->notify_instrument."3";
-                        $dirscan->wayback = $gau_result;
-                        $dirscan->date = date("Y-m-d H-i-s");
+                            $dirscan->dirscan_status = "Done.";
+                            $dirscan->dirscan = $output_ffuf;
+                            $dirscan->notify_instrument = $dirscan->notify_instrument."3";
+                            $dirscan->wayback = $gau_result;
+                            $dirscan->date = date("Y-m-d H-i-s");
 
-                        $dirscan->save();
+                            $dirscan->save();
 
+                        } else {
+                            $dirscan = new Tasks();
+                            $dirscan->host = $hostname;
+                            $dirscan->dirscan_status = "Done.";
+                            $dirscan->dirscan = $output_ffuf;
+                            $dirscan->notify_instrument = $dirscan->notify_instrument."3";
+                            $dirscan->wayback = $gau_result;
+                            $dirscan->date = date("Y-m-d H-i-s");
+
+                            $dirscan->save();
+                        }
                     } else {
+
                         $dirscan = new Tasks();
                         $dirscan->host = $hostname;
                         $dirscan->dirscan_status = "Done.";
@@ -304,49 +318,39 @@ class Dirscan extends ActiveRecord
 
                         $dirscan->save();
                     }
-                } else {
 
-                    $dirscan = new Tasks();
-                    $dirscan->host = $hostname;
-                    $dirscan->dirscan_status = "Done.";
-                    $dirscan->dirscan = $output_ffuf;
-                    $dirscan->notify_instrument = $dirscan->notify_instrument."3";
-                    $dirscan->wayback = $gau_result;
-                    $dirscan->date = date("Y-m-d H-i-s");
+                    $forbidden = array();
 
-                    $dirscan->save();
-                }
+                    foreach ($ffuf as $oneffuf) {
 
-                $forbidden = array();
-
-                foreach ($ffuf as $oneffuf) {
-
-                    if ( $oneffuf["status"] == "403") {
-                        $forbidden[] = $oneffuf["url"];
+                        if ( $oneffuf["status"] == "403") {
+                            $forbidden[] = $oneffuf["url"];
+                        }
                     }
-                }
 
-                if ( count($forbidden) < 15 && count($forbidden) >= 1) {
+                    if ( count($forbidden) < 15 && count($forbidden) >= 1) {
+                        
+                        foreach($forbidden as $forbiddenurl){
+
+                            //add 403 urls to queue
+                            $queue = new Queue();
+                            $queue->dirscanUrl = $forbiddenurl;
+                            $queue->instrument = 10; //403 bypass
+                            $queue->save();
+                        }
+                    }
+                   
+                } catch (\yii\db\Exception $exception) {
+
+                    $tryAgain = true;
+                    sleep(6000);
+
+                    dirscan::savetodb($taskid, $output_ffuf, $gau_result, $hostname);
+                    Yii::$app->db->close();
                     
-                    foreach($forbidden as $forbiddenurl){
-
-                        //add 403 urls to queue
-                        $queue = new Queue();
-                        $queue->dirscanUrl = $forbiddenurl;
-                        $queue->instrument = 10; //403 bypass
-                        $queue->save();
-                    }
+                    file_put_contents("/dockerresults/".$randomid."error", $output_ffuf);
                 }
-               
-            } catch (\yii\db\Exception $exception) {
-
-                sleep(6000);
-
-                dirscan::savetodb($taskid, $output_ffuf, $gau_result, $hostname);
-                Yii::$app->db->close();
-                
-                return file_put_contents("/dockerresults/".$randomid."error", $output_ffuf);
-            }
+            } while($tryAgain);
         }
   
     }
@@ -438,7 +442,9 @@ class Dirscan extends ActiveRecord
     public static function Gau($name)
     {
         if( file_exists($name) ){
-            $gau_result = array_unique( explode("\n", file_get_contents($name) ) );
+            $gau_result = explode("\n", file_get_contents($name) );
+
+            if ( count($gau_result)>=1 ) $gau_result = array_unique( $gau_result ); else return array();
 
             foreach ($gau_result as $id => $result) {
                 //wayback saves too much junk info (js,images,xss payloads)
@@ -450,7 +456,7 @@ class Dirscan extends ActiveRecord
             $gau_result = array_map('htmlentities', $gau_result);
             $gau_result = json_encode($gau_result, JSON_UNESCAPED_UNICODE);
 
-            return array_unique($gau_result);
+            return $gau_result;
         } else return array();
     }
 
@@ -483,7 +489,7 @@ class Dirscan extends ActiveRecord
         //www.test.google.com -> www.test -> www
         global $vhostlist;
 
-        preg_match_all("/(\w[\-\_\d]?)*\./", $input, $matches);
+        preg_match_all("/(\w[\_\d]?)*\./", $input, $matches);
 
         foreach($matches[0] as $match){
             $vhostlist[] = rtrim($match, "."); 

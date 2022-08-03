@@ -17,7 +17,7 @@ class jsa extends ActiveRecord
 
     public static function savetodb($taskid, $output)
     {
-        if( $output == "ZXJyb3Igbm8gZmlsZQ==" && !empty($output) && $output!=[] ) {
+        if( $output == "ZXJyb3Igbm8gZmlsZQ==" || empty($output) || $output==[] ) {
             return 2;
         }
 
@@ -28,6 +28,7 @@ class jsa extends ActiveRecord
                 $jsa->dirscan_status = "Done.";
                 $jsa->notify_instrument = $task->notify_instrument."9";
                 $jsa->js = $output;
+                $jsa->host = "JSA.";
                 $jsa->date = date("Y-m-d H-i-s");
 
                 $jsa->save();
@@ -41,6 +42,7 @@ class jsa extends ActiveRecord
                 $jsa->dirscan_status = "Done.";
                 $jsa->notify_instrument = $task->notify_instrument."9";
                 $jsa->js = $output;
+                $jsa->host = "JSA.";
                 $jsa->date = date("Y-m-d H-i-s");
 
                 $jsa->save();
@@ -54,8 +56,8 @@ class jsa extends ActiveRecord
     public static function jsa($input)
     {
         $randomid = (int) $input["randomid"];
-
-        exec("sudo docker run --net=container:vpn1 --rm --privileged=true --ulimit nofile=1048576:1048576 --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
+//--ulimit nofile=1048576:1048576
+        exec("sudo docker run --rm --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
 
         if (file_exists("/jsa/" . $randomid . "/out.txt")) {
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");

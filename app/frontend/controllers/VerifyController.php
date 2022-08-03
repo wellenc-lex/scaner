@@ -52,9 +52,9 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 2; $max_ffuf = 3; $max_nmap = 10; $max_vhost = 2; $max_nuclei = 2; $max_nuclei_in_task = 200; $max_ips = 1; $max_whatweb =1; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 2; $max_ffuf = 12; $max_nmap = 1; $max_vhost = 2; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 2; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-           // $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
+           //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -146,7 +146,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(10)
+                    ->limit(200)
                     ->all();
 
                 $counter = 1; 
@@ -155,27 +155,12 @@ class VerifyController extends Controller
 
                     if ($results != NULL) {
 
-                        $dontscan = 0;
-
                         $results->working = 1;
 
-                        if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
-                            $dontscan=1; //scanning cdn is pointless
-                        }
-
-                        if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
-                            $dontscan=1; //scanning cdn is pointless
-                        }
-
-                        if (preg_match("/.*wg\d*.ok.ru/i", $results->dirscanUrl) === 1) {
-                           $dontscan=1; //scanning cdn is pointless
-                        }
-
-                        if ( $dontscan === 1 ) {
+                        if ( VerifyController::dontscan($results->dirscanUrl) === 1 ) {
                             
                             $results->todelete = 1;
                             $results->save();
-
                             continue;
                         }
 
@@ -214,6 +199,12 @@ class VerifyController extends Controller
                         if ($tools_amount_whatweb < $max_whatweb && $whatweb_in_task <= $max_whatweb_in_task ) {
 
                             $results->working = 1;
+
+                            if ( VerifyController::dontscan($results->dirscanUrl) === 1 ) {
+                                $results->todelete = 1;
+                                $results->save();
+                                continue;
+                            }
 
                             $whatweburls[] = $results->dirscanUrl;
 
@@ -321,38 +312,20 @@ class VerifyController extends Controller
 
                             if ($tools_amount_nuclei < $max_nuclei ) {
 
-                                $results->working = 1;
-                                $nuclei_in_task++;
-
                                 $queues_array_nuclei[] = $results->id;
-
-                                $dontscan = 0;
 
                                 $results->working = 1;
 
                                 $results->save();
 
-                                if (preg_match("/.*filed.*.my.mail.ru/i", $results->dirscanUrl) === 1) {
-                                    $dontscan=1; //scanning cdn is pointless
-                                }
-
-                                if (preg_match("/.*cs.*.vk.me/i", $results->dirscanUrl) === 1) {
-                                    $dontscan=1; //scanning cdn is pointless
-                                }
-
-                                if (preg_match("/.*wg\d*.ok.ru/i", $results->dirscanUrl) === 1) {
-                                   $dontscan=1; //scanning cdn is pointless
-                                }
-
-                                if ( $dontscan === 1 ) {
+                                if ( VerifyController::dontscan($results->dirscanUrl) === 1 ) {
                                     $results->todelete = 1;
                                     $results->save();
                                     continue;
                                 }
 
-                                $results->save();
-
                                 $nucleiurls[] = $results->dirscanUrl;
+                                $nuclei_in_task++;
                             }
                         }
                     }
@@ -809,6 +782,35 @@ class VerifyController extends Controller
         return 1;
 
     }
+
+    private function dontscan($url)
+    {
+        $dontscan = 0;
+
+        if (preg_match("/.*filed.*.my.mail.ru/i", $url) === 1) {
+            $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*cs.*.vk.me/i", $url) === 1) {
+            $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*wg\d*.ok.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*.storage.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*cdn.*strm.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        return $dontscan;
+    }
+
+
 
 
 }

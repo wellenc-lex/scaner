@@ -36,6 +36,7 @@ class Aquatone extends ActiveRecord
                     $task->aquatone = $aquatoneoutput;
                     $task->aquatone_status = 'Done.';
                     $task->nmap_status = "Done.";
+                    $task->host = "Aquatone.";
                     $task->notify_instrument = "1";
                     $task->status = 'Done.';
                     $task->date = date("Y-m-d H-i-s");
@@ -199,7 +200,7 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 25 -scan-timeout 10000 -ports xlarge -screenshot-timeout 100000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn1 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 5 -scan-timeout 10000 -ports xlarge -screenshot-timeout 100000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
         }
 
 //-chrome-path /usr/bin/chromium-browser
@@ -209,11 +210,11 @@ class Aquatone extends ActiveRecord
 
             sleep(5);
 
-            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 5 -scan-timeout 10000 -screenshot-timeout 110000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
+            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --net=container:vpn1 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 5 -scan-timeout 10000 -screenshot-timeout 110000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
         }
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 290000 -threads 5 -screenshot-timeout 250000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn1 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 290000 -threads 5 -screenshot-timeout 250000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
         }
 
         exec($command);
@@ -251,7 +252,7 @@ class Aquatone extends ActiveRecord
         $filename = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 290000 -threads 5 -screenshot-timeout 250000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn1 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 290000 -threads 5 -screenshot-timeout 250000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.95 -screenshot-delay 15000 ";
         }
 
         exec($command);

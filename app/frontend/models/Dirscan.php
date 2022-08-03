@@ -194,6 +194,8 @@ class Dirscan extends ActiveRecord
             " . $executeshell . "
             wait; >> /ffuf/" . $randomid . "/0bash.txt ");
 
+        exec("mkdir /ffuf/" . $randomid . "/");
+
         file_put_contents($shellfile, $runffufs);
 
         exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn1 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);

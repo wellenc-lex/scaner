@@ -49,6 +49,12 @@ logs/admin/igc.log
 logs/admin/
 distributors/admin/area/
 distributors/admin/
+img/..;/.///bin/groovyconsole/post.json
+qcbin/debug
+v%69rtualjdbc/
+/virtualjdbc
+_profiler/phpinfo
+;//.git/HEAD
 settings.%EXT
 app.%EXT
 appsettings.%EXT

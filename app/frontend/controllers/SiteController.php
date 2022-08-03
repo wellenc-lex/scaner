@@ -890,6 +890,7 @@ foreach ($xmls as $xml) {
 
         //sudo docker run --cpu-shares 1024 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -exclude-cdn -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250 -rate-limit 5 -timeout 15 -retries 5 -silent -o /dockerresults/2whatwebhttpx.txt -l /dockerresults/2whatwebhosts.txt
 
+/*
 
         $randomid = 1;
 
@@ -982,7 +983,7 @@ foreach ($xmls as $xml) {
                     }
                 }
             }
-        } 
+        } */
         
 
         /*
@@ -1068,6 +1069,26 @@ foreach ($xmls as $xml) {
             $queue->save();
         }
 */
+
+        //401 bypass 
+
+        $allresults = Tasks::find()
+            ->select(['whatweb.tech','whatweb.url','whatweb.scanned'])
+            ->andWhere(['not', ['whatweb.tech' => null]])
+            ->all();
+
+        foreach ($allresults as $whatweb) {
+
+            if (preg_match('/Basic/', $whatweb->tech) === 1) {
+                $queue = new Queue();
+                $queue->dirscanUrl = $whatweb->url;
+                $queue->instrument = 11; //whatweb
+                $queue->save();
+            }
+
+            $whatweb->scanned=1;
+            $whatweb->save();
+        }
 
         return $this->render('about');
     }

@@ -42,6 +42,31 @@ class Forbiddenbypass extends ActiveRecord
         return 1;
     }
 
+    public static function bypass401($output)
+    {/*
+        if whatweb->tech LIKE '"Basic"' -> verifycontroller
+
+        test -subdomains / comapny name + test + testing, testing + // 401 из базы с ватвебами ! - парсить домен и поддомен из 401 джса в бд
+
+        https://loyalty-prod-aci.us.satellite.cornershop.io
+
+        [https?://] + loyalty-prod + default usernames + cornershop (no.com from the end - check dirscan)
+
+        conershop + cornershoptesting
+
+        yandex-corp -> yandex -> yandextest, testingyandex ( slice from vhost! / dirscan!! )
+
+        test : yandextesting
+
+
+        cpanel_frontend:whateva
+
+
+    test,testing,loyalty-prod,cornershop, cornershop+cornershoptest, cornershop+cornershoptesting
+
+    from burp intruder user:pass
+    */}
+
     public static function main($input)
     {
         $randomid = rand(1,100000000);
@@ -51,7 +76,7 @@ class Forbiddenbypass extends ActiveRecord
 
         if( $input["url"] != "") file_put_contents($inputurlsfile, $input["url"] ); else return 0; //no need to scan without supplied urls
 
-        exec('sudo docker run --dns 8.8.4.4 --rm -v dockerresults:/dockerresults 5631/403bypass /bin/bash -c "cat ' . $inputurlsfile  . ' | ./403bypass.sh > ' . $output . ' "');
+        exec('sudo docker run --rm -v dockerresults:/dockerresults 5631/403bypass /bin/bash -c "cat ' . $inputurlsfile  . ' | ./403bypass.sh > ' . $output . ' "');
 
         if ( file_exists($output) ) {
             $results = file_get_contents($output);

@@ -1,0 +1,18 @@
+id: gau-ssrf-detection
+
+info:
+  name: GAU SSRF
+  author: wellenc_lex
+  severity: high
+  tags: ssrf
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}http://{{interactsh-url}}"
+
+    matchers:
+      - type: word
+        part: interactsh_protocol # Confirms the HTTP Interaction
+        words:
+          - "http"

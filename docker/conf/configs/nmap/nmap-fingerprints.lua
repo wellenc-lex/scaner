@@ -2,7 +2,7 @@
 This file is part of NNdefaccts, an alternate fingerprint dataset for
 Nmap script http-default-accounts.
 
-NNdefaccts is Copyright (c) 2012-2021 by nnposter
+NNdefaccts is Copyright (c) 2012-2022 by nnposter
 (nnposter /at/ users.sourceforge.net, <https://github.com/nnposter>)
 
 NNdefaccts is free software: you can redistribute it and/or modify it
@@ -2194,6 +2194,60 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "Cisco RV180",
+  cpe = "cpe:/h:cisco:rv180_vpn_router",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    local lurl = url.absolute(path, "platform.cgi")
+    local resp = response
+    if response.status == 200
+       and response.body
+       and response.body:find(lurl, 1, true)
+       and get_refresh_url(response.body, "/platform%.cgi$") then
+      resp = http_get_simple(host, port, lurl)
+    end
+    if resp.status == 200
+       and resp.body
+       and resp.body:find("frmRedirectToTop", 1, true)
+       and get_tag(resp.body, "body", {onload="frmRedirectToTop"}) then
+      local form = stdnse.output_table()
+      form.thispage = "index.htm"
+      form.statusMsg = ""
+      form.reload = 0
+      local header = {["User-Agent"]="Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
+                      ["Referer"]=url.build(url_build_defaults(host, port, {path=lurl}))}
+      resp = http_post_simple(host, port, lurl, {header=header}, form)
+    end
+    return resp.status == 200
+           and resp.body
+           and resp.body:find("Cisco", 1, true)
+           and get_tag(resp.body, "input", {type="^text$", name="^users%.username$"})
+  end,
+  login_combos = {
+    {username = "cisco", password = "cisco"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local lurl = url.absolute(path, "platform.cgi")
+    local header = {["User-Agent"]="Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
+                    ["Referer"]=url.build(url_build_defaults(host, port, {path=lurl}))}
+    local form = stdnse.output_table()
+    form.thispage = "index.htm"
+    form.reload = 0
+    form["users.username"] = user
+    form["users.password"] = pass
+    form["button.login.users.home"] = "Log In"
+    form["Login.userAgent"] = header["User-Agent"]
+    local resp = http_post_simple(host, port, lurl, {header=header}, form)
+    return resp.status == 200
+           and (get_cookie(resp, "TeamF1Login", "^%w+$")
+             or get_tag(resp.body or "", "input", {type="^hidden$", name="^thispage$", value="^forcedLogin%.htm$"}))
+  end
+})
+
+table.insert(fingerprints, {
   name = "Cisco RV22x, SA520",
   category = "routers",
   paths = {
@@ -2245,6 +2299,54 @@ table.insert(fingerprints, {
     end
     return resp.status == 200
            and get_cookie(resp, "TeamF1Login", "^%w+$")
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Cisco RV042/RV082",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    local lurl = url.absolute(path, "cgi-bin/welcome.cgi")
+    if not (have_openssl
+           and response.status == 200
+           and response.body
+           and response.body:find(lurl, 1, true)
+           and get_refresh_url(response.body, "/cgi%-bin/welcome%.cgi$")) then
+      return false
+    end
+    local resp = http_get_simple(host, port, lurl)
+    return resp.status == 200
+           and resp.body
+           and resp.body:find("Cisco", 1, true)
+           and get_tag(resp.body, "form", {name="^form_contents$", action="/cgi%-bin/userLogin%.cgi$"})
+           and get_tag(resp.body, "input", {name="^auth_key$", type="^hidden$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"},
+    {username = "cisco", password = "cisco"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local resp1 = http_get_simple(host, port,
+                                 url.absolute(path, "cgi-bin/welcome.cgi"))
+    if resp1.status ~= 200 then return false end
+    local form = get_form_fields(resp1.body, {name="^form_contents$", action="/cgi%-bin/userLogin%.cgi$"})
+    if not (form and form.auth_key) then return false end
+    form.username = user
+    local password = stdnse.tohex(openssl.md5(pass .. form.auth_key)):lower()
+    local token = resp1.body:match("%Wvar%s+tmp2%s*=%s*['\"]([^'\"]+)")
+    if token then
+      password = stdnse.tohex(openssl.digest("SHA256", token .. password)):lower()
+    end
+    form.password = password
+    local resp2 = http_post_simple(host, port,
+                                  url.absolute(path, "cgi-bin/userLogin.cgi"),
+                                  nil, form)
+    return resp2.status == 200
+           and get_refresh_url(resp2.body or "", "/default%.htm$")
+           and get_cookie(resp2, "mlap", ".")
   end
 })
 
@@ -3025,25 +3127,48 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
-  name = "ASUS TM router",
-  cpe = "cpe:/h:asus:tm-*",
+  name = "ASUS router",
   category = "routers",
   paths = {
     {path = "/"}
   },
   target_check = function (host, port, path, response)
-    return (http_auth_realm(response) or ""):find("^TM%-%u[%u%d]+$")
+    if not (response.status == 200
+           and response.body
+           and response.body:find("%Wtop%.location%.href%s*=%s*(['\"])[^'\"]-/Main_Login%.asp%1")) then
+      return false
+    end
+    local resp = http_get_simple(host, port, url.absolute(path, "Main_Login.asp"))
+    return resp.status == 200
+           and resp.body
+           and resp.body:find("ASUS", 1, true)
+           and get_tag(resp.body, "input", {name="^login_authorization$"})
   end,
   login_combos = {
-    {username = "admin", password = "password"}
+    {username = "admin", password = "admin"}
   },
   login_check = function (host, port, path, user, pass)
-    return try_http_auth(host, port, path, user, pass, false)
-  end
+    local murl = url.absolute(path, "Main_Login.asp")
+    local resp1 = http_get_simple(host, port, murl)
+    if resp1.status ~= 200 then return false end
+    local form = get_form_fields(resp1.body, {action="^login%.cgi$"})
+    if not form then return false end
+    form.next_page = "index.asp"
+    form.login_authorization = base64.enc(user .. ":" .. pass)
+    form.login_username = nil
+    form.login_passwd = nil
+    form.captcha_text = nil
+    local header = {["Referer"]=url.build(url_build_defaults(host, port, {path=murl}))}
+    local resp2 = http_post_simple(host, port, url.absolute(path, "login.cgi"),
+                                  {header=header}, form)
+    return resp2.status == 200
+           and get_cookie(resp2, "asus_token", "^%w+$")
+           and get_refresh_url(resp2.body or "")
+    end
 })
 
 table.insert(fingerprints, {
-  name = "ASUS router",
+  name = "ASUS router (basic auth)",
   category = "routers",
   paths = {
     {path = "/"}
@@ -3059,6 +3184,24 @@ table.insert(fingerprints, {
   end,
   login_combos = {
     {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "ASUS TM router",
+  cpe = "cpe:/h:asus:tm-*",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return (http_auth_realm(response) or ""):find("^TM%-%u[%u%d]+$")
+  end,
+  login_combos = {
+    {username = "admin", password = "password"}
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, false)
@@ -3474,6 +3617,37 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "TP-Link DOCSIS modem",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find(".tp-link.", 1, true)
+           and get_tag(response.body, "a", {href="^https?://www%.tp%-link%.com/?$"})
+           and get_tag(response.body, "form", {action="/goform/login$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local form = {loginUsername=user,
+                  loginPassword=pass,
+                  forbidTime="0",
+                  authTime="0"}
+    local cookie = "Authorization=Basic " .. base64.enc(user .. ":" .. pass)
+    local header = {["Referer"]=url.build(url_build_defaults(host, port, {path=url.absolute(path, "login.asp")}))}
+    local resp = http_post_simple(host, port,
+                                 url.absolute(path, "goform/login"),
+                                 {cookies=cookie, header=header}, form)
+    return resp.status == 302
+           and (resp.header["location"] or ""):find("/index%.htm$")
+  end
+})
+
+table.insert(fingerprints, {
   name = "BEC ADSL router",
   category = "routers",
   paths = {
@@ -3486,6 +3660,27 @@ table.insert(fingerprints, {
   login_combos = {
     {username = "admin", password = "admin"},
     {username = "admin", password = "NEMONTadmin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Billion BiPAC",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    local realm = http_auth_realm(response) or ""
+    return realm:find("^BiPAC %d%d%d%d[%u%d ]*$")
+           or realm:find("^8700AX: ")
+  end,
+  login_combos = {
+    {username = "admin",   password = "admin"},
+    {username = "user",    password = "user"},
+    {username = "support", password = "support"}
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, false)
@@ -3507,6 +3702,39 @@ table.insert(fingerprints, {
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "DrayTek Vigor",
+  cpe = "cpe:/o:draytek:vigor_*",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    local loc = response.header["location"] or ""
+    if not (response.status == 302 and loc:find("/weblogin%.htm$")) then
+      return false
+    end
+    local resp = http_get_simple(host, port, loc)
+    return resp.status == 200
+           and resp.body
+           and resp.body:find('frmSub[0].name="aa"', 1, true)
+           and resp.body:lower():find("<title>vigor login page</title>", 1, true)
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local form = {aa=base64.enc(user),
+                  ab=base64.enc(pass)}
+    local resp = http_post_simple(host, port,
+                                 url.absolute(path, "cgi-bin/wlogin.cgi"),
+                                 nil, form)
+    return resp.status == 302
+           and resp.header["location"] == "/"
+           and get_cookie(resp, "SESSION_ID_VIGOR", "^%x+$")
   end
 })
 
@@ -3612,6 +3840,23 @@ table.insert(fingerprints, {
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Thomson TG585 v7",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return http_auth_realm(response) == "Thomson Gateway"
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, true)
   end
 })
 
@@ -5753,6 +5998,32 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "Juniper Web Device Manager",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:lower():find("juniper", 1, true)
+           and get_tag(response.body, "form", {action="/login$"})
+  end,
+  login_combos = {
+    {username = "root", password = ""}
+  },
+  login_check = function (host, port, path, user, pass)
+    local form = {login="login",
+                  username=user,
+                  password=pass}
+    local resp = http_post_simple(host, port, url.absolute(path, "login"),
+                                 nil, form)
+    return resp.status == 200
+           and (resp.body or ""):match("%Wvar%s+user_name%s*=%s*['\"](.-)['\"]") == user
+  end
+})
+
+table.insert(fingerprints, {
   name = "F5 TMOS",
   cpe = "cpe:/o:f5:tmos",
   category = "routers",
@@ -5804,6 +6075,23 @@ table.insert(fingerprints, {
     if not (resp.status == 200 and resp.body) then return false end
     local jstatus, jout = json.parse(resp.body)
     return jstatus and jout.username == user and jout.token
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Array Networks APV",
+  category = "routers",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return http_auth_realm(response) == "Array Networks WebUI"
+  end,
+  login_combos = {
+    {username = "array", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
   end
 })
 
@@ -6112,6 +6400,32 @@ table.insert(fingerprints, {
     local resp = http_get_simple(host, port,
                                 url.absolute(path, "manager?" .. url.build_query(form)))
     return resp.status == 200 and get_cookie(resp, "phonecookie", "^%x+$")
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Asterisk PBX",
+  category = "voip",
+  paths = {
+    {path = "/login.html"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("js/astman.js", 1, true)
+           and get_tag(response.body, "input", {id="^secret$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local form = {action="login",
+                  username=user,
+                  secret=pass}
+    local lurl = "AMI/rawman?" .. url.build_query(form)
+    local resp = http_get_simple(host, port, url.absolute(path, lurl))
+    return resp.status == 200
+           and (resp.body or ""):find("^%s*Response:%s*Success%W")
   end
 })
 
@@ -6640,6 +6954,25 @@ table.insert(fingerprints, {
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, true)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "OEM Mini_http IP Camera, DVR",
+  category = "security",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return (response.header["server"] or ""):find("^mini_httpd/%d+%.%d+")
+           and http_auth_realm(response) == "."
+  end,
+  login_combos = {
+    {username = "admin", password = "123456"},
+    {username = "root",  password = "icatch99"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
   end
 })
 
@@ -9152,6 +9485,23 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "Streaming Media System",
+  category = "security",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return http_auth_realm(response) == "Smart Home And Intercom System"
+  end,
+  login_combos = {
+    {username = "admin", password = "123456"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
   name = "Siedle Door Controller",
   category = "security",
   paths = {
@@ -9253,6 +9603,37 @@ table.insert(fingerprints, {
 --Industrial systems
 ---
 table.insert(fingerprints, {
+  name = "ScadaBR",
+  category = "industrial",
+  paths = {
+    {path = "/"},
+    {path = "/ScadaBR/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("ScadaBR", 1, true)
+           and get_tag(response.body, "meta", {name="^DESCRIPTION$", content="^ScadaBR Software$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local resp1 = http_post_simple(host, port, url.absolute(path, "login.htm"),
+                                  nil, {username=user,password=pass})
+    local loc = (resp1.header["location"] or ""):gsub("^https?://[^/]*", "")
+    if not (resp1.status == 302 and loc:find("%.shtm%f[;\0]")) then
+      return false
+    end
+    local resp2 = http_get_simple(host, port, url.absolute(path, loc))
+    return resp2.status == 200
+           and resp2.body
+           and resp2.body:find("logout.htm", 1, true)
+           and get_tag(resp2.body, "a", {href="^logout%.htm$"})
+  end
+})
+
+table.insert(fingerprints, {
   name = "Schneider Modicon Web",
   category = "industrial",
   paths = {
@@ -9334,6 +9715,38 @@ table.insert(fingerprints, {
   },
   login_check = function (host, port, path, user, pass)
     return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Trane Tracer SC",
+  cpe = "cpe:/a:trane:tracer_sc",
+  category = "industrial",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    if not ((response.status == 301 or response.status == 302)
+           and (response.header["location"] or ""):find("/hui/index%.html$")) then
+      return false
+    end
+    local resp = http_get_simple(host, port, url.absolute(path, "hui/index.html"))
+    return resp.status == 200
+           and resp.body
+           and resp.body:find("Tracer SC", 1, true)
+           and resp.body:find("%Whui%.bootstrap%.logon%(")
+           and get_tag(resp.body, "script", {src="/hui/bootstrap%.js$"})
+  end,
+  login_combos = {
+    {username = "Trane", password = "Tracer"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local creds = {username = "$" .. base64.enc(user),
+                   password = base64.enc(pass),
+                   digest = true}
+    local resp = http_post_simple(host, port, url.absolute(path, "evox"),
+                                 {auth=creds}, '<obj is="obix:Nil" />')
+    return resp.status == 200
   end
 })
 
@@ -9834,6 +10247,73 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "Eaton Power Xpert Meter (var.1)",
+  category = "industrial",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("Eaton Power Xpert Meter 2000", 1, true)
+           and response.body:lower():find("<title>%s*eaton power xpert meter 2000%s*<")
+           and get_tag(response.body, "embed", {code="^com%.eaton%.ngmp%.FullVgaApplet%.class$"})
+           and get_tag(response.body, "a", {href="%f[^/\0]content/index%.shtml$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"},
+    {username = "user",  password = "user"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, url.absolute(path, "content/index.shtml"),
+                        user, pass, true)
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Eaton Managed ePDU",
+  category = "industrial",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return have_openssl
+           and response.status == 200
+           and response.body
+           and response.body:find("Eaton", 1, true)
+           and response.body:lower():find("<title>%s*eaton%W")
+           and get_tag(response.body, "script", {src="/eaton/js/Nemo%.js$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "admin"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local lurl = url.absolute(path, "ws/gateway?")
+    local form1 = stdnse.output_table()
+    form1.page = "cgi_challenge"
+    form1.login = user
+    form1._dc = math.floor(stdnse.clock_ms())
+    local resp1 = http_get_simple(host, port, lurl .. url.build_query(form1))
+    local nonce = (resp1.body or ""):match("^%s*['\"](.-)['\"]%s*$")
+    if not (resp1.status == 200 and nonce) then return false end
+    local hashlen = 64
+    if #nonce > hashlen then
+      nonce = openssl.sha1(nonce)
+    end
+    nonce = nonce .. ("\0"):rep(hashlen - #nonce)
+    local form2 = stdnse.output_table()
+    form2.page = "cgi_authentication"
+    form2.login = user
+    form2.password = stdnse.tohex(openssl.hmac("SHA1", nonce, pass)):lower()
+    form2._dc = math.floor(stdnse.clock_ms())
+    local resp2 = http_get_simple(host, port, lurl .. url.build_query(form2))
+    if not (resp2.status == 200 and resp2.body) then return false end
+    local jstatus, jout = json.parse(resp2.body:gsub("'", "\""))
+    return jstatus and type(jout) == "table" and type(jout[1]) == "number" and jout[2] == user
+  end
+})
+
+table.insert(fingerprints, {
   name = "CS121 UPS Web/SNMP Manager",
   category = "industrial",
   paths = {
@@ -9933,7 +10413,12 @@ table.insert(fingerprints, {
                                  nil, form)
     local loc = resp.header["location"]
     if not (resp.status == 303 and loc) then return false end
-    if loc:find("/home%.htm$") then return true end
+    if loc:find("/home%.htm$") then
+      http_get_simple(host, port,
+                     url.absolute(loc:gsub("^https?://[^/]*", ""), "logout.htm"),
+                     {cookies=resp.cookies})
+      return true
+    end
     for _, ck in ipairs(resp.cookies or {}) do
       if ck.name:find("^APC") then return true end
     end
@@ -10223,6 +10708,23 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "Trimble 4.x",
+  category = "industrial",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return http_auth_realm(response) == "Trimble"
+  end,
+  login_combos = {
+    {username = "admin", password = "password"}
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, path, user, pass, false)
+  end
+})
+
+table.insert(fingerprints, {
   name = "Deva Broadcast",
   category = "industrial",
   paths = {
@@ -10426,6 +10928,30 @@ table.insert(fingerprints, {
 })
 
 table.insert(fingerprints, {
+  name = "OKI printer",
+  category = "printer",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("okilogo", 1, true)
+           and get_tag(response.body, "frame", {src="^status_toc%.htm$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "aaaaaa"},
+    {username = "root",  password = "aaaaaa"},
+    {username = "admin", password = "999999"},
+    {username = "root",  password = "999999"},
+  },
+  login_check = function (host, port, path, user, pass)
+    return try_http_auth(host, port, url.absolute(path, "setupfrm.htm"),
+                        user, pass, true)
+  end
+})
+
+table.insert(fingerprints, {
   name = "RICOH Web Image Monitor",
   category = "printer",
   paths = {
@@ -10595,13 +11121,14 @@ table.insert(fingerprints, {
     return response.status == 200
            and response.body
            and response.body:find("/js/TopAccessUtil.js", 1, true)
+           and get_tag(response.body, "script", {src="/js/TopAccessUtil%.js%f[\0?]"})
   end,
   login_combos = {
     {username = "admin", password = "123456"}
   },
   login_check = function (host, port, path, user, pass)
     local resp1 = http_get_simple(host, port, path)
-    local token = resp1.status == 200 and get_cookie(resp1, "session", ".")
+    local token = resp1.status == 200 and get_cookie(resp1, "Session", ".")
     if not token then return false end
     local ipaddr = token:match("^(.+)%.")
     if not ipaddr then return false end
@@ -10672,41 +11199,12 @@ table.insert(fingerprints, {
     local resp = http_post_simple(host, port,
                                  url.absolute(path, "ADMIN/Login"),
                                  nil, {USERNAME=user,PASS=pass})
-    return resp.status == 301 and get_cookie(resp, "sessid", "^0,%x+$")
+    return resp.status == 301 and get_cookie(resp, "SESSID", "^0,%x+$")
   end
 })
 
 table.insert(fingerprints, {
-  name = "Xerox CentreWare (var.1)",
-  category = "printer",
-  paths = {
-    {path = "/"}
-  },
-  target_check = function (host, port, path, response)
-    return response.status == 200
-           and response.body
-           and response.body:find("XEROX WORKCENTRE", 1, true)
-           and get_tag(response.body, "frame", {src="/header%.php%?tab=status$"})
-  end,
-  login_combos = {
-    {username = "admin", password = "1111"}
-  },
-  login_check = function (host, port, path, user, pass)
-    local form = {_fun_function="HTTP_Authenticate_fn",
-                  NextPage=url.absolute(path, "properties/authentication/luidLogin.php"),
-                  webUsername=user,
-                  webPassword=pass,
-                  frmaltDomain="default"}
-    local resp = http_post_simple(host, port,
-                                 url.absolute(path, "userpost/xerox.set"),
-                                 nil, form)
-    return resp.status == 200
-           and (resp.body or ""):find("%Wwindow%.opener%.top%.location%s*=%s*window%.opener%.top%.location%.pathname%s*;")
-  end
-})
-
-table.insert(fingerprints, {
-  name = "Xerox CentreWare (var.2)",
+  name = "Xerox SyncThru",
   category = "printer",
   paths = {
     {path = "/"}
@@ -10733,6 +11231,72 @@ table.insert(fingerprints, {
                                  nil, {Authentication=auth})
     return resp.status == 200
            and (resp.body or ""):find("%Wsuccess%s*:%s*true%W")
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Xerox AltaLink",
+  cpe = "cpe:/o:xerox:altalink_*",
+  category = "printer",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("Xerox", 1, true)
+           and response.body:find("%Wdocument%.location%s*=%s*(['\"])[^'\"]*/stat/welcome%.php%?tab=status%1%s*;")
+  end,
+  login_combos = {
+    {username = "admin", password = "1111"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local resp1 = http_get_simple(host, port,
+                                 url.absolute(path, "properties/authentication/login.php"))
+    if resp1.status ~= 200 then return false end
+    local form = get_form_fields(resp1.body, {action="/userpost/xerox%.set$"})
+    if not form then return false end
+    form.frmwebUsername = user
+    form.frmwebPassword = pass
+    local resp2 = http_post_simple(host, port,
+                                  url.absolute(path, "userpost/xerox.set"),
+                                  {cookies=resp1.cookies}, form)
+    return resp2.status == 200
+           and resp2.body
+           and (resp2.body:find("%Wwindow%.opener%.top%.location%s*=%s*window%.opener%.top%.location%.href%s*;")
+             or resp2.body:find("%Wdocument%.location%s*=%s*(['\"])['\"]-/stat/welcome%.php%?tab=status%1%s*;")
+             or resp2.body:find("%Wdocument%.location%s*=%s*(['\"])['\"]-/properties/blank%.php%1%s*;"))
+  end
+})
+
+table.insert(fingerprints, {
+  name = "Xerox CentreWare",
+  category = "printer",
+  paths = {
+    {path = "/"}
+  },
+  target_check = function (host, port, path, response)
+    return response.status == 200
+           and response.body
+           and response.body:find("XEROX WORKCENTRE", 1, true)
+           and get_tag(response.body, "frame", {src="/header%.php%?tab=status$"})
+  end,
+  login_combos = {
+    {username = "admin", password = "1111"}
+  },
+  login_check = function (host, port, path, user, pass)
+    local resp1 = http_get_simple(host, port,
+                                 url.absolute(path, "properties/authentication/login.php"))
+    if resp1.status ~= 200 then return false end
+    local form = get_form_fields(resp1.body, {action="/userpost/xerox%.set$"})
+    if not form then return false end
+    form.webUsername = user
+    form.webPassword = pass
+    local resp2 = http_post_simple(host, port,
+                                  url.absolute(path, "userpost/xerox.set"),
+                                  {cookies=resp1.cookies}, form)
+    return resp2.status == 200
+           and (resp2.body or ""):find("%Wwindow%.opener%.top%.location%s*=%s*window%.opener%.top%.location%.pathname%s*;")
   end
 })
 

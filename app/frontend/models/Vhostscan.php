@@ -58,7 +58,7 @@ class Vhostscan extends ActiveRecord
 
         if ( !($responseSize>0) ) $responseSize=0;
 
-        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.5 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -ac -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.1 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -77,10 +77,9 @@ class Vhostscan extends ActiveRecord
         return 1;
     }
 
-    public static function findVhostsNoDomain($host, $responseSize)
+    public static function findVhostsNoDomain($host, $responseSize, $generatedwordlist)
     {
 
-        //-ac -acc 'randomtest'
         //$ffuf_general_string = "sudo docker run --dns 8.8.4.4 --cpu-shares 256 --rm --network=docker_default -v ffuf:/ffuf -v configs:/configs/ sneakerhax/ffuf -o " . $outputfile . " -od /ffuf/vhost" . $randomid . "/ -of json -mc all -fc 404 -s -t 3 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -timeout 85 -ignore-body -r -u ";
 
         global $headers;
@@ -90,7 +89,13 @@ class Vhostscan extends ActiveRecord
 
         if ( !($responseSize>0) ) $responseSize=0;
 
-        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -mc all -fc 429,503,400,502,404 -s -timeout 250 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 2 -p 0.5 " . $headers . " -w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ -maxtime 150000 -ac -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        if ( $generatedwordlist == 1 ) {
+
+            $wordlistfile = "-w /ffuf/vhost" . $randomid . "/wordlist.txt:FUZZ";
+
+        } else $wordlistfile = "-w /configs/vhostwordlist.txt:FUZZ";
+
+        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -ac -mc all -fc 429,503,400,502,404 -s -timeout 250 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.1 " . $headers . $wordlistfile . " -maxtime 150000 -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -190,7 +195,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -t 150 -rate-limit 25 -timeout 60 -retries 2 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
+            $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -t 100 -rate-limit 10 -timeout 60 -retries 2 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 
@@ -259,15 +264,6 @@ class Vhostscan extends ActiveRecord
                         array_push($vhostlist, $hostonly); //admin.something.com -> admin
                     }
                 }
-                /*
-                if (strpos($domainfull, 'https://xn--') === false) {
-
-                    $hostwordlist[] = $domainfull; // full hostname for Host: header
-
-                    vhostscan::dosplit($domainfull);
-
-                    vhostscan::split2($domainfull);
-                }*/ //generate too much alterations which arent needed for VHost scan?
             }
         }
         
@@ -323,18 +319,17 @@ class Vhostscan extends ActiveRecord
                         $scheme = "https://";
                     } else $scheme = "http://";
 
-                    $output[] = vhostscan::findVhostsNoDomain($scheme . $currentIP . ":" . $currentport);
+                    $output[] = vhostscan::findVhostsNoDomain($scheme . $currentIP . ":" . $currentport, 0, 0);
 
                     if( isset( $domains ) ){
-                        $output[] = vhostscan::findVhostsWithDomain($scheme . $currentIP . ":" . $currentport);
+                        $output[] = vhostscan::findVhostsWithDomain($scheme . $currentIP . ":" . $currentport, 0, 0);
                     }
                 }
             }
 
-            vhostscan::saveToDB($taskid, $output);
+            vhostscan::saveToDB($taskid, $output, $randomid);
             dirscan::queuedone($input["queueid"]);
 
-            exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
             return 1;
         }
 
@@ -380,6 +375,8 @@ class Vhostscan extends ActiveRecord
                         } else $alive = vhostscan::httpxhosts($amassoutput, 0);
 
                         file_put_contents("/ffuf/vhost" . $randomid . "/alive.txt", $alive);
+
+                        if ( file_exists("/ffuf/vhost" . $randomid . "/wordlist.txt") ) $generatedwordlist = 1; else $generatedwordlist=0;
                         
                         foreach($alive as $host) {
 
@@ -388,17 +385,18 @@ class Vhostscan extends ActiveRecord
                                 $responseSize = shell_exec("curl -so /dev/null " . $host . " -w '%{size_download}'");
 
                                 vhostscan::findVhostsWithDomain($host, $responseSize);
-                                vhostscan::findVhostsNoDomain($host, $responseSize);
+                                vhostscan::findVhostsNoDomain($host, $responseSize, $generatedwordlist);
                             }
 
                             if ( count($alive) > 500) $executeshell = $executeshell . " sleep 300 ".PHP_EOL;
-                            if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1000 ".PHP_EOL;
                         }
                     } 
                 } 
 
                 if ( !empty($iparray) ) {
                     $alive = vhostscan::httpxhosts(0, $iparray);
+
+                    if ( file_exists("/ffuf/vhost" . $randomid . "/wordlist.txt") ) $generatedwordlist = 1; else $generatedwordlist=0;
 
                     file_put_contents("/ffuf/vhost" . $randomid . "/alive2.txt", $alive);
 
@@ -407,11 +405,10 @@ class Vhostscan extends ActiveRecord
                         if($ip!=""){
                             sleep(5);
                             $responseSize = shell_exec("curl -so /dev/null " . $ip . " -w '%{size_download}'");
-                            vhostscan::findVhostsNoDomain($ip, $responseSize);
+                            vhostscan::findVhostsNoDomain($ip, $responseSize, $generatedwordlist);
                         }
 
                         if ( count($alive) > 500) $executeshell = $executeshell . " sleep 300 ".PHP_EOL;
-                        if ( count($alive) > 1500) $executeshell = $executeshell . " sleep 1000 ".PHP_EOL;
                     }
                 }
 
@@ -436,7 +433,7 @@ class Vhostscan extends ActiveRecord
                 
                 $output = array_unique($output);
 
-                if ( count( $output ) > 0 ) vhostscan::saveToDB( $taskid, $output );
+                if ( count( $output ) > 0 ) vhostscan::saveToDB( $taskid, $output, $randomid );
             }
 
             
@@ -445,8 +442,6 @@ class Vhostscan extends ActiveRecord
             foreach ($queue as $id) {
                 dirscan::queuedone($id);
             }
-
-            //exec("sudo rm -R /ffuf/vhost" . $randomid . " &");
 
             return 1;
         }
@@ -526,7 +521,7 @@ class Vhostscan extends ActiveRecord
         }
     }*/
 
-    public static function saveToDB($taskid, $output)
+    public static function saveToDB($taskid, $output, $randomid)
     {
         $output = json_encode( array_unique( array_filter($output) ) );
         
@@ -564,6 +559,8 @@ class Vhostscan extends ActiveRecord
                     file_put_contents("/dockerresults/".$taskid."vhosterror", $output);
                 }
             } while($tryAgain);
+
+            exec("sudo rm -rf /ffuf/vhost" . $randomid . " "); //ffuf creates huge amount of files and eats space. ~2TB in 30k ffuf dirs.
         }
     }
     

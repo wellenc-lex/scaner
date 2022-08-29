@@ -52,9 +52,11 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 2; $max_ffuf = 12; $max_nmap = 1; $max_vhost = 2; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 2; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 1; $max_ffuf = 0; $max_nmap = 8; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 5; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-           //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
+            $max_passive_amass = 2;
+
+            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -146,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(200)
+                    ->limit(50)
                     ->all();
 
                 $counter = 1; 
@@ -392,6 +394,39 @@ class VerifyController extends Controller
                     }
                 }
             }
+
+            if( $tools_amount_amass < $max_passive_amass ){
+                //Amasses
+                $queues = Queue::find()
+                    ->andWhere(['working' => "0"])
+                    ->andWhere(['todelete' => "0"])
+                    ->andWhere(['instrument' => "2"])
+                    ->andWhere(['passivescan' => "1"])
+                    ->orderBy(['id' => SORT_ASC])
+                    ->limit($max_passive_amass)
+                    ->all();
+
+                foreach ($queues as $results) {
+
+                    if ($results != NULL) {
+
+                        if ($tools_amount_amass < $max_passive_amass ) {
+
+                            $results->working  = 1;
+
+                            $url = $results->amassdomain;
+
+                            exec('curl --insecure -H \'Connection: close\' --max-time 15 -H \'Authorization: ' . $auth . '\' --data "url=' . $url . ' &queueid=' . $results->id . '&scanid=' . $results->taskid . '&secret=' . $secret . '" https://app/passive/amass > /dev/null 2>/dev/null &');
+
+                            $results->save();
+
+                            $tools_amount_amass++;
+                        }
+                    }
+                }
+            }
+
+            
 
             /*
             //Gitscan
@@ -783,7 +818,7 @@ class VerifyController extends Controller
 
     }
 
-    private function dontscan($url)
+    private static function dontscan($url)
     {
         $dontscan = 0;
 

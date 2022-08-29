@@ -33,6 +33,7 @@ dump/
 dumps/
 druid/weburi.html
 v0.1/users
+proxy.stream
 proxy/proxy.php
 database/default.%EXT
 ui/#/apps
@@ -80,6 +81,9 @@ rest/config
 config/secrets.yml
 secrets.yml
 .git/logs/HEAD
+jkstatus
+web/aviva
+bin/id
 api/config/database.yml 
 puppet
 _automation/generate_post.py
@@ -228,6 +232,13 @@ usersmanager.%EXT%
 users2021.%EXT%
 users2022.%EXT%
 2022.%EXT%
+%EXT%.sql
+%EXT%.tar.gz
+%EXT%.zip
+dump.%EXT%.tar.gz
+dump.%EXT%.zip
+dump%EXT%.tar.gz
+%EXT%dump.tar.gz
 admin2022.%EXT%
 admin2021.%EXT%
 admin2020.%EXT%
@@ -9019,7 +9030,6 @@ mysql.%EXT%.tar.bzip2
 1.%EXT%.gz
 dbdump.tar.gz
 mysql.tar
-dump.%EXT%.tar.gz
 1.%EXT%.bz2
 backup.%EXT%.gz
 sql.%EXT%.tar
@@ -9057,7 +9067,6 @@ backup.%EXT%.tgz
 dump.%EXT%.tar
 db.%EXT%.7z
 dbdump.tgz
-dump.%EXT%.zip
 db.%EXT%.tgz
 db.tar.gz
 data.%EXT%.bz2
@@ -11251,7 +11260,6 @@ pub
 %EXT%.tar
 %EXT%.tgz
 %EXT%.txt
-%EXT%.zip
 %ff
 +CSCOE+/logon.html#form_title_text
 +CSCOE+/session_password.html
@@ -14790,7 +14798,6 @@ jdkstatus
 jk-status
 jkmanager
 jkmanager-auth
-jkstatus
 jkstatus-auth
 krb.log
 krblog.txt

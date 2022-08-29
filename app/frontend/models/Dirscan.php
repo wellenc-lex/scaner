@@ -19,6 +19,8 @@ class Dirscan extends ActiveRecord
 
         if( !empty($input["url"]) ) $urls = json_decode($input["url"], true); else return 0; //no need to scan without supplied url explode(PHP_EOL, $input["url"]);
 
+        $randomid = rand(60000,1000000000);
+
         foreach ($urls as $url){
 
             $counter++;
@@ -59,8 +61,6 @@ class Dirscan extends ActiveRecord
             $hostname = dirscan::ParseHostname($currenturl);
 
             $port = dirscan::ParsePort($currenturl);
-
-            $randomid = rand(60000,1000000000);
 
             if (strpos($currenturl, 'https://') !== false) {
                 $scheme = "https://";
@@ -190,11 +190,10 @@ class Dirscan extends ActiveRecord
         //write bash command for parallel execution to the file and execute the file.
         $shellfile = "/ffuf/" . $randomid . "/shell.sh";
         $runffufs = ("#!/bin/bash
+            mkdir /ffuf/" . $randomid . "/
             echo \"executed \";
             " . $executeshell . "
-            wait; >> /ffuf/" . $randomid . "/0bash.txt ");
-
-        exec("mkdir /ffuf/" . $randomid . "/");
+            wait; >> /ffuf/" . $randomid . "/0bash.txt && cat /ffuf/" . $randomid . "/*/gau.txt >> /ffuf/gau.txt");
 
         file_put_contents($shellfile, $runffufs);
 
@@ -225,6 +224,8 @@ class Dirscan extends ActiveRecord
 
             $counter--;
         }
+
+        exec("sudo rm -rf /ffuf/" . $randomid . "/"); //ffuf creates huge amount of files and eats space. ~2TB in 30k ffuf dirs.
 
         Yii::$app->db->close();
 
@@ -321,12 +322,16 @@ class Dirscan extends ActiveRecord
                         $dirscan->save();
                     }
 
-                    $forbidden = array();
+                    $forbidden = array(); $basicauth = array();
 
                     foreach ($ffuf as $oneffuf) {
 
                         if ( $oneffuf["status"] == "403") {
                             $forbidden[] = $oneffuf["url"];
+                        }
+
+                        if ( $oneffuf["status"] == "401") {
+                            $basicauth[] = $oneffuf["url"];
                         }
                     }
 
@@ -338,6 +343,18 @@ class Dirscan extends ActiveRecord
                             $queue = new Queue();
                             $queue->dirscanUrl = $forbiddenurl;
                             $queue->instrument = 10; //403 bypass
+                            $queue->save();
+                        }
+                    }
+
+                    if ( count($basicauth) >= 1) {
+                        
+                        foreach($basicauth as $basicauthurl){
+
+                            //add 401 urls to queue
+                            $queue = new Queue();
+                            $queue->dirscanUrl = $basicauthurl;
+                            $queue->instrument = 12; //401 bypass
                             $queue->save();
                         }
                     }

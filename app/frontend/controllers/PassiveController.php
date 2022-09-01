@@ -115,11 +115,11 @@ class PassiveController extends Controller
 
                 $scan->needs_to_notify = 1;
 
-                if ($scan->notify_instrument != "") {
+                if ($scan->notify_instrument != "" && $scan->notify_instrument != "1") {
 
-                    $scan->notify_instrument = $scan->notify_instrument . ", Nmap";
+                    $scan->notify_instrument = $scan->notify_instrument . "1";
                 } else {
-                    $scan->notify_instrument = "Nmap";
+                    $scan->notify_instrument = "1";
                 }
 
                 return $scan->save();
@@ -153,10 +153,10 @@ class PassiveController extends Controller
 
                 $scan->needs_to_notify = 1;
 
-                if ($scan->notify_instrument != "") {
-                    $scan->notify_instrument = $scan->notify_instrument . ", amass";
+                if ($scan->notify_instrument != "" && $scan->notify_instrument != "2") {
+                    $scan->notify_instrument = $scan->notify_instrument . "2";
                 } else {
-                    $scan->notify_instrument = "amass";
+                    $scan->notify_instrument = "2";
                 }
 
                 return $scan->save();
@@ -189,11 +189,11 @@ class PassiveController extends Controller
 
                 $scan->needs_to_notify = 1;
 
-                if ($scan->notify_instrument != "") {
+                if ($scan->notify_instrument != "" && $scan->notify_instrument != "3") {
 
-                    $scan->notify_instrument = $scan->notify_instrument . ", Dirscan";
+                    $scan->notify_instrument = $scan->notify_instrument . "3";
                 } else {
-                    $scan->notify_instrument = "Dirscan";
+                    $scan->notify_instrument = "3";
                 }
 
                 return $scan->save();

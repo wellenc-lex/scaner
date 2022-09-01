@@ -40,7 +40,9 @@ class Amass extends ActiveRecord
 
         $command = "sudo sudo docker run --net=host --cpu-shares 128 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlistALL2.txt -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -ip -timeout 2200 -config ".$amassconfig;
 
-        exec($command);
+        //exec($command);
+
+        $enumoutput = "/dockerresults/1amass.json";
 
         if ( file_exists($enumoutput) ) {
             $fileamass = file_get_contents($enumoutput);
@@ -66,7 +68,7 @@ class Amass extends ActiveRecord
 
         $amassoutput = '[' . $fileamass . ']';
 
-        if(isset($amassoutput) && $amassoutput!= "" && !empty($amassoutput) ){
+        if($amassoutput!= "" && !empty($amassoutput) ){
 
             $amassoutput = json_decode($amassoutput, true);
 
@@ -93,7 +95,7 @@ class Amass extends ActiveRecord
             ->one();
 
         if ($amass->amass_new == "") {
-            $amass->amass_new = $NEWsubdomains;
+            $amass->amass_new = json_encode($NEWsubdomains);
 
             $amass->save();
 
@@ -105,14 +107,15 @@ class Amass extends ActiveRecord
                 $changes =  0; // no changes between scans
             } else {
 
-                $OLDsubdomains = $amass->amass_new;
+                $OLDsubdomains = json_decode($amass->amass_new);
+
                 $changes =  1; // check changes between scans
 
-                $amass->amass_previous = $amass->amass_new;
-                $amass->amass_new = $NEWsubdomains; 
+                $amass->amass_previous = json_encode($OLDsubdomains);
+                $amass->amass_new = json_encode($NEWsubdomains); 
                 $amass->save();
 
-                $diff = array_diff( $OLDsubdomains, $NEWsubdomains ); // only new subdomains in the list
+                $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
 
                 amass::httpxhosts( array_unique($diff), $scanid, $randomid );
             }

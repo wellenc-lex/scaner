@@ -113,9 +113,11 @@ class Amass extends ActiveRecord
                 $amass->amass_new = json_encode($NEWsubdomains); 
                 $amass->save();
 
-                $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
+                if( !empty($NEWsubdomains) && !empty($OLDsubdomains)) {
+                    $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
 
-                amass::httpxhosts( array_unique($diff), $scanid, $randomid );
+                    amass::httpxhosts( array_unique($diff), $scanid, $randomid );
+                }
             }
         }
 

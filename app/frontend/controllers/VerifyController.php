@@ -148,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(50)
+                    ->limit(20)
                     ->all();
 
                 $counter = 1; 
@@ -711,23 +711,23 @@ class VerifyController extends Controller
 
                         if ($pos = strpos($result->notify_instrument, "1") !== false) {
 
-                            if ($result->nmap_previous != null && $result->nmap_new != null){
+                            if ( !empty($result->nmap_previous) && !empty($result->nmap_new) ){
                                 $diff = array_unique(array_diff($result->nmap_new,$result->nmap_previous));
                             }
                         }
 
                         if ($pos = strpos($result->notify_instrument, "2") !== false) {
 
-                            if ($result->amass_previous != null && $result->amass_new != null) {
+                            if ( !empty($result->amass_previous) && !empty($result->amass_new) ) {
 
-                                $diff = array_unique(array_diff($result->amass_new,$result->amass_previous));
+                                $diff = array_unique(array_diff( json_decode($result->amass_new) , json_decode($result->amass_previous)) );
                             }
                         }
 
                         if ($pos = strpos($result->notify_instrument, "3") !== false) {
 
-                            if ($result->dirscan_previous != null && $result->dirscan_new != null){
-                                $diff = array_unique(array_diff($result->dirscan_new,$result->dirscan_previous));
+                            if ( !empty($result->dirscan_previous) && !empty($result->dirscan_new) ){
+                                $diff = array_unique(array_diff( json_decode($result->dirscan_new) , json_decode($result->dirscan_previous)) );
                             }
                         }
 
@@ -739,9 +739,9 @@ class VerifyController extends Controller
 
                         $result->save(false);
 
-                        if ($diff != ""){
+                        /*if ($diff != ""){
                             $this->sendPassiveSlack($result->scanid, $diff);
-                        }
+                        }*/
                         
                 }
             }

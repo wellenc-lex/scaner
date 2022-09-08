@@ -13484,7 +13484,6 @@ faq.%EXT%
 faq_admin.%EXT%
 faqs
 fault
-favicon.ico
 fcadmin
 fcgi-bin
 fcgi-bin/

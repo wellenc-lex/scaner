@@ -530,30 +530,37 @@ class SiteController extends Controller
 
                     if (isset($url["ips"]) && $url["ips"] != "") {
 
-                        $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
-                            ->select(['queue.taskid','queue.ips'])
-                            ->andWhere(['instrument' => '6'])
-                            ->andWhere(['=', 'ipscan', $url["ips"] ])
-                            ->exists();
+                        $domains = explode(PHP_EOL, $url["ips"]);
 
-                        if( $DomainsAlreadyinDB == 0 ){
+                        foreach ($domains as $domain) {
 
-                            $tasks = new Tasks();
+                            $domain = trim($domain);
 
-                            $tasks->host = $url["ips"];
-                            $tasks->ips_status = "Working";
-                            $tasks->notify_instrument = $tasks->notify_instrument . "6";
-                            
-                            $ips = 1;
+                            $DomainsAlreadyinDB = Queue::find() //checks that the same domain doesnt exist in DB because we dont need duplicates.
+                                ->select(['queue.taskid','queue.ipscan'])
+                                ->andWhere(['instrument' => '6'])
+                                ->andWhere(['=', 'ipscan', $domain ])
+                                ->exists();
 
-                            $queue = new Queue();
-                            $queue->taskid = $tasks->taskid;
-                            $queue->instrument = 6;
-                            $queue->ipscan = $url["ips"];
-                            $queue->save();
+                            if( $DomainsAlreadyinDB == 0 ){
 
-                            $tasks->userid = Yii::$app->user->id;
-                            $tasks->save();
+                                $tasks = new Tasks();
+
+                                $tasks->host = $domain;
+                                $tasks->ips_status = "Working";
+                                $tasks->notify_instrument = $tasks->notify_instrument . "6";
+                                
+                                $ips = 1;
+
+                                $queue = new Queue();
+                                $queue->taskid = $tasks->taskid;
+                                $queue->instrument = 6;
+                                $queue->ipscan = $domain;
+                                $queue->save();
+
+                                $tasks->userid = Yii::$app->user->id;
+                                $tasks->save();
+                            }
                         }
                     }
 
@@ -985,6 +992,36 @@ foreach ($xmls as $xml) {
             }
         } */
         
+        
+
+        /*$allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.dirscan'])
+            ->andWhere(['not', ['tasks.dirscan' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        foreach ($allresults as $dirscan) {
+
+            $delete=0;
+
+            $task = json_decode($dirscan->dirscan, true);
+
+            foreach ($task as $scanid) { 
+
+                foreach($scanid as $scan){
+
+                    $in = base64_decode($scan["resultfile"]);
+
+                    if (preg_match("/cloudflareaccess.com/i", $in) === 1) {
+                        $delete = 1;
+                        break;
+                    }
+                }
+            }
+
+            if ($delete == 1) $dirscan->delete();
+        }*/
 
         /*
         $allresults = Tasks::find()
@@ -1072,7 +1109,7 @@ foreach ($xmls as $xml) {
 
         //401 bypass 
 
-        $allresults = Tasks::find()
+        /*$allresults = Tasks::find()
             ->select(['whatweb.tech','whatweb.url','whatweb.scanned'])
             ->andWhere(['not', ['whatweb.tech' => null]])
             ->all();
@@ -1088,7 +1125,49 @@ foreach ($xmls as $xml) {
 
             $whatweb->scanned=1;
             $whatweb->save();
-        }
+        }*/
+
+        //restore ffuf results
+
+
+
+        ///*/*/out.json', $notdone); */gau.txt >> /ffuf/gau.txt");
+
+        /*exec('find /ffuf
+
+        foreach ($notdone as $outputdir){
+
+            preg_match("/\/ffuf\/(\d)+\/(\d)+\//", $outputdir, $outputdir);
+
+            $outputdir = $outputdir[0];
+
+            $output_ffuf = array();
+
+            $ffuf_output = $outputdir ."out.json";
+
+            $ffuf_output_localhost = $ffuf_output . ".localhost.json";
+            $ffuf_output_wordlist = $ffuf_output . ".wordlist";
+            $ffuf_output_custom = $ffuf_output . ".custom";
+            
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_wordlist, 0, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_custom, 0, $outputdir);
+
+            $gau_result = dirscan::gau($outputdir . "gau.txt");
+
+            $output_ffuf =  array_filter( array_unique( $output_ffuf ) );
+
+            if ( count( $output_ffuf ) > 0 ) dirscan::savetodb(1, $output_ffuf, $gau_result, "restored");
+
+            preg_match("/\/ffuf\/(\d)+/", $outputdir, $out);
+            
+            $randomid = $out[0];
+
+            exec("cat " . $randomid . "/
+
+            exec("sudo rm -R " . $randomid . " ");
+        }*/
 
         return $this->render('about');
     }

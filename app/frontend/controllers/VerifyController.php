@@ -83,7 +83,7 @@ class VerifyController extends Controller
 
                                 if (strpos($ip, ':') === false) { //TODO: add ipv6 support
 
-                                    if (strpos($ip, '127.0.0.1') === false) { //no need to scan local ip
+                                    if (strpos($ip, '127.0.0.1') === false && strpos($ip, '0.0.0.0') === false) { //no need to scan local ip
 
                                         if ( vhostscan::ipCheck( $ip ) == 1 ) { // if IP is in blocked CDN mask - cloudflare ranges,etc
                                             $stop = 1;

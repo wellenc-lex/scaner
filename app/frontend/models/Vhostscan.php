@@ -58,7 +58,7 @@ class Vhostscan extends ActiveRecord
 
         if ( !($responseSize>0) ) $responseSize=0;
 
-        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -ac -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula' -t 1 -p 0.1 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
+        $ffuf_general_string = "sleep 3 && /go/bin/ffuf -of json -ac -mc all -fc 429,503,400 -s -timeout 100 -fr 'Vercel|Too Many Requests|stand by|blocked by|Blocked by|Please wait while|incapsula|cloudflareaccess.com' -t 1 -p 0.1 " . $headers . " -maxtime 150000 -ignore-body -fs 612,613,548," . $responseSize . " -noninteractive -u ";
 
         $host = trim($host, ' ');
 
@@ -423,7 +423,7 @@ class Vhostscan extends ActiveRecord
 
                 file_put_contents($shellfile, $runffufs);
 
-                exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn1 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
+                exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn2 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
                 $i=1;
                 while($i<=$counter){

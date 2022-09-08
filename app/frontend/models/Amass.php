@@ -46,7 +46,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-        $command = ("sudo docker run --net=host --cpu-shares 128 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlistALL2.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 3500 -ip -config ".$amassconfig);
+        $command = ("sudo docker run --net=host --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlistALL2.txt -d  " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -timeout 4500 -ip -config ".$amassconfig);
 
         if (file_exists($gauoutputname) && filesize($gauoutputname) != 0){
             $command = $command . " -w " . $gauoutputname;
@@ -497,7 +497,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 60 -threads 50 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 10 -timeout 60 -threads 15 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

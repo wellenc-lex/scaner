@@ -57,6 +57,11 @@ class Dirscan extends ActiveRecord
                 continue; //scanning cdn is pointless
             }
 
+            if (preg_match("/.*storage.yandex.net/i", $currenturl) === 1) {
+                dirscan::queuedone($queueid);
+                continue; //scanning cdn is pointless
+            }
+
             $currenturl = preg_replace("/[\n\r]/", "", $currenturl);
 
             $hostname = dirscan::ParseHostname($currenturl);
@@ -200,7 +205,7 @@ class Dirscan extends ActiveRecord
 
         file_put_contents($shellfile, $runffufs);
 
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn1 -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn". rand(1,3) . " -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 

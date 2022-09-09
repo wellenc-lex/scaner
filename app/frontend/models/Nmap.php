@@ -4,7 +4,7 @@ namespace frontend\models;
 
 use Yii;
 use yii\db\ActiveRecord;
-
+use frontend\models\Dirscan;
 use frontend\models\Aquatone;
 
 
@@ -136,7 +136,7 @@ class Nmap extends ActiveRecord
 
         exec("sudo docker run --net=host --cpu-shares 512 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
             ." -g 80 -T4 --randomize-hosts -v -sV --randomize-hosts -n -sS"
-            ." -p T:1-31000 --min-hostgroup 2000"
+            ." -p T:1-31000 --min-hostgroup 4000"
             ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 20s --max-retries 5 --open -oX "
             . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
 
@@ -161,6 +161,7 @@ class Nmap extends ActiveRecord
             $taskid = nmap::saveToDB($taskid, $output); //if no taskid supplied by user create task and return its taskid
 
             aquatone::aquatone($taskid, $nmapoutputxml, $input["queueid"]);
+
         } else return 2;
 
         return 1;//exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");

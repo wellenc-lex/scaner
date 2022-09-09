@@ -227,7 +227,7 @@ class Aquatone extends ActiveRecord
 
         if( $queues != "" ) {
 
-            $queues = explode(PHP_EOL, $input["queues"]); 
+            $queues = explode(PHP_EOL, $queues); 
 
             foreach($queues as $queue){
                 dirscan::queuedone($queue);

@@ -43,16 +43,6 @@ ansible
 consul
 artifactory
 virtual
-api-prod
-api-dev
-dashboard
-kuber
-k8s-dashboard
-admin-dashboard
-graphql
-jenkins
-gitlab
-kubernetes-dashboard
 arx
 asana
 asterisk
@@ -100,6 +90,7 @@ dev
 docs
 dokuwiki
 email
+eureka
 fabric
 findbugs
 fogbugz
@@ -109,6 +100,7 @@ ganglia
 gateway
 gitea
 github
+gitlab
 gitorious
 gl
 glpi
@@ -128,6 +120,7 @@ influxdb
 instabug
 jabber
 jacoco
+jenkins
 jk
 juju
 junit
@@ -137,6 +130,7 @@ kallithea
 keycloak
 kibana
 kube
+kuber
 ldap
 liferay
 lm-sensors
@@ -244,6 +238,7 @@ upguard
 vagrant
 variant
 vault
+verdaccio
 violations
 voip
 vpn
@@ -254,6 +249,13 @@ youtrack
 zabbix
 zimbra
 zipkin
+api-prod
+api-dev
+dashboard
+k8s-dashboard
+admin-dashboard
+graphql
+kubernetes-dashboard
 chat
 citrix
 cms

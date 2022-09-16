@@ -52,11 +52,11 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 1; $max_ffuf = 0; $max_nmap = 8; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 500; $max_ips = 1; $max_whatweb = 5; $max_whatweb_in_task = 300;  $max_nmap_in_task = 1000; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 1; $max_ffuf = 110; $max_nmap = 3; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 300; $max_ips = 2; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-            $max_passive_amass = 2;
+            $max_passive_amass = 4;
 
-            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000;
+            //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000; $max_passive_amass = 0;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -838,7 +838,7 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/.*cdn.*strm.yandex.net/i", $url) === 1) {
+        if (preg_match("/.*strm.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 

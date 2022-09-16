@@ -15,6 +15,7 @@ use frontend\models\SignupForm;
 use frontend\models\Tasks;
 use frontend\models\Amassintel;
 use frontend\models\Dirscan;
+use frontend\models\Vhostscan;
 use frontend\models\Whatweb;
 use Yii;
 use yii\base\InvalidParamException;
@@ -388,7 +389,7 @@ class SiteController extends Controller
                                 $passive->userid = Yii::$app->user->id;
                                 $passive->notifications_enabled = 1;
                                 $passive->amassDomain = $currentdomain;
-                                $passive->scanday = date('d', strtotime('+1 day', strtotime($date) ) ); //scan will be created tomorrow
+                                $passive->scanday = date('d', strtotime('+1 day') ); //scan will be created tomorrow
                                 $passive->save();
                             } else {
                                 $DomainsAlreadyinDB = Tasks::find()

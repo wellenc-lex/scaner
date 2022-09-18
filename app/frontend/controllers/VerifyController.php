@@ -54,7 +54,7 @@ class VerifyController extends Controller
 
             $max_amass = 1; $max_ffuf = 110; $max_nmap = 3; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 300; $max_ips = 2; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-            $max_passive_amass = 4;
+            $max_passive_amass = 3;
 
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000; $max_passive_amass = 0;
 
@@ -709,39 +709,74 @@ class VerifyController extends Controller
                     //- распарсить и вызвать для каждого нового поддомена дирскан
                     //- записать поддомены из array_diff в тхт и вызвать гитхаунд
 
-                        if ($pos = strpos($result->notify_instrument, "1") !== false) {
+                    if ($pos = strpos($result->notify_instrument, "1") !== false) {
 
-                            if ( !empty($result->nmap_previous) && !empty($result->nmap_new) ){
-                                $diff = array_unique(array_diff($result->nmap_new,$result->nmap_previous));
+                        if ( !empty($result->nmap_previous) && !empty($result->nmap_new) ){
+
+                            $new = json_decode($result->nmap_new);
+                            $old = json_decode($result->nmap_previous);
+
+                            if ( !empty($new) && !empty($old) ){
+                                
+                                $diff = array_unique(array_diff( $new , $old) );
+                            
+                            } elseif ( !empty($new) && empty($old) ) {
+                                
+                                $diff = array_unique($new);
+                            
                             }
                         }
+                    }
 
-                        if ($pos = strpos($result->notify_instrument, "2") !== false) {
+                    if ($pos = strpos($result->notify_instrument, "2") !== false) {
 
-                            if ( !empty($result->amass_previous) && !empty($result->amass_new) ) {
+                        if ( !empty($result->amass_previous) && !empty($result->amass_new) ) {
 
-                                $diff = array_unique(array_diff( json_decode($result->amass_new) , json_decode($result->amass_previous)) );
+                            $new = json_decode($result->amass_new);
+                            $old = json_decode($result->amass_previous);
+
+                            if ( !empty($new) && !empty($old) ){
+                                
+                                $diff = array_unique(array_diff( $new , $old) );
+                            
+                            } elseif ( !empty($new) && empty($old) ) {
+                                
+                                $diff = array_unique($new);
+                            
                             }
                         }
+                    }
 
-                        if ($pos = strpos($result->notify_instrument, "3") !== false) {
+                    if ($pos = strpos($result->notify_instrument, "3") !== false) {
 
-                            if ( !empty($result->dirscan_previous) && !empty($result->dirscan_new) ){
-                                $diff = array_unique(array_diff( json_decode($result->dirscan_new) , json_decode($result->dirscan_previous)) );
+                        if ( !empty($result->dirscan_previous) && !empty($result->dirscan_new) ){
+
+                            $new = json_decode($result->dirscan_new);
+                            $old = json_decode($result->dirscan_previous);
+
+                            if ( !empty($new) && !empty($old) ){
+                                
+                                $diff = array_unique(array_diff( $new , $old) );
+                            
+                            } elseif ( !empty($new) && empty($old) ) {
+                                
+                                $diff = array_unique($new);
+                            
                             }
                         }
+                    }
 
-                        $result->needs_to_notify = 0;
+                    $result->needs_to_notify = 0;
 
-                        $result->notify_instrument = 0;
+                    $result->notify_instrument = 0;
 
-                        $result->user_notified = 1;
+                    $result->user_notified = 1;
 
-                        $result->save(false);
+                    $result->save(false);
 
-                        /*if ($diff != ""){
-                            $this->sendPassiveSlack($result->scanid, $diff);
-                        }*/
+                    /*if ($diff != ""){
+                        $this->sendPassiveSlack($result->scanid, $diff);
+                    }*/
                         
                 }
             }
@@ -839,6 +874,10 @@ class VerifyController extends Controller
         }
 
         if (preg_match("/.*strm.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*cache.*cdn.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 

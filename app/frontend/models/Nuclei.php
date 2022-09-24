@@ -78,7 +78,7 @@ class Nuclei extends ActiveRecord
 
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
 //
-        $nuclei_start = "sudo docker run --net=container:vpn2 --rm --cpu-shares 1024 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei/ -t /root/nuclei-templates/ -w /root/nuclei-templates/workflows -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -max-host-error 75 -timeout 300 -rl 8 -bs 500 -c 3 -hbs 8 -fr -mr 5 -stats -retries 3 -error-log /nuclei/error.log -page-timeout 120 -hang-monitor -ztls -disable-update-check -system-resolvers -resolvers /root/resolv.conf " . $exclude . $headers;
+        $nuclei_start = "sudo docker run --net=container:vpn2 --rm --cpu-shares 1024 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei/ -t /root/nuclei-templates/ -w /root/nuclei-templates/workflows -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -max-host-error 75 -timeout 300 -rl 2 -bs 50 -c 3 -hbs 5 -fr -mr 5 -stats -retries 3 -error-log /nuclei/error.log -page-timeout 120 -hang-monitor -ztls -disable-update-check -system-resolvers -resolvers /root/resolv.conf " . $exclude . $headers;
 
 //-ept network -silent -stats
         /*$nuclei_start = "sudo /root/bin/bin/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 2 -max-host-error 50 -timeout 180 -headless -silent -rl 25 -bs 2000 -c 25 -hbs 55 " . $exclude . $headers;  //-stats*/

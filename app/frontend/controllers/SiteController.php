@@ -884,7 +884,26 @@ class SiteController extends Controller
      * @return mixed
      */
     public function actionAbout()
-    {/*
+    {
+        
+
+        $i=1; $counter=5000; $randomid=84025389029;
+        while($i<=$counter){
+            $file = "/ffuf/vhost" . $randomid . "/" . $i . "/out.json";
+
+            $output[] = vhostscan::ReadFFUFResult($file, $randomid, $i);
+            $i++;
+        }
+        
+        $output = array_unique($output);
+
+        var_dump($output);
+
+        if ( count( $output ) > 0 ) vhostscan::saveToDB( $taskid, $output, $randomid );
+
+        return 3;
+
+    /*
         $xmls = [
 "/dockerresults/325889636nmap.xml",
 ];

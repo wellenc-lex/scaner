@@ -18,6 +18,7 @@ class Amass extends ActiveRecord
 
     public static function amassscan($input)
     {
+        global $maindomain;
         $changes = 0;
    
         $url = $input["url"];     

@@ -52,11 +52,11 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 5; $max_ffuf = 170; $max_nmap = 1; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 50; $max_ips = 2; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 7; $max_ffuf = 0; $max_nmap = 1; $max_vhost = 0; $max_nuclei = 2; $max_nuclei_in_task = 50; $max_ips = 1; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-            $max_passive_amass = 5;
+            $max_passive_amass = 6;
 
-            //$max_amass = 5; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000; $max_passive_amass = 0;
+            $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 1500; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 5000; $max_passive_amass = 0;
 
             if( $tools_amount_nmap < $max_nmap ){
                 //Nmaps
@@ -148,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(20)
+                    ->limit(50)
                     ->all();
 
                 $counter = 1; 
@@ -888,6 +888,16 @@ class VerifyController extends Controller
         if (preg_match("/.*feeds.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
+
+        if (preg_match("/gb-crm-.*-gbm-[\d]*.*.gb.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*tf.spf.rambler-co.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        
 
         
 

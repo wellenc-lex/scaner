@@ -17,7 +17,7 @@ class Amass extends ActiveRecord
     {
         global $amassconfig;
 
-        sleep(rand(1,500));
+        sleep(rand(1,10));
 
         $url = $input["url"];
         $taskid = (int) $input["taskid"]; if($taskid=="") {

@@ -385,18 +385,31 @@ class SiteController extends Controller
 
                             //adds the domain to scan it later continiously
                             if ($url["passive"] == 1) {
-                                $passive = new PassiveScan();
-                                $passive->userid = Yii::$app->user->id;
-                                $passive->notifications_enabled = 1;
-                                $passive->amassDomain = $currentdomain;
-                                $passive->scanday = date('d', strtotime('+1 day') ); //scan will be created tomorrow
-                                $passive->save();
+
+                                $DomainsAlreadyinDB = PassiveScan::find()
+                                    ->select(['passives_scan.PassiveScanid','passives_scan.amassDomain'])
+                                    ->andWhere(['userid' => Yii::$app->user->id])
+                                    ->andWhere(['=', 'amassDomain', $currentdomain])
+                                    ->exists();
+
+                                if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
+
+                                    $passive = new PassiveScan();
+                                    $passive->userid = Yii::$app->user->id;
+                                    $passive->notifications_enabled = 1;
+                                    $passive->amassDomain = $currentdomain;
+                                    $passive->scanday = date('d', strtotime('+1 day') ); //scan will be created tomorrow
+                                    $passive->save();
+                                    
+                                }
                             } else {
-                                $DomainsAlreadyinDB = Tasks::find()
+                                /*$DomainsAlreadyinDB = Tasks::find()
                                     ->select(['tasks.taskid','tasks.host'])
                                     ->andWhere(['userid' => Yii::$app->user->id])
                                     ->andWhere(['=', 'host', $currentdomain])
-                                    ->exists(); 
+                                    ->exists();*/
+
+                                $DomainsAlreadyinDB = 0;
 
                                 if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
 

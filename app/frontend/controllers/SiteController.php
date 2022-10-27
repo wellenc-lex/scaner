@@ -185,7 +185,7 @@ class SiteController extends Controller
                 ->andWhere(['userid' => Yii::$app->user->id]);
 
             $donepages = new Pagination([
-                'defaultPageSize' => 25,
+                'defaultPageSize' => 70,
                 'totalCount' => $done->count(),
             ]);
 
@@ -385,18 +385,31 @@ class SiteController extends Controller
 
                             //adds the domain to scan it later continiously
                             if ($url["passive"] == 1) {
-                                $passive = new PassiveScan();
-                                $passive->userid = Yii::$app->user->id;
-                                $passive->notifications_enabled = 1;
-                                $passive->amassDomain = $currentdomain;
-                                $passive->scanday = date('d', strtotime('+1 day') ); //scan will be created tomorrow
-                                $passive->save();
+
+                                $DomainsAlreadyinDB = PassiveScan::find()
+                                    ->select(['passive_scan.PassiveScanid','passive_scan.amassDomain'])
+                                    ->andWhere(['userid' => Yii::$app->user->id])
+                                    ->andWhere(['=', 'amassDomain', $currentdomain])
+                                    ->exists();
+
+                                if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
+
+                                    $passive = new PassiveScan();
+                                    $passive->userid = Yii::$app->user->id;
+                                    $passive->notifications_enabled = 1;
+                                    $passive->amassDomain = $currentdomain;
+                                    $passive->scanday = date('d', strtotime('+0 day') ); //scan will be created today
+                                    $passive->save();
+                                    
+                                }
                             } else {
-                                $DomainsAlreadyinDB = Tasks::find()
+                                /*$DomainsAlreadyinDB = Tasks::find()
                                     ->select(['tasks.taskid','tasks.host'])
                                     ->andWhere(['userid' => Yii::$app->user->id])
                                     ->andWhere(['=', 'host', $currentdomain])
-                                    ->exists(); 
+                                    ->exists();*/
+
+                                $DomainsAlreadyinDB = 0;
 
                                 if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
 
@@ -884,7 +897,80 @@ class SiteController extends Controller
      * @return mixed
      */
     public function actionAbout()
-    {/*
+    {
+        //get all subdomains
+
+        $allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.amass'])
+            ->andWhere(['not', ['tasks.amass' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        $urls = array();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json["name"];
+                    
+                }  
+            }
+        }
+
+        $allresults = PassiveScan::find()
+            ->select(['passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new'])
+            ->andWhere(['not', ['passive_scan.userid' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass_previous, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+
+            $amassoutput = json_decode($results->amass_new, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+        }
+
+        $urls = array_unique($urls);
+
+        file_put_contents("/dockerresults/list.httpx", implode( PHP_EOL, $urls) );
+        return 2;
+
+        /*$i=1; $counter=5000; $randomid=84025389029;
+        while($i<=$counter){
+            $file = "/ffuf/vhost" . $randomid . "/" . $i . "/out.json";
+
+            $output[] = vhostscan::ReadFFUFResult($file, $randomid, $i);
+            $i++;
+        }
+        
+        $output = array_unique($output);
+
+        var_dump($output);
+
+        if ( count( $output ) > 0 ) vhostscan::saveToDB( $taskid, $output, $randomid );
+
+        return 3;
+
+    /*
         $xmls = [
 "/dockerresults/325889636nmap.xml",
 ];
@@ -1132,11 +1218,11 @@ foreach ($xmls as $xml) {
 
 
 
-        ///*/*/out.json', $notdone); */gau.txt >> /ffuf/gau.txt");
+        //*/out.json', $notdone); */gau.txt >> /ffuf/gau.txt");
+/*
+        exec('find /ffuf/*/
 
-        /*exec('find /ffuf
-
-        foreach ($notdone as $outputdir){
+        /*foreach ($notdone as $outputdir){
 
             preg_match("/\/ffuf\/(\d)+\/(\d)+\//", $outputdir, $outputdir);
 

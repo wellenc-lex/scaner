@@ -16,5 +16,5 @@
 
 */30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod 777 /configs/nuclei-templates/ -R"
 
-*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +8 -exec rm -rf {} \;"
+*/30 */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +15 -exec rm -rf {} \;"
 

@@ -772,7 +772,7 @@ class VerifyController extends Controller
 
                     $result->user_notified = 1;
 
-                    $result->save(false);
+                    //$result->save(false);
 
                     /*if ($diff != ""){
                         $this->sendPassiveSlack($result->scanid, $diff);
@@ -880,6 +880,37 @@ class VerifyController extends Controller
         if (preg_match("/.*cache.*cdn.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
+
+        if (preg_match("/.*avatars.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*feeds.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/gb-crm-.*-gbm-[\d]*.*.gb.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*tf.spf.rambler-co.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*lf.*.smailru.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*ltimg.*.imgsmail.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*cdn.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+        
+
+        
 
         return $dontscan;
     }

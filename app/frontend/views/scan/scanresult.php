@@ -624,7 +624,7 @@ $this->params['fluid'] = true;
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["template"]; ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo( htmlspecialchars($scan["template"]) ); ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -636,7 +636,7 @@ $this->params['fluid'] = true;
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <a class='linkstyle' style="vertical-align: middle;"
-                                                           href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo $scan["matched"]; ?></a>
+                                                           href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo( htmlspecialchars($scan["matched"]) ); ?></a>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -647,13 +647,13 @@ $this->params['fluid'] = true;
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
-                                                        <b style="vertical-align: middle;"><?php echo $scan["severity"]; echo("\n".$scan["regexp"][0]); ?></b>
+                                                        <b style="vertical-align: middle;"><?php echo( htmlspecialchars($scan["severity"]) ); echo("\n".htmlspecialchars($scan["regexp"][0])); ?></b>
                                                     </div>
                                                 </li>
                                             </ul>
                                         </td>
 
-                                        <td align="center" valign="middle" style="text-align: center;"  width="15%">
+                                        <td align="center" valign="middle" style="text-align: center;" >
                                             <ul class="list-group">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <div class="page card mb-3">

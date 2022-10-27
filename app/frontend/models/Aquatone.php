@@ -200,7 +200,7 @@ class Aquatone extends ActiveRecord
 
         //for amass results we need to scan other ports
         if ( preg_match("/(\w\d\_\-)*\.json/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 5 -ports xlarge -screenshot-timeout 200000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 15000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 180000 -threads 5 -ports xlarge -screenshot-timeout 200000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 15000 ";
         }
 
 //-chrome-path /usr/bin/chromium-browser
@@ -210,11 +210,11 @@ class Aquatone extends ActiveRecord
 
             sleep(5);
 
-            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 280000 -threads 3 -screenshot-timeout 310000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 15000 ";
+            $command = "/configs/nmap/nmap-parse-output " . $filename . " http-ports | sort -u > " . $filename . ".proccessed && cat " . $filename . ".proccessed | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 180000 -threads 5 -screenshot-timeout 310000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 15000 ";
         }
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 290000 -threads 3 -screenshot-timeout 350000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 190000 -threads 5 -screenshot-timeout 350000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
         }
 
         exec($command);
@@ -252,7 +252,7 @@ class Aquatone extends ActiveRecord
         $filename = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 250000 -threads 3 -screenshot-timeout 450000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
+            $command = "cat ". $filename ." | sudo docker run --net=container:vpn2 --cpu-shares 256 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 250000 -threads 5 -screenshot-timeout 450000 -follow-redirect -out /screenshots/" . $taskid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
         }
 
         exec($command);
@@ -263,7 +263,7 @@ class Aquatone extends ActiveRecord
 
         aquatone::saveToDB($taskid, $aquatoneoutput);
 
-        //exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
+        exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
 
         return 1;
 

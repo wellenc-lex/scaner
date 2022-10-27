@@ -18,6 +18,7 @@ class Amass extends ActiveRecord
 
     public static function amassscan($input)
     {
+        global $maindomain;
         $changes = 0;
    
         $url = $input["url"];     
@@ -38,7 +39,7 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-        $command = "sudo sudo docker run --net=host --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlistALL2.txt -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -ip -timeout 2200 -config ".$amassconfig;
+        $command = "sudo sudo docker run --net=host --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlist.txt -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 
@@ -87,41 +88,7 @@ class Amass extends ActiveRecord
             }
         }
 
-        $amass = PassiveScan::find()
-            ->where(['PassiveScanid' => $scanid])
-            ->limit(1)
-            ->one();
-
-        if ($amass->amass_new == "") {
-            $amass->amass_new = json_encode($NEWsubdomains);
-
-            $amass->save();
-
-            return 0; // no changes between scans
-
-        } elseif ($amass->amass_new != "") { //latest scan info in DB
-
-            if ($NEWsubdomains === $amass->amass_new) {
-                $changes =  0; // no changes between scans
-            } else {
-
-                $OLDsubdomains = json_decode($amass->amass_new);
-
-                $changes =  1; // check changes between scans
-
-                $amass->amass_previous = json_encode($OLDsubdomains);
-                $amass->amass_new = json_encode($NEWsubdomains); 
-                $amass->save();
-
-                if( !empty($NEWsubdomains) && !empty($OLDsubdomains)) {
-                    $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
-
-                    amass::httpxhosts( array_unique($diff), $scanid, $randomid );
-                }
-            }
-        }
-
-        return $changes;
+        return amass::saveToDB($scanid, $NEWsubdomains, $randomid);
     }
 
     public static function bannedwords($in)
@@ -149,7 +116,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 50 -threads 10  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 30 -threads 10  -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -232,6 +199,62 @@ class Amass extends ActiveRecord
         } else file_get_contents($output); //we need an error to check it out in debugger and rescan later
         
         return 1;
+    }
+
+    public static function saveToDB($scanid, $NEWsubdomains, $randomid)
+    {
+        do{
+            try{
+                $tryAgain = false;
+
+                Yii::$app->db->open();
+
+                $amass = PassiveScan::find()
+                    ->where(['PassiveScanid' => $scanid])
+                    ->limit(1)
+                    ->one();
+
+                Yii::$app->db->close();
+
+                if ($amass->amass_new == "") {
+                    $amass->amass_new = json_encode($NEWsubdomains);
+
+                    $amass->save();
+
+                    return 0; // no changes between scans
+
+                } elseif ($amass->amass_new != "") { //latest scan info in DB
+
+                    if ($NEWsubdomains === $amass->amass_new) {
+                        $changes =  0; // no changes between scans
+                    } else {
+
+                        $OLDsubdomains = json_decode($amass->amass_new);
+
+                        $changes =  1; // check changes between scans
+
+                        $amass->amass_previous = json_encode($OLDsubdomains);
+                        $amass->amass_new = json_encode($NEWsubdomains); 
+                        $amass->save();
+
+                        if( !empty($NEWsubdomains) && !empty($OLDsubdomains)) {
+                            $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
+
+                            amass::httpxhosts( array_unique($diff), $scanid, $randomid );
+                        }
+                    }
+                }
+
+                return $changes;
+
+            } catch (\yii\db\Exception $exception) {
+                sleep(6000);
+
+                $tryAgain = true;
+
+                amass::saveToDB($scanid, $NEWsubdomains, $randomid);
+            }
+        } while($tryAgain);
     }
 
 }

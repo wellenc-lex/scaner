@@ -1,10 +1,10 @@
 */10 * * * *  curl https://app/verify/active --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
 
-0 17 * * * curl https://app/verify/passive --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+0 */5 * * * curl https://app/verify/passive --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
 
 55 * * * * curl https://app/passive/index --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
 
-*/10 * * * * curl https://app/verify/queue --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
+15 * * * * curl https://app/verify/queue --data "secret=secretkeyzzzzcbv55" -H "Authorization: Basic bmdpbng6QWRtaW4=" --insecure >/dev/null 2>&1
 
 * */23 * * * docker exec docker_app_1 /bin/bash -c "git config --global user.email 'you@example.com'"     
 
@@ -16,4 +16,4 @@
 
 */30 */23 * * * docker exec docker_app_1 /bin/bash -c "chmod -R 777 /configs/nuclei-templates/"
 
-* */23 * * * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +20 -exec rm -rf {} \;"
+0 0 0 1,15 * docker exec docker_app_1 /bin/bash -c "find /ffuf/* -mtime +20 -exec rm -rf {} \;"

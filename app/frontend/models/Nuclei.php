@@ -137,6 +137,10 @@ class Nuclei extends ActiveRecord
             if( nuclei::bannedsubdomains($currenturl) === 0 ){
                 $urls[] = $currenturl;
             }
+
+            if (preg_match("/skill|skgb/i", $currenturl) === 1) {
+                $headers = $headers . " -H 'Authorization: Basic dGVzdDpza2lsbGJveHRlc3Rpbmc=' ";
+            }
         }
 
         $urls = array_unique($urls);

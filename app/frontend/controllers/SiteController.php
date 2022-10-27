@@ -403,9 +403,13 @@ class SiteController extends Controller
                                     
                                 }
                             } else {
+                                /*$DomainsAlreadyinDB = Tasks::find()
                                     ->select(['tasks.taskid','tasks.host'])
                                     ->andWhere(['userid' => Yii::$app->user->id])
                                     ->andWhere(['=', 'host', $currentdomain])
+                                    ->exists();*/
+
+                                $DomainsAlreadyinDB = 0;
 
                                 if($DomainsAlreadyinDB == 0 && !is_null($currentdomain) ){
 

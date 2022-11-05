@@ -305,7 +305,7 @@ class Amass extends ActiveRecord
 
                 $tryAgain = true;
 
-                amass::saveToDB($scanid, $NEWsubdomains, $randomid);
+                amass::saveToDB($scanid, $NEWsubdomains, $randomid, $NEWips);
             }
         } while($tryAgain);
     }

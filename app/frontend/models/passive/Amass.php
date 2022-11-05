@@ -7,6 +7,7 @@ use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 use frontend\models\PassiveScan;
+use frontend\models\Vhostscan;
 
 class Amass extends ActiveRecord
 {
@@ -83,12 +84,18 @@ class Amass extends ActiveRecord
                     if (strpos($name, 'https://xn--') === false) {
 
                         $NEWsubdomains[] = $name; // full hostname for Host: header
-                    } 
+                    }
+
+                    //add all ips observed by amass to the db to scan them later w nmap
+                    foreach( $amass["addresses"] as $ipsarr ){
+                        $ip = $ipsarr;
+                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $NEWips[] = $ip["ip"];
+                    }
                 }
             }
         }
 
-        return amass::saveToDB($scanid, $NEWsubdomains, $randomid);
+        return amass::saveToDB($scanid, $NEWsubdomains, $randomid, $NEWips);
     }
 
     public static function bannedwords($in)
@@ -201,7 +208,7 @@ class Amass extends ActiveRecord
         return 1;
     }
 
-    public static function saveToDB($scanid, $NEWsubdomains, $randomid)
+    public static function saveToDB($scanid, $NEWsubdomains, $randomid, $NEWips)
     {
         do{
             try{
@@ -225,7 +232,7 @@ class Amass extends ActiveRecord
 
                 } elseif ($amass->amass_new != "") { //latest scan info in DB
 
-                    if ($NEWsubdomains === $amass->amass_new) {
+                    if ($NEWsubdomains === json_decode($amass->amass_new) ) {
                         $changes =  0; // no changes between scans
                     } else {
 
@@ -243,6 +250,52 @@ class Amass extends ActiveRecord
                             amass::httpxhosts( array_unique($diff), $scanid, $randomid );
                         }
                     }
+                }
+
+                if ($amass->amass_ips_new != "") {
+                    if ( !empty($NEWips) ) {
+
+                        $OLDips = json_decode($amass->amass_ips_new);
+
+                        if ($NEWips !== $OLDips ) {
+
+                            $amass->amass_ips_old = $amass->amass_ips_new;
+                            $amass->amass_ips_new = json_encode( $NEWips );
+
+                            if( !empty($NEWips) && !empty($OLDips) ) {
+                                $diff = array_diff( $NEWips, $OLDips ); // only new subdomains in the list
+
+                                if ( !empty($diff) ) {
+                                    $queue = new Queue();
+                                    $queue->taskid = $task->taskid;
+                                    $queue->instrument = 1;
+                                    $queue->nmap = implode(" ", array_unique($diff) );
+                                    $queue->save();
+                                }
+                            }
+
+                            //All ips ever found with amass
+                            $amass->amass_ips = array_unique(
+                                array_merge($NEWips, json_decode($amass->amass_ips) )
+                            );
+
+                            $amass->amass_ips = json_encode($amass->amass_ips);
+                            $amass->save();
+                        }
+                    }
+                }
+
+                if (empty($amass->amass_ips) && !empty($NEWips) ) {
+                    $amass->amass_ips = json_encode($NEWips);
+                    $amass->amass_new = json_encode($NEWips);
+                    
+                    $queue = new Queue();
+                    $queue->taskid = $task->taskid;
+                    $queue->instrument = 1;
+                    $queue->nmap = implode(" ", array_unique($NEWips) );
+                    $queue->save();
+
+                    $amass->save();
                 }
 
                 return $changes;

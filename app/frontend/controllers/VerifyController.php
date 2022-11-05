@@ -52,7 +52,7 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 1; $max_nmap = 3; $max_nuclei_in_task = 200; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 100; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 3; $max_ffuf = 50; $max_nmap = 4; $max_vhost = 0; $max_nuclei = 2; $max_nuclei_in_task = 50; $max_ips = 2; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 3; $max_ffuf = 0; $max_nmap = 4; $max_vhost = 0; $max_nuclei = 2; $max_nuclei_in_task = 50; $max_ips = 2; $max_whatweb = 3; $max_whatweb_in_task = 300;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
             $max_passive_amass = 4;
 
@@ -164,6 +164,10 @@ class VerifyController extends Controller
                             $results->todelete = 1;
                             $results->save();
                             continue;
+                        }
+
+                        if (preg_match("/.*skillbox.*/i", $results->dirscanUrl) === 1) {
+                            continue; //ffuf skillbox is pointless
                         }
 
                         $ffufurls[$counter]["url"]= $results->dirscanUrl;
@@ -908,6 +912,15 @@ class VerifyController extends Controller
         if (preg_match("/.*cdn.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
+
+        if (preg_match("/.*radar.*smail.*/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*img.*.imgsmail.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+        
         
 
         

@@ -127,7 +127,7 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-            $ffuf_string = "sleep 3 && /go/bin/ffuf -maxtime 1590000 -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 160 -recursion -recursion-depth 1 -t 2 -p 0.8 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/bin/ffuf -maxtime 2999000 -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 160 -recursion -recursion-depth 0 -t 2 -p 0.8 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 

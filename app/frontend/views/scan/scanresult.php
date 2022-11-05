@@ -793,7 +793,91 @@ $this->params['fluid'] = true;
                         </thead>
 
                         <tbody>
-                        <?php foreach ($dirscan as $scanid) { foreach($scanid as $scan){ ?>
+                        <?php if (isset($dirscan[0]["status"]) ) { foreach ($dirscan as $scanid) { foreach($scanid as $scan){ ?>
+                                <?php if ($scan["status"] != "20") { ?>
+                                    <tr>
+                                        <td style=" width: 540px;">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: left; width: 540px; white-space: nowrap; overflow:auto; resize: none; ">
+                                                        <a class='linkstyle' style="vertical-align: middle;"
+                                                           href="<?php echo $scan["url"];?>" rel="noreferrer"><?php echo $scan["url"]; ?></a>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td style="width: 100px;">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["length"]; ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td style="width: 140px">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["status"]; if(isset($scan["localhost"])) echo ('localhost: '.$scan["localhost"]); ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+
+                                        <td align="center" valign="middle" style="text-align: center;"  width="15%">
+                                            <ul class="list-group">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <div class="page card mb-3">
+
+                                                            <div class="card-footer text-muted">
+                                                                <a style="vertical-align: middle;" href="#" class="card-link page-details-link" >Response</a>
+                                                            </div>
+
+                                                            <div class="response-headers-container">
+                                                                <table class="table table-responsive table-striped table-hover table-sm response-headers">
+                                                                    <thead class="thead-dark">
+                                                                        <tr>
+                                                                            <th scope="col">Response</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>   
+                                                                            <td style="word-wrap: break-word;">
+                                                                                <?php echo(nl2br(htmlspecialchars(base64_decode($scan["resultfile"])))); ?>   
+                                                                            </td>
+                                                                        </tr> 
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </ul>
+                                        </td>
+
+                                        <td style=" width: 40px">
+                                            <ul class="list-group">
+                                                <li align="center" class="list-group-item"
+                                                    style="height: 40px; min-height: 40px; width: 40px;">
+                                                    <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
+                                                        <b style="vertical-align: middle;"><?php echo $scan["redirect"]; ?></b>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+
+                                <?php } }?>
+                            <?php }} ?>
+
+                            <?php if (!is_array($dirscan)) $dirscan=json_decode($dirscan,true); ?>
+
+                            <?php foreach ($dirscan as $scanid) { foreach($scanid as $scan){ ?>
                                 <?php if ($scan["status"] != "20") { ?>
                                     <tr>
                                         <td style=" width: 540px;">

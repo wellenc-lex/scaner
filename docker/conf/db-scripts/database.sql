@@ -253,7 +253,9 @@ ALTER TABLE `tasks` ADD `forbiddenbypass` MEDIUMTEXT NULL DEFAULT NULL AFTER `js
 ALTER TABLE `queue` CHANGE `nmap` `nmap` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL; 
 ALTER TABLE `queue` ADD `date_modified` DATE NULL DEFAULT NULL AFTER `vhostssl`; 
 ALTER TABLE `tasks` ADD `vhostwordlistmanual` LONGTEXT NULL DEFAULT NULL AFTER `vhostwordlist`; 
-
+ALTER TABLE `passive_scan` ADD `amass_ips` LONGTEXT NULL DEFAULT NULL AFTER `amass_new`;
+ALTER TABLE `passive_scan`  ADD `amass_ips_new` LONGTEXT NULL DEFAULT NULL  AFTER `amass_new`;
+ALTER TABLE `passive_scan`  ADD `amass_ips_old` LONGTEXT NULL DEFAULT NULL  AFTER `amass_new`;
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
 INSERT INTO `user` VALUES (10,'k8RkFpLhU44Bqgal0tKQNYp-e7mE-e9A','$2y$12$5A6Y7v1gKaNtYsRrZsHiUe7VXsxe.v2iiprJm/2tH5RMVSKCIvtYe',NULL,'admin@admin.com',10,0,1575122687,1633015109,3720,1630432689);

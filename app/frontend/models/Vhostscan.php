@@ -200,7 +200,7 @@ class Vhostscan extends ActiveRecord
             
             file_put_contents($wordlist, implode( PHP_EOL, array_filter( array_unique($iparray) ) ) );
 
-            $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -t 30 -rate-limit 10 -timeout 30 -retries 2 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
+            $httpx = "sudo docker run --net=container:vpn1 --cpu-shares 256 --rm -v httpxresponses:/httpxresponses -v ffuf:/ffuf projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880 -random-agent=false -t 15 -rate-limit 2 -timeout 30 -retries 2 -o ". $output ." -l ". $wordlist ." -sr -srd ". $httpxresponsesdir;
 
             exec($httpx);
 

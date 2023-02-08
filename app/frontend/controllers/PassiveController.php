@@ -203,4 +203,71 @@ class PassiveController extends Controller
         return 0;
     }
 
+    public static function actionScanall()
+    {
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
+        $auth = getenv('Authorization') ?: 'Basic bmdpbng6QWRtaW4=';
+
+        $secretIN = 'secretkeyzzzzcbv55';//Yii::$app->request->get('secret');
+
+        if ($secret === $secretIN) {
+
+            $allresults = PassiveScan::find()
+                ->where(['is_active' => 1])
+                ->all();
+
+            foreach ($allresults as $result) {    
+
+                if ($result != NULL) {
+
+                    if ($result->nmapDomain != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 1;
+                        $queue->save();
+                    }
+
+                    if ($result->amassDomain != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->amassdomain = $result->amassDomain;
+                        $queue->instrument = 2;
+                        $queue->save();
+                    }
+
+                    if ($result->dirscanUrl != "" && $result->dirscanIP != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 3;
+                        $queue->dirscanUrl = $result->dirscanUrl;
+                        $queue->dirscanIP = $result->dirscanIP;
+                        $queue->save();
+
+                    } elseif ($result->dirscanUrl != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->instrument = 3;
+                        $queue->dirscanUrl = $result->dirscanUrl;
+                        $queue->save();
+                    }
+
+                    $result->last_scan_monthday = $result->scanday;
+                    $result->save(false);
+                }
+
+            }
+
+            return 1;    
+        }
+        return 0;
+    }
+
 }

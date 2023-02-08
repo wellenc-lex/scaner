@@ -148,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(100)
+                    ->limit(50)
                     ->all();
 
                 $counter = 1; 
@@ -311,7 +311,7 @@ class VerifyController extends Controller
                     ->limit($max_nuclei_in_task)
                     ->all();
 
-                if (count($queues) >= $max_nuclei_in_task) {
+                if (count($queues) >= 50) {
                     foreach ($queues as $results) {
 
                         if ($results != NULL) {
@@ -893,7 +893,7 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/gb-crm-.*-gbm-[\d]*.*.gb.ru/i", $url) === 1) {
+        if (preg_match("/.*gb-crm-.*-gbm-.*.gb.ru/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 
@@ -905,10 +905,6 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/.*ltimg.*.imgsmail.ru/i", $url) === 1) {
-           $dontscan=1; //scanning cdn is pointless
-        }
-
         if (preg_match("/.*cdn.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
@@ -917,9 +913,32 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/.*img.*.imgsmail.ru/i", $url) === 1) {
+        if (preg_match("/.*img.*imgsmail.ru/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
+
+        if (preg_match("/.*-vm[\d]*vk.com/i", $url) === 1) {
+           $dontscan=1; //has huge amount of static files - cant check the results
+        }
+
+        if (preg_match("/.*myupload.*smailru.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*pulsarback.*smailru.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*news.*smailru.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*discord.*/i", $url) === 1) {
+           $dontscan=1; //scanning discord is pointless
+        }
+
+
+
         
         
 

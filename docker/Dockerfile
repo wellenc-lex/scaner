@@ -12,7 +12,7 @@ net.ipv4.conf.all.forwarding = 1 \n\
 net.ipv4.ip_forward = 1 \n\
 net.ipv4.ip_local_port_range = 1030 65535 \n\
 net.ipv4.tcp_abort_on_overflow = 0 \n\
-net.ipv4.tcp_fin_timeout = 20 \n\
+net.ipv4.tcp_fin_timeout = 60 \n\
 net.ipv4.tcp_moderate_rcvbuf = 1 \n\
 kernel.randomize_va_space = 0 \n\
 net.ipv4.tcp_max_syn_backlog = 110000000 \n\
@@ -30,12 +30,12 @@ net.ipv4.tcp_no_metrics_save = 1 \n\
 net.ipv4.tcp_tw_reuse = 1 \n\
 net.ipv4.tcp_window_scaling = 1 \n\
 net.ipv4.tcp_keepalive_time = 1800 \n\
-net.ipv4.tcp_syn_retries = 8 \n\
-net.ipv4.tcp_synack_retries = 7 \n\
+net.ipv4.tcp_syn_retries = 5 \n\
+net.ipv4.tcp_synack_retries = 4 \n\
 net.ipv4.tcp_fastopen = 3 \n\
 net.netfilter.nf_conntrack_udp_timeout_stream = 180 \n\
 net.ipv6.conf.all.disable_ipv6 = 1 \n\ 
-net.netfilter.nf_conntrack_tcp_timeout_time_wait = 20' >> /etc/sysctl.conf || echo '127.0.0.1 app' >> /etc/hosts
+net.netfilter.nf_conntrack_tcp_timeout_time_wait = 60' >> /etc/sysctl.conf || echo '127.0.0.1 app' >> /etc/hosts
 
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 

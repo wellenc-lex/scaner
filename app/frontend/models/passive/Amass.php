@@ -7,6 +7,7 @@ use frontend\models\Queue;
 use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 use frontend\models\PassiveScan;
+use frontend\models\Whatweb;
 use frontend\models\Vhostscan;
 
 class Amass extends ActiveRecord
@@ -40,7 +41,9 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-        $command = "sudo sudo docker run --net=host --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -w /configs/amass/amasswordlist.txt -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -brute -ip -timeout 2200 -config ".$amassconfig;
+	    exec("mkdir -p /dev/shm/amass" . $randomid);
+//--net=host
+        $command = "sudo docker run  --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt -dns-qps 20000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 
@@ -89,8 +92,10 @@ class Amass extends ActiveRecord
                     //add all ips observed by amass to the db to scan them later w nmap
                     foreach( $amass["addresses"] as $ipsarr ){
                         $ip = $ipsarr;
-                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $NEWips[] = $ip["ip"];
-                    }
+                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) {
+                            $NEWips[] = $ip["ip"];
+                        } else $NEWips = array();
+                    } 
                 }
             }
         }
@@ -123,7 +128,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 15 -timeout 30 -threads 10  -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092 -rate-limit 10 -timeout 45 -threads 10  -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -249,6 +254,10 @@ class Amass extends ActiveRecord
 
                             amass::httpxhosts( array_unique($diff), $scanid, $randomid );
                         }
+
+                        if( !empty($NEWsubdomains) && empty($OLDsubdomains)) {
+                            amass::httpxhosts( array_unique($NEWsubdomains), $scanid, $randomid );
+                        }
                     }
                 }
 
@@ -297,6 +306,8 @@ class Amass extends ActiveRecord
 
                     $amass->save();
                 }
+
+		        exec("sudo rm -rf /dev/shm/amass" . $randomid);
 
                 return $changes;
 

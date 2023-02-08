@@ -107,12 +107,14 @@ class Dirscan extends ActiveRecord
 
             if ( ($firstpartofsubdomain == $hostonly) || ($firstpartofsubdomain == $domainfull) || ($firstpartofsubdomain == $hostname) ) $firstpartofsubdomain = ""; //remove duplicate extension from scan
 
-            $extensions = "_,0,~1,1,2,3,bac,cache,cs,csproj,err,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,bz2,zip,tar,rar,tgz,js,json,tar.gz,~";
+            $extensions = "_,0,~,~1,1,2,3,bac,cache,cs,csproj,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,swp,old,db,sql,com,com.zip,bz2,zip,tar,tar.gz2,rar,tgz,js,json,tar.gz,php~";
 
             if ( $hostname != "" ) $extensions = $extensions . "," . $hostname; if ( $domainfull != "" )           $extensions = $extensions . "," . $domainfull;
             if ( $hostonly != "" ) $extensions = $extensions . "," . $hostonly; if ( $firstpartofsubdomain != "" ) $extensions = $extensions . "," . $firstpartofsubdomain;
 
-            if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) $ip = $matches[0]; //set IP if wasnt specified by user but is in the url
+            if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $hostname, $matches) == 1) {
+                $ip = $matches[0]; //set IP if wasnt specified by user but is in the url
+            } else $ip = 0;
 
             $output_ffuf = array();
 
@@ -127,9 +129,9 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-            $ffuf_string = "sleep 3 && /go/bin/ffuf -maxtime 2999000 -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 160 -recursion -recursion-depth 0 -t 2 -p 0.8 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 120 -recursion -recursion-depth 0 -t 2 -p 0.8 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|Мы обнаружили подозрительную активность|This page is used to test the proper operation of the|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
             
-            $general_ffuf_string = $ffuf_string.$headers." -mc all -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
+            $general_ffuf_string = $ffuf_string.$headers." -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 
             $currenturl = rtrim($currenturl, ' '); $currenturl = trim($currenturl);
             
@@ -187,7 +189,7 @@ class Dirscan extends ActiveRecord
 
                     $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons,mp4,mp3'";
 
-                    $gau = "sleep 30 && timeout 2000 /go/bin/gau --blacklist ". $blacklist ." --threads 1 --retries 15 --timeout 300 --fc 504,404,302,301 --o ". $outputdir . "gau.txt " . escapeshellarg($hostname) . " ";
+                    $gau = "sleep 180 && timeout 2000 /go/bin/gau --blacklist ". $blacklist ." --threads 1 --retries 15 --timeout 300 --fc 504,404,302,301 --o ". $outputdir . "gau.txt " . escapeshellarg($hostname) . " ";
 
                     $executeshell = $executeshell . $gau . " & ".PHP_EOL;
                 }
@@ -205,7 +207,7 @@ class Dirscan extends ActiveRecord
 
         file_put_contents($shellfile, $runffufs);
 
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net=container:vpn". rand(1,3) . " -v ffuf:/ffuf -v configs:/configs --cpu-shares 512 --rm 5631/ffufs " . $shellfile);
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run  --net=container:vpn1  -v ffuf:/ffuf -v configs:/configs --cpu-shares 32 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 

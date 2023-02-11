@@ -900,7 +900,7 @@ class SiteController extends Controller
     {
         //get all subdomains
 
-        $allresults = Tasks::find()
+        /*$allresults = Tasks::find()
             ->select(['tasks.taskid','tasks.amass'])
             ->andWhere(['not', ['tasks.amass' => null]])
             ->all();
@@ -919,7 +919,7 @@ class SiteController extends Controller
                     
                 }  
             }
-        }
+        }*/
 
         $allresults = PassiveScan::find()
             ->select(['passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new'])
@@ -951,7 +951,9 @@ class SiteController extends Controller
 
         $urls = array_unique($urls);
 
-        file_put_contents("/dockerresults/list.httpx", implode( PHP_EOL, $urls) );
+        file_put_contents("/dockerresults/list3.txt", implode( PHP_EOL, $urls) );
+
+        aquatone::aquatonepassive(125, "/dockerresults/list3.txt");
         return 2;
 
         /*$i=1; $counter=5000; $randomid=84025389029;

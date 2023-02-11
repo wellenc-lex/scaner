@@ -9,6 +9,7 @@ use frontend\models\Dirscan;
 use frontend\models\PassiveScan;
 use frontend\models\Whatweb;
 use frontend\models\Vhostscan;
+use frontend\models\Aquatone;
 
 class Amass extends ActiveRecord
 {
@@ -43,7 +44,7 @@ class Amass extends ActiveRecord
 
 	    exec("mkdir -p /dev/shm/amass" . $randomid);
 //--net=host
-        $command = "sudo docker run  --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt -dns-qps 20000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt -dns-qps 20000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 
@@ -249,14 +250,22 @@ class Amass extends ActiveRecord
                         $amass->amass_new = json_encode($NEWsubdomains); 
                         $amass->save();
 
+                        $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
+
                         if( !empty($NEWsubdomains) && !empty($OLDsubdomains)) {
                             $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
 
                             amass::httpxhosts( array_unique($diff), $scanid, $randomid );
+                            
+                            file_put_contents($aquatonefile, implode( PHP_EOL, array_unique($diff) ) );
+                            aquatone::aquatonepassive($randomid, $aquatonefile);
                         }
 
                         if( !empty($NEWsubdomains) && empty($OLDsubdomains)) {
                             amass::httpxhosts( array_unique($NEWsubdomains), $scanid, $randomid );
+
+                            file_put_contents($aquatonefile, implode( PHP_EOL, array_unique($NEWsubdomains) ) );
+                            aquatone::aquatonepassive($randomid, $aquatonefile);
                         }
                     }
                 }

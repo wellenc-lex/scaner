@@ -8,6 +8,7 @@ use yii\db\ActiveRecord;
 use frontend\models\Dirscan;
 use frontend\models\Whatweb;
 use frontend\models\Vhostscan;
+use frontend\models\Aquatone;
 
 ini_set('max_execution_time', 0);
 
@@ -497,7 +498,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092,9200,9100,9080,9443 -rate-limit 10 -timeout 30 -threads 30 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --net=host --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,8000,2181,9092,9200,9100,9080,9443 -rate-limit 10 -timeout 30 -threads 30 -retries 2 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -595,7 +596,7 @@ class Amass extends ActiveRecord
 
         $blacklist = "'js,eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt,ico,icons,images,img,images,fonts,font-icons'";
 
-        $gau = "timeout 5000 sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --timeout 95 --fc 504,404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
+        $gau = "timeout 5000 sudo docker run --net=host --cpu-shares 256 --rm -v dockerresults:/dockerresults sxcurity/gau:latest --blacklist ". $blacklist ." --threads 1 --retries 20 --timeout 95 --fc 504,404,302,301 --subs --o ". $name ." " . escapeshellarg($domain) . " ";
 
         exec($gau);
 

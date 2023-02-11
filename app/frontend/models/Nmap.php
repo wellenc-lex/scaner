@@ -128,7 +128,7 @@ class Nmap extends ActiveRecord
 // --net=container:vpn1 --expose=53 -p 53:53
         
 
-	//--script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 
+    //--script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 
         //--script rsync-brute --script-args userdb=/configs/passwords/users,passdb=/configs/passwords/passwords
 
 
@@ -137,7 +137,7 @@ class Nmap extends ActiveRecord
             ." -g 80 -T3 -v -sV --randomize-hosts -n -sS"
             ." -p T:1-31000 "
             ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 12s --max-retries 3 --open -oX "
-            . $nmapoutputxml . " --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
+            . $nmapoutputxml . " -oA /dockerresults/" . $randomid . "nmap --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
 
 
         /*exec("sudo docker run --rm --cpu-shares 512 --privileged=true --ulimit nofile=1048576:1048576 --network host -v configs:/configs/ -v dockerresults:/dockerresults --expose=53 -p 53:53 projectdiscovery/naabu -exclude-cdn -c 35 -rate 1000 -timeout 10000 -p 1-32000 -list " 

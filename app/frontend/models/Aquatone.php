@@ -24,7 +24,7 @@ class Aquatone extends ActiveRecord
 
     public static function saveToDB($taskid, $aquatoneoutput)
     {
-        if($aquatoneoutput != "[]" && $aquatoneoutput != 'No screenshots'){
+        if($aquatoneoutput != "[]" && $aquatoneoutput != 'No screenshots' && !empty($aquatoneoutput) ){
 
             do{
                 try{
@@ -269,6 +269,27 @@ class Aquatone extends ActiveRecord
 
         //eyewitness -t 10 -x " . $filename . " -d /screenshots/" . $taskid . " –createtargets /screenshots/targets.txt --no-dns  --all-protocols --no-prompt --timeout 20 --max-retries 3 --jitter 1 --results 50 --no-prompt --prepend-https
         //gowitness --db-path /screenshots/gowitness.sqlite3 --screenshot-path /screenshots/" . $taskid . " --timeout 20 
+    }
+
+    //for amass passive
+    public static function aquatonepassive($randomid, $filename)
+    {
+
+        if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 512 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 250000 -threads 45 -ports xlarge -screenshot-timeout 450000 -follow-redirect -out /screenshots/" . $randomid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
+        }
+
+        exec($command);
+
+        exec("sudo mkdir /var/www/app/frontend/web/screenshots &");
+
+        $aquatoneoutput = aquatone::readaquatone($randomid);
+
+        aquatone::saveToDB(1, $aquatoneoutput); //savedb inserts new task anyway
+
+        exec("sudo rm -r /dockerresults/" . $randomid . "nmap*");
+
+        return 1;
     }
 
 }

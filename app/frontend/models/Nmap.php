@@ -134,9 +134,9 @@ class Nmap extends ActiveRecord
 
 // --min-hostgroup 4000
         exec("sudo docker run --cpu-shares 512 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
-            ." -g 80 -T3 -v -sV --randomize-hosts -n -sS"
+            ." -g 80 -T3 -v -sV --randomize-hosts -n -sS --min-hostgroup 50"
             ." -p T:1-31000 "
-            ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 12s --max-retries 3 --open -oX "
+            ." --script-timeout 8000m --host-timeout 40000m --max-scan-delay 8s --max-retries 3 --open -oX "
             . $nmapoutputxml . " -oA /dockerresults/" . $randomid . "nmap --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/out.txt 2>&1 " );
 
 

@@ -46,7 +46,7 @@ services:
       - '3336:3306'
     environment:
       #you need to change it at env.example too!!
-      MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
+      MYSQL_ROOT_PASSWORD: 1
       MYSQL_DATABASE: scaner
     volumes:
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
@@ -56,7 +56,7 @@ services:
       options:
         max-size: "2m" 
 
-    #docker exec -i docker_db_1 sh -c 'exec mysql -uroot -p"SupeRsecRetpasSword"' < /root/project/scaner2.sql
+    #docker exec -i docker_db_1 sh -c 'exec mysql -uroot -p"1"' < /root/project/scaner2.sql
 
   cron:
     image: 5631/cron
@@ -81,7 +81,7 @@ services:
     environment:
       PMA_HOST: db
       MYSQL_USER: root
-      MYSQL_ROOT_PASSWORD: SupeRsecRetpasSword
+      MYSQL_ROOT_PASSWORD: 1
       PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
       UPLOAD_LIMIT: 3000000000
     networks:

@@ -166,10 +166,6 @@ class VerifyController extends Controller
                             continue;
                         }
 
-                        if (preg_match("/.*skillbox.*/i", $results->dirscanUrl) === 1) {
-                            continue; //ffuf skillbox is pointless
-                        }
-
                         $ffufurls[$counter]["url"]= $results->dirscanUrl;
                         
                         $ffufurls[$counter]["ip"]= $results->dirscanIP ?: "0";

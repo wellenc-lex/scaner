@@ -129,7 +129,7 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 
-            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 3999000 -mc all -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 130 -recursion -recursion-depth 0 -t 2 -rate 2 -p 0.5 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 3999000 -mc all -fc 504,501,404,429,503,400,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -recursion -recursion-depth 0 -t 1 -rate 2 -p 0.5 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 
@@ -207,7 +207,7 @@ class Dirscan extends ActiveRecord
 
         file_put_contents($shellfile, $runffufs);
 
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run  --net=container:vpn3  -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run  --net=container:vpn2  -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 

@@ -42,9 +42,9 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-	    exec("mkdir -p /dev/shm/amass" . $randomid);
+	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
 //--net=host
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE.txt -dns-qps 20000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 2000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 

@@ -2,7 +2,7 @@ FROM richarvey/nginx-php-fpm:1.10.3
 
 COPY --from=golang:alpine /usr/local/go/ /usr/local/go/
 
-RUN mkdir /etc/security/ || echo '*                soft    nofile          110000000' >> /etc/security/limits.conf || echo '*                hard    nofile          110000000' >> /etc/security/limits.conf || echo 'root             soft    nofile          110000000' >> /etc/security/limits.conf || echo 'root             hard    nofile          110000000' >> /etc/security/limits.conf || echo $' \n\
+RUN mkdir /etc/security/ || echo '* soft nofile 110000000' >> /etc/security/limits.conf || echo '* hard nofile 110000000' >> /etc/security/limits.conf || echo 'root soft nofile 110000000' >> /etc/security/limits.conf || echo 'root hard nofile 110000000' >> /etc/security/limits.conf || echo $' \n\
 net.nf_conntrack_max = 110000000 \n\
 net.netfilter.nf_conntrack_count = 110000000 \n\
 net.ipv4.netfilter.ip_conntrack_max = 110000000 \n\

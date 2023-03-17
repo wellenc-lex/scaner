@@ -269,6 +269,7 @@ class Aquatone extends ActiveRecord
 
         //eyewitness -t 10 -x " . $filename . " -d /screenshots/" . $taskid . " –createtargets /screenshots/targets.txt --no-dns  --all-protocols --no-prompt --timeout 20 --max-retries 3 --jitter 1 --results 50 --no-prompt --prepend-https
         //gowitness --db-path /screenshots/gowitness.sqlite3 --screenshot-path /screenshots/" . $taskid . " --timeout 20 
+        //gowitness --db-path gowitness.sqlite3 --screenshot-path screenshots/1 --timeout 60 
     }
 
     //for amass passive

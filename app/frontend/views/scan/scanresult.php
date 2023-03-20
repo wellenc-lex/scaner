@@ -600,11 +600,11 @@ $this->params['fluid'] = true;
                                 <b style="text-align: center">Template</b>
                             </th>
 
-                            <th style="text-align:center">
+                            <th style="text-align:center;">
                                 <b style="text-align: center">Matched</b>
                             </th>
 
-                            <th style="text-align:center">
+                            <th style="text-align:center;">
                                 <b style="text-align: center">Severity</b>
                             </th>
 
@@ -619,7 +619,7 @@ $this->params['fluid'] = true;
                         <?php foreach ($nuclei as $scan) { ?>
                                     <tr>
                                         
-                                        <td style=" width='35%'">
+                                        <td style=" ">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
                                                     style="height: 40px; min-height: 40px;">
@@ -630,10 +630,10 @@ $this->params['fluid'] = true;
                                             </ul>
                                         </td>
 
-                                        <td style=" width='25%'">
+                                        <td style=" ">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px;">
+                                                    style="height: 40px; min-height: 40px; width:220px">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <a class='linkstyle' style="vertical-align: middle;"
                                                            href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo( htmlspecialchars($scan["matched"]) ); ?></a>
@@ -642,10 +642,10 @@ $this->params['fluid'] = true;
                                             </ul>
                                         </td>
 
-                                        <td style="width='15%'">
+                                        <td style="">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px;">
+                                                    style="height: 40px; min-height: 40px; width:1050px">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <b style="vertical-align: middle;"><?php echo( htmlspecialchars($scan["severity"]) ); echo("\n".htmlspecialchars($scan["regexp"][0])); ?></b>
                                                     </div>
@@ -712,7 +712,17 @@ $this->params['fluid'] = true;
             <script type="text/javascript">
 
                 $(document).ready(function () {
-                    $('#table-nuclei').DataTable({"pageLength": 1000, "order": [[ 2, "desc" ]]});
+                    $('#table-nuclei').DataTable({
+                        "pageLength": 1000, "order": [[ 2, "desc" ]],
+                        "bAutoWidth": false,
+                        "columns": [
+                            { "width": "5%" },
+                            { "width": "10%" },
+                            { "width": "50%" },
+                            { "width": "5%" },
+                      ],
+                });
+
                 });
 
                 $( window ).on( "load", function() {

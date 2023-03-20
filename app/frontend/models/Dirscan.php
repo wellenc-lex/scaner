@@ -85,7 +85,7 @@ class Dirscan extends ActiveRecord
                 $scheme="https://"; //httpx found wrong scheme. cant be both http and SSL
             }
 
-            if ( $port===":8443" || $port===":8880" || $port===":8800" ) continue; //scanning port isnt working in this ffuf version?
+            //if ( $port===":8443" || $port===":8880" || $port===":8800" ) continue; //scanning port isnt working in this ffuf version?
 
             if( dirscan::bannedsubdomains($scanurl) !== 0 ){
                 //dirscan::addtonuclei($scanurl);
@@ -206,8 +206,8 @@ class Dirscan extends ActiveRecord
             wait; >> /ffuf/" . $randomid . "/0bash.txt && cat /ffuf/" . $randomid . "/*/gau.txt >> /ffuf/gau.txt");
 
         file_put_contents($shellfile, $runffufs);
-
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run  --net=container:vpn2  -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
+//--net=container:vpn". rand(1,3) ."
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run    -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 
@@ -252,7 +252,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
-            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|gitlab|zendesk|sentry|(url(\d)*)/i", $in);
+            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|gitlab|zendesk|sentry|(url(\d)*)|.*\.gb\.ru/i", $in);
             //returns 1 if string has something from the regexp 
         }
     }

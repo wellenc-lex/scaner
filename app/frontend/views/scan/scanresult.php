@@ -633,7 +633,7 @@ $this->params['fluid'] = true;
                                         <td style=" ">
                                             <ul class="list-group">
                                                 <li align="center" class="list-group-item"
-                                                    style="height: 40px; min-height: 40px; width:220px">
+                                                    style="height: 40px; min-height: 40px; width:500px">
                                                     <div style="text-align: center; overflow:auto; white-space:nowrap; resize: none; ">
                                                         <a class='linkstyle' style="vertical-align: middle;"
                                                            href='<?php echo $scan["matched"]; ?>' rel="noreferrer"><?php echo( htmlspecialchars($scan["matched"]) ); ?></a>
@@ -717,7 +717,7 @@ $this->params['fluid'] = true;
                         "bAutoWidth": false,
                         "columns": [
                             { "width": "5%" },
-                            { "width": "10%" },
+                            { "width": "20%" },
                             { "width": "50%" },
                             { "width": "5%" },
                       ],

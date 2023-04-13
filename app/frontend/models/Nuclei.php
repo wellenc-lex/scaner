@@ -76,9 +76,11 @@ class Nuclei extends ActiveRecord
 
         //-exclude-severity info
 
+        //-resolvers /root/resolv.conf
+
         $output = "/nuclei/" . $randomid . "/" . $randomid . "out.json";
-//--net=container:vpn2
-        $nuclei_start = "sudo docker run   --rm --cpu-shares 512 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei/ -t /root/nuclei-templates/ -w /root/nuclei-templates/workflows -t /root/nuclei-custom/5.log4j.yaml -list " . escapeshellarg($list) . " -o " . $output . " -j -irr -max-host-error 200 -timeout 150 -rl 1 -bs 30 -c 1 -hbs 1 -fr -mr 1 -stats -retries 3 -error-log /nuclei/error.log -page-timeout 120 -hang-monitor -ztls -disable-update-check -system-resolvers -resolvers /root/resolv.conf " . $exclude . $headers;
+//--net=container:vpn2 -hang-monitor
+        $nuclei_start = "sudo docker run   --rm --cpu-shares 512 -v nuclei:/nuclei -v configs:/root/ projectdiscovery/nuclei -t /root/nuclei/ -t /root/nuclei-templates/ -w /root/nuclei-templates/workflows -t /root/nuclei-custom/5.log4j.yaml -list " . escapeshellarg($list) . " -o " . $output . " -j -irr -max-host-error 200 -timeout 150 -rl 2 -bs 50 -c 1 -hbs 1 -fr -mr 1 -stats -retries 3 -error-log /nuclei/error.log -page-timeout 120 -ztls -disable-update-check -system-resolvers  " . $exclude . $headers;
 
 //-ept network -silent -stats
         /*$nuclei_start = "sudo /root/bin/bin/nuclei -t /root/nuclei-templates/ -list " . escapeshellarg($list) . " -o " . $output . " -json -irr -retries 2 -max-host-error 50 -timeout 180 -headless -silent -rl 25 -bs 2000 -c 25 -hbs 55 " . $exclude . $headers;  //-stats*/

@@ -1261,6 +1261,50 @@ foreach ($xmls as $xml) {
         return $this->render('about');
     }
 
+    public function actionRestoreffuf()
+    {
+        exec('find /ffuf/*/*/out.json', $notdone);
+
+        var_dump($notdone);
+
+        foreach ($notdone as $outputdir){
+
+            preg_match("/\/ffuf\/(\d)+\/(\d)+\//", $outputdir, $outputdir);
+
+            var_dump($outputdir);
+
+            $outputdir = $outputdir[0];
+
+            $output_ffuf = array();
+
+            $ffuf_output = $outputdir ."out.json";
+
+            $ffuf_output_localhost = $ffuf_output . ".localhost.json";
+            $ffuf_output_wordlist = $ffuf_output . ".wordlist";
+            $ffuf_output_custom = $ffuf_output . ".custom";
+            
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_wordlist, 0, $outputdir);
+            $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_custom, 0, $outputdir);
+
+            $gau_result = dirscan::gau($outputdir . "gau.txt");
+
+            $output_ffuf =  array_filter( array_unique( $output_ffuf ) );
+
+            if ( count( $output_ffuf ) > 0 ) dirscan::savetodb(1, $output_ffuf, $gau_result, "restored");
+
+            preg_match("/\/ffuf\/(\d)+/", $outputdir, $out);
+            
+            $randomid = $out[0];
+
+            exec("sudo rm -R " . $randomid . " ");
+        }
+
+        return 3;
+        
+    }
+
     /**
      * Signs user up.
      *

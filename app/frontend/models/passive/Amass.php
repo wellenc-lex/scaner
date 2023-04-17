@@ -106,10 +106,10 @@ class Amass extends ActiveRecord
 
     public static function bannedwords($in)
     {
-        if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
+        if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/sentry|^ws|wiki|status|socket|docs|url(\d)*/i", $in); //support
+            return preg_match("/sentry|^ws|wiki|status|socket|docs|url(\d)*/i", $in);
         }
     }
 
@@ -129,7 +129,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10250,8123,8000,2181,9092 -rate-limit 25 -timeout 35 -threads 25  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10250,8123,8000,2181,9092 -rate-limit 20 -timeout 35 -threads 55  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

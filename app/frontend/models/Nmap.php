@@ -122,7 +122,7 @@ class Nmap extends ActiveRecord
         ." --script pgsql-brute --script-args pgsql-brute.timeout=8h,brute.firstonly=1 --script smb-protocols --script fcrdns -sC";*/
 
         $scripts = " -A --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  --script mysql-audit --script-args \"mysql-audit.username='root',mysql-audit.password='root'\" "
-        ." --script http-open-proxy --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares "
+        ." --script http-open-proxy --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse"
         ." --script amqp-info --script nfs-ls --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=120h "
         ." --script smb-protocols --script fcrdns -sC";
 // --net=container:vpn1 --expose=53 -p 53:53

@@ -33,7 +33,7 @@ function sendnmap(host) {
 
 function senddirscan(host) {
     dirscanDomain = host;
-    Newscan = {dirscanUrl: host, agreed: '1', 'activescan': '1', 'passivescan': '0', 'notify': '0'};
+    Newscan = {nucleiDomain: host, dirscanUrl: host, agreed: '1', 'activescan': '1', 'passivescan': '0', 'notify': '0'};
 
     $.ajax({
 
@@ -193,6 +193,7 @@ function sendtoscan() {
 
             Newscan = {
                 "dirscanUrl": dirscanUrl,
+                "nucleiDomain": dirscanUrl,
                 "agreed": '1',
                 'activescan': '1',
                 'passivescan': '0',

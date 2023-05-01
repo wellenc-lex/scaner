@@ -44,7 +44,7 @@ class Whatweb extends ActiveRecord
         }
 
 
-        //exec("sudo rm -r /dockerresults/whatweb" . $randomid . "/");
+        exec("sudo rm -r /dockerresults/whatweb" . $randomid . "/");
 
         return 1;
     }

@@ -960,7 +960,7 @@ class SiteController extends Controller
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
         $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 40 -threads 50 -timeout 60 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 100 -timeout 60 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
             
         exec($httpx);
 

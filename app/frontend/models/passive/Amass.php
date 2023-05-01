@@ -44,7 +44,7 @@ class Amass extends ActiveRecord
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
 //--net=host
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 2000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 5000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 
@@ -91,11 +91,12 @@ class Amass extends ActiveRecord
                     }
 
                     //add all ips observed by amass to the db to scan them later w nmap
+                    $NEWips = array();
                     foreach( $amass["addresses"] as $ipsarr ){
                         $ip = $ipsarr;
                         if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) {
                             $NEWips[] = $ip["ip"];
-                        } else $NEWips = array();
+                        }
                     } 
                 }
             }
@@ -129,7 +130,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10250,8123,8000,2181,9092 -rate-limit 20 -timeout 35 -threads 55  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 80,443,8080,8443,8000,3000,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10255,2379,6666,8123,8000,2181,9092 -rate-limit 10 -timeout 35 -threads 25  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -229,12 +230,22 @@ class Amass extends ActiveRecord
 
                 Yii::$app->db->close();
 
+                $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
+
                 if ($amass->amass_new == "") {
                     $amass->amass_new = json_encode($NEWsubdomains);
 
                     $amass->save();
 
+                    if( !empty($NEWsubdomains) ) {
+                        amass::httpxhosts( array_unique($NEWsubdomains), $scanid, $randomid );
+
+                        file_put_contents($aquatonefile, implode( PHP_EOL, array_unique($NEWsubdomains) ) );
+                        aquatone::aquatonepassive($randomid, $aquatonefile);
+                    }
+
                     return 0; // no changes between scans
+                    //wrong logic,rewrite
 
                 } elseif ($amass->amass_new != "") { //latest scan info in DB
 
@@ -249,8 +260,6 @@ class Amass extends ActiveRecord
                         $amass->amass_previous = json_encode($OLDsubdomains);
                         $amass->amass_new = json_encode($NEWsubdomains); 
                         $amass->save();
-
-                        $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
                         if( !empty($NEWsubdomains) && !empty($OLDsubdomains)) {
                             $diff = array_diff( $NEWsubdomains, $OLDsubdomains ); // only new subdomains in the list
@@ -305,7 +314,7 @@ class Amass extends ActiveRecord
 
                 if (empty($amass->amass_ips) && !empty($NEWips) ) {
                     $amass->amass_ips = json_encode($NEWips);
-                    $amass->amass_new = json_encode($NEWips);
+                    $amass->amass_ips_new = json_encode($NEWips);
                     
                     $queue = new Queue();
                     $queue->taskid = $task->taskid;

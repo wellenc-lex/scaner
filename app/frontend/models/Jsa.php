@@ -55,9 +55,11 @@ class jsa extends ActiveRecord
 
     public static function jsa($input)
     {
+        //  --net=container:vpn1
         $randomid = (int) $input["randomid"];
 //--ulimit nofile=1048576:1048576
-        exec("sudo docker run  --net=container:vpn1  --rm --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
+        exec("sudo docker run
+          --net=container:vpn1  --rm --cpu-shares 256 -v dockerresults:/dockerresults -v jsa:/jsa 5631/jsa /dockerresults/" . $randomid . "aquatoneinput.txt /jsa/" . $randomid . " >> /dockerresults/jsa.output 2>&1");
 
         if (file_exists("/jsa/" . $randomid . "/out.txt")) {
             $trufflehog = file_get_contents("/jsa/" . $randomid . "/out.txt");

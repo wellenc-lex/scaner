@@ -148,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(50)
+                    ->limit(30)
                     ->all();
 
                 $counter = 1; 

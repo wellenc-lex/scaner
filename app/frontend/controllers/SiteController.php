@@ -960,9 +960,9 @@ class SiteController extends Controller
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
         $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 100 -timeout 60 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 150 -timeout 60 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
             
-        exec($httpx);
+        //exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
@@ -1370,6 +1370,141 @@ foreach ($xmls as $xml) {
         }
 
         return 3;
+        
+    }
+
+    public static function bannedwords($in)
+    {
+        if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
+            return 0; //if its used for internal or develop purposes - scan anyway
+        } else { 
+            return preg_match("/sentry|^ws|wiki|status|socket|docs|url(\d)*/i", $in);
+        }
+    }
+
+    public function actionScanallpassive()
+    {
+        $allresults = PassiveScan::find()
+            ->select(['passive_scan.PassiveScanid','passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new'])
+            ->andWhere(['not', ['passive_scan.userid' => null]])
+            ->andWhere(['>','passive_scan.PassiveScanid','400'])
+            ->all();
+
+        Yii::$app->db->close();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass_previous, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+
+            $amassoutput = json_decode($results->amass_new, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+        }
+
+        $urls = array_unique($urls); rsort( $urls );
+
+        file_put_contents("/dockerresults/listhttpx.txt", implode( PHP_EOL, $urls) );
+
+        //aquatone::aquatonepassive(124, "/dockerresults/" . $randomid . "whatwebhttpx.txt");
+        $randomid="124local";
+
+        $wordlist = "/dockerresults/listhttpx.txt";
+        $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
+        $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
+
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 150 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+
+        //exec($httpx);
+
+        $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
+
+        if (file_exists($output) && filesize($output) != 0) {
+
+            $output = file_get_contents($output);
+
+            //convert json strings into one json array to decode it
+            $output = str_replace("}
+{", "},{", $output);
+
+            $output = '[' . $output . ']';
+
+            $alive = json_decode($output, true);
+
+            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+
+            Yii::$app->db->open();
+
+            foreach($alive as $url) {
+
+                if($url["input"] != "" ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+
+                    $scheme = $url["scheme"]."://";
+                    $port = ":".$url["port"]; 
+
+                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
+                        continue; //scanning https port with http scheme is pointless so we get to the next host
+                    }
+
+                    if( $port===":80" || $port===":443"){
+                        $currenthost = $url["input"];
+                    } else $currenthost = $url["input"].$port;
+
+                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                        if( sitecontroller::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
+
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = $scheme.$currenthost;
+                            $queue->instrument = 3; //ffuf
+                            $queue->wordlist = 0;
+                            $queue->save();
+                        }
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 5; //whatweb
+                        $queue->save();
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 8; //nuclei
+                        $queue->save();
+
+                        $whatweb = new Whatweb();
+                        $whatweb->url = $scheme.$currenthost;
+                        $whatweb->ip = $url["host"];
+                        $whatweb->favicon = $url["favicon-mmh3"];
+                        $whatweb->date = date("Y-m-d");
+
+                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+
+                        $whatweb->save();
+
+                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
+                    }
+                }
+            }
+        }
+
+        $aquatonefile = "/dockerresults/listhttpx.txt";
+        aquatone::aquatonepassive($randomid, $aquatonefile);
+
+        return 2;
         
     }
 

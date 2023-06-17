@@ -5,6 +5,8 @@ ADMIN:ADMIN
 admin:adrole1
 admin:adroot
 admin:ads3cret
+admin:prom-operator
+root:root
 admin:adtomcat
 admin:advagrant
 admin:password

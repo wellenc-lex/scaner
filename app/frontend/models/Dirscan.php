@@ -265,7 +265,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
-            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|spider-(\d)*.yandex.*|gitlab|zendesk|sentry|(url(\d)*)|.*\.gb\.ru|(da\d*.timeweb.*|(bitrix\d*.timeweb.*/i", $in);
+            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|spider-(\d)*.yandex.*|gitlab|zendesk|sentry|(url(\d)*)|.*\.gb\.ru|da(\d)*.timeweb.*|bitrix\d*.timeweb.*/i", $in);
             //returns 1 if string has something from the regexp 
         }
     }

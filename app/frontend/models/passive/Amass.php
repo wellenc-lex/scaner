@@ -44,7 +44,7 @@ class Amass extends ActiveRecord
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
 //--net=host
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 5000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 25000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 
         exec($command);
 
@@ -110,7 +110,7 @@ class Amass extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/sentry|^ws|wiki|status|socket|docs|url(\d)*/i", $in);
+            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|url(\d)*/i", $in);
         }
     }
 

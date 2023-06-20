@@ -129,14 +129,14 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
 #400
-            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,429,503,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -t 1 -rate 1 -p 0.1 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|Request Rejected|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,429,503,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -t 1 -rate 1 -p 0.1 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|The requested URL was rejected|Cloudflare is currently unable to resolve your' -r -ac -noninteractive ";
             
             $general_ffuf_string = $ffuf_string.$headers." -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 
             $currenturl = rtrim($currenturl, ' '); $currenturl = trim($currenturl);
             
             if ( $ip == 0) { //IF no specific IP set for URL
-                $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($currenturl."/") . " -o " . $ffuf_output . " ";
+                $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($currenturl."/FUZZ") . " -o " . $ffuf_output . " ";
 
                 $start_dirscan_xss = $ffuf_string.$xssheaders . " -u " . escapeshellarg($currenturl."/") . "  ";
 
@@ -158,10 +158,10 @@ class Dirscan extends ActiveRecord
             }
 
             $executeshell = $executeshell . $start_dirscan . " & ".PHP_EOL;
-            $executeshell = $executeshell . $start_dirscan_xss1 . " & ".PHP_EOL;
+            /*$executeshell = $executeshell . $start_dirscan_xss1 . " & ".PHP_EOL;
             $executeshell = $executeshell . $start_dirscan_xss_headers1 . " & ".PHP_EOL;
             $executeshell = $executeshell . $start_dirscan_xss_headers . " & ".PHP_EOL;
-            $executeshell = $executeshell . $start_dirscan_xss . " & ".PHP_EOL;
+            $executeshell = $executeshell . $start_dirscan_xss . " & ".PHP_EOL;*/
             
 
             if($usewordlist=="1" && $taskid != 0){
@@ -265,7 +265,7 @@ class Dirscan extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - we need to scan it anyway
         } else { 
-            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|spider-(\d)*.yandex.*|gitlab|zendesk|sentry|(url(\d)*)|.*\.gb\.ru|da(\d)*.timeweb.*|bitrix\d*.timeweb.*/i", $in);
+            return preg_match("/link|support|^ws|wiki|enterpriseenrollment|status|docs|help|jira|lync|maintenance|atlassian|autodiscover|grafana|confluence|spider-(\d)*.yandex.*|gitlab|zendesk|sentry|(url(\d)*)|.*\.gb\.ru|da\d*.timeweb.*|bitrix\d*.timeweb.*/i", $in);
             //returns 1 if string has something from the regexp 
         }
     }

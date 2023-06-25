@@ -277,7 +277,7 @@ class Aquatone extends ActiveRecord
     {
 
         if ( preg_match("/(\w\d\_\-)*\.txt/i", $filename) !== 0 ) {
-            $command = "cat ". $filename ." | sudo docker run --cpu-shares 512 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 250000 -threads 45 -ports xlarge -screenshot-timeout 450000 -follow-redirect -out /screenshots/" . $randomid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
+            $command = "cat ". $filename ." | sudo docker run --cpu-shares 512 -v screenshots:/screenshots -v dockerresults:/dockerresults --rm -i 5631/aquatone2 -http-timeout 250000 -threads 10 -ports xlarge -screenshot-timeout 450000 -follow-redirect -out /screenshots/" . $randomid . " -save-body true -similarity 0.97 -screenshot-delay 20000 ";
         }
 
         exec($command);

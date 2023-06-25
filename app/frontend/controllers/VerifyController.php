@@ -52,9 +52,9 @@ class VerifyController extends Controller
 
             $max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 3; $max_nuclei_in_task = 30; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 40; $max_jsa = 0; $max_nmap_in_task = 1000;
 
-            $max_amass = 4; $max_ffuf = 65; $max_nmap = 4; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_ips = 2; $max_whatweb = 1; $max_whatweb_in_task = 50;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
+            $max_amass = 6; $max_ffuf = 35; $max_nmap = 4; $max_vhost = 0; $max_nuclei = 1; $max_nuclei_in_task = 200; $max_ips = 2; $max_whatweb = 1; $max_whatweb_in_task = 50;  $max_nmap_in_task = 500; $max_forbiddenbypass = 0; $max_forbiddenbypass_in_task = 10;
 
-            $max_passive_amass = 5; $max_nuclei=1;
+            $max_passive_amass = 6; $max_nuclei=1;
 
             //$max_amass = 0; $max_ffuf = 0; $max_vhost = 0; $max_nuclei = 0; $max_nmap = 0; $max_nuclei_in_task = 50; $max_ips = 0; $max_whatweb = 0; $max_whatweb_in_task = 300; $max_jsa = 0; $max_nmap_in_task = 1000; $max_passive_amass = 0;
 

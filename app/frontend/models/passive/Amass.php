@@ -110,7 +110,7 @@ class Amass extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|url(\d)*/i", $in);
+            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|sf\d*.m.smailru.net|upload-.*.hb.bizmrg.com|url(\d)*/i", $in);
         }
     }
 
@@ -130,7 +130,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10255,2379,6666,8123,8000,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50  -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,9999,10000,10250,4443,6443,10255,2379,6666,8123,8000,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

@@ -307,7 +307,7 @@ class VerifyController extends Controller
                     ->limit($max_nuclei_in_task)
                     ->all();
 
-                if (count($queues) >= 30) {
+                if (count($queues) >= 20) {
                     foreach ($queues as $results) {
 
                         if ($results != NULL) {

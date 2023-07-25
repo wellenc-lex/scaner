@@ -14,6 +14,20 @@ use frontend\models\Aquatone;
 class Amass extends ActiveRecord
 {
 
+    public static function var_dump_f ($val) {
+      ob_start();
+      var_dump($val);
+      $output = ob_get_clean();
+      file_put_contents('/tmp/'.rand(10000, 10000000000).'phpdump.txt', $output);
+    }
+
+    public static function var_dump_all ($val) {
+      ob_start();
+      var_dump($val);
+      $output = ob_get_clean();
+      file_put_contents('/tmp/DUMPALL'.rand(10000, 10000000000).'.txt', $output);
+    }
+
     /**
      * 0 == no diffs between subdomains
      * 1 == previous != new information, needs diff.
@@ -44,8 +58,8 @@ class Amass extends ActiveRecord
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
 //--net=host
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 25000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
-
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -trf /configs/amass/resolvers.txt -dns-qps 12500  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+//-max-dns-queries 10000
         exec($command);
 
         if ( file_exists($enumoutput) ) {
@@ -74,9 +88,13 @@ class Amass extends ActiveRecord
 
         if($amassoutput!= "" && !empty($amassoutput) ){
 
+            $NEWips = array();
+
             $amassoutput = json_decode($amassoutput, true);
 
             if ( !empty($amassoutput) && $amassoutput != NULL ){
+
+                amass::var_dump_all($amassoutput);
 
                 $maindomain = $amassoutput[0]["domain"];
 
@@ -91,13 +109,16 @@ class Amass extends ActiveRecord
                     }
 
                     //add all ips observed by amass to the db to scan them later w nmap
-                    $NEWips = array();
+
                     foreach( $amass["addresses"] as $ipsarr ){
                         $ip = $ipsarr;
+                        amass::var_dump_f($ip);
                         if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) {
                             $NEWips[] = $ip["ip"];
+                            //amass::var_dump_f($NEWips);
                         }
-                    } 
+                    }
+                    amass::var_dump_f($NEWips);
                 }
             }
         }
@@ -130,7 +151,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,8000,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,8000,8083,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -219,6 +240,7 @@ class Amass extends ActiveRecord
     {
         do{
             try{
+                //amass::var_dump_f($NEWips);
                 $tryAgain = false;
 
                 Yii::$app->db->open();
@@ -233,9 +255,10 @@ class Amass extends ActiveRecord
                 $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
                 if ($amass->amass_new == "") {
-                    $amass->amass_new = json_encode($NEWsubdomains);
-
-                    $amass->save();
+                    if( !empty($NEWsubdomains) ) { 
+                        $amass->amass_new = json_encode($NEWsubdomains);
+                        $amass->save();
+                    }
 
                     if( !empty($NEWsubdomains) ) {
                         amass::httpxhosts( array_unique($NEWsubdomains), $scanid, $randomid );

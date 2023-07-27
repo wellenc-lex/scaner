@@ -128,15 +128,16 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir /ffuf/" . $randomid . "/"); //create dir for ffuf scan results
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
-#400
+            
             $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,429,503,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -t 1 -rate 1 -p 0.1 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|The requested URL was rejected|HTTP Error: 414|Cloudflare is currently unable to resolve your|400 Bad Request' -r -ac -noninteractive ";
+            
             
             $general_ffuf_string = $ffuf_string.$headers." -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
 
             $currenturl = rtrim($currenturl, ' '); $currenturl = trim($currenturl);
             
             if ( $ip == 0) { //IF no specific IP set for URL
-                $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($currenturl."FUZZ") . " -o " . $ffuf_output . " ";
+                $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($currenturl."/FUZZ") . " -o " . $ffuf_output . " ";
 
                 $start_dirscan_xss = $ffuf_string.$xssheaders . " -u " . escapeshellarg($currenturl."/") . "  ";
 
@@ -150,9 +151,9 @@ class Dirscan extends ActiveRecord
             } else {
                 $ip = dirscan::ParseIP($ip);
 
-                $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."FUZZ") . " -H " . escapeshellarg('Host: ' . $hostname) . " -p 0.1 -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output . " ";
+                $start_dirscan = $general_ffuf_string ." -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -H " . escapeshellarg('Host: ' . $hostname) . " -p 0.1 -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output . " ";
 
-                $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."FUZZ") . " -p 0.1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output_localhost . " -ac=0 ";
+                $start_dirscan_localhost = $general_ffuf_string . " -u " . escapeshellarg($scheme.$ip.$port."/FUZZ") . " -p 0.1  -H 'Host: localhost' -H 'CF-Connecting-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -o " . $ffuf_output_localhost . " -ac=0 ";
 
                 $executeshell = $executeshell . $start_dirscan_localhost . " & ".PHP_EOL;
             }
@@ -180,7 +181,7 @@ class Dirscan extends ActiveRecord
                         $hostsfile =  $outputdir . "domains.txt";
                         file_put_contents($hostsfile, implode( PHP_EOL, $vhostwordlist) ); //to use domains supplied by user as FFUF wordlist
 
-                        $start_dirscan = $ffuf_string . " -mc all -ac " . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output_wordlist . " ";
+                        $start_dirscan = $ffuf_string . " -mc all -ac " . $headers . " -u " . escapeshellarg($scheme.$hostname.$port."/HOSTS/") . " -w " . $hostsfile . ":HOSTS -o " . $ffuf_output_wordlist . " ";
 
                         $executeshell = $executeshell . $start_dirscan . " & ".PHP_EOL;
                     }
@@ -192,7 +193,7 @@ class Dirscan extends ActiveRecord
 
             if ( dirscan::makecustomwordlist($hostname, $domainfull, $hostonly, $firstpartofsubdomain, $file) == 1 ) {
                 
-                $start_dirscan = $ffuf_string.$headers." -mc all -w " . $file . ":FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json " . " -u " . escapeshellarg($currenturl."FUZZ") . " -o " . $ffuf_output_custom;
+                $start_dirscan = $ffuf_string.$headers." -mc all -w " . $file . ":FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json " . " -u " . escapeshellarg($currenturl."/FUZZ") . " -o " . $ffuf_output_custom;
 
                 $executeshell = $executeshell . $start_dirscan . " & ".PHP_EOL;
             }

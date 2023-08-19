@@ -8,7 +8,7 @@
 
 * */23 * * * docker exec docker_app_1 /bin/bash -c "git config --global user.email 'you@example.com'"     
 
-* */21 * * * docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git fetch origin master && git reset --hard FETCH_HEAD && git clean -df" 
+* */21 * * * docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git fetch origin main && git reset --hard origin/main && git clean -df" 
 
 * */23 * * * docker exec docker_app_1 /bin/bash -c "docker pull projectdiscovery/nuclei && docker pull caffix/amass"
 

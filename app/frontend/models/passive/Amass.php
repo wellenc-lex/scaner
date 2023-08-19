@@ -151,7 +151,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,8000,8083,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,8000,8083,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -255,7 +255,7 @@ class Amass extends ActiveRecord
                 $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
 
                 if ($amass->amass_new == "") {
-                    if( !empty($NEWsubdomains) ) { 
+                    if( !empty($NEWsubdomains) && $NEWsubdomains!= "[]" ) { 
                         $amass->amass_new = json_encode($NEWsubdomains);
                         $amass->save();
                     }

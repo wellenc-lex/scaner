@@ -25,7 +25,7 @@ use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use frontend\models\Aquatone;
-use frontend\models\Amass;
+use frontend\models\passive\Amass;
 
 ini_set('max_execution_time', 0);
 
@@ -898,11 +898,148 @@ class SiteController extends Controller
      *
      * @return mixed
      */
+
+    public function actionScanallwithnuclei()
+    {
+        $allresults = Tasks::find()
+            ->select(['tasks.taskid','tasks.amass'])
+            ->andWhere(['not', ['tasks.amass' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json["name"];
+                }  
+            }
+        }
+
+        $allresults = PassiveScan::find()
+            ->select(['passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new'])
+            ->andWhere(['not', ['passive_scan.userid' => null]])
+            ->all();
+
+        Yii::$app->db->close();
+
+        foreach ($allresults as $results) {
+
+            $amassoutput = json_decode($results->amass_previous, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+
+            $amassoutput = json_decode($results->amass_new, true);
+                
+            if($amassoutput != 0){
+                foreach($amassoutput as $json){
+                    $urls[] = $json;
+                    
+                }  
+            }
+        }
+
+        $urls = array_unique($urls); rsort( $urls );
+
+        file_put_contents("/dockerresults/listhttpx.txt", implode( PHP_EOL, $urls) );
+
+        //aquatone::aquatonepassive(124, "/dockerresults/" . $randomid . "whatwebhttpx.txt");
+        $randomid="1Nucleilocal";
+
+        $wordlist = "/dockerresults/listhttpx.txt";
+        $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
+        $output = "/dockerresults/" . $randomid . "nucleihttpx.txt";
+
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 350 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+            
+        exec($httpx);
+
+        $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
+
+        if (file_exists($output) && filesize($output) != 0) {
+
+            $output = file_get_contents($output);
+
+            //convert json strings into one json array to decode it
+            $output = str_replace("}
+{", "},{", $output);
+
+            $output = '[' . $output . ']';
+
+            $alive = json_decode($output, true);
+
+            rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+
+            Yii::$app->db->open();
+
+            foreach($alive as $url) {
+
+                if($url["input"] != "" ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+
+                    $scheme = $url["scheme"]."://";
+                    $port = ":".$url["port"]; 
+
+                    if( ($scheme==="http://" && $port===":443") || ($scheme==="https://" && $port===":80")){
+                        continue; //scanning https port with http scheme is pointless so we get to the next host
+                    }
+
+                    if( $port===":80" || $port===":443"){
+                        $currenthost = $url["input"];
+                    } else $currenthost = $url["input"].$port;
+
+                    if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 5; //whatweb
+                        $queue->save();
+
+                        $queue = new Queue();
+                        $queue->taskid = $taskid;
+                        $queue->dirscanUrl = $scheme.$currenthost;
+                        $queue->instrument = 8; //Nuclei
+                        $queue->save();
+
+                        $whatweb = new Whatweb();
+                        $whatweb->url = $scheme.$currenthost;
+                        $whatweb->ip = $url["host"];
+                        $whatweb->favicon = $url["favicon-mmh3"];
+                        $whatweb->date = date("Y-m-d");
+
+                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+
+                        $whatweb->save();
+
+                        $hostnames[] = $currenthost; //we add https://google.com:443 to get rid of http://google.com because thats duplicate
+                    }
+                }
+            }
+        }
+    }
+
     public function actionAbout()
     {
+        $randomid = 1337; 
+        $aquatonefile = "/dockerresults/" . $randomid . "aquatoneinput.txt";
+
+        aquatone::aquatonepassive($randomid, $aquatonefile);
+
+        return 1;
+
+
+
         //get all subdomains
 
-        $allresults = Tasks::find()
+        /*$allresults = Tasks::find()
             ->select(['tasks.taskid','tasks.amass'])
             ->andWhere(['not', ['tasks.amass' => null]])
             ->all();
@@ -1023,6 +1160,8 @@ class SiteController extends Controller
 
 
         return 2;
+
+        */
 
         /*$i=1; $counter=5000; $randomid=84025389029;
         while($i<=$counter){

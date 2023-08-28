@@ -36,6 +36,7 @@ class Amass extends ActiveRecord
     public static function amassscan($input)
     {
         global $maindomain;
+        global $NEWips;
         $changes = 0;
    
         $url = $input["url"];     
@@ -94,7 +95,7 @@ class Amass extends ActiveRecord
 
             if ( !empty($amassoutput) && $amassoutput != NULL ){
 
-                amass::var_dump_all($amassoutput);
+                //amass::var_dump_all($amassoutput);
 
                 $maindomain = $amassoutput[0]["domain"];
 
@@ -110,15 +111,20 @@ class Amass extends ActiveRecord
 
                     //add all ips observed by amass to the db to scan them later w nmap
 
-                    foreach( $amass["addresses"] as $ipsarr ){
+                    /*foreach( $amass["addresses"] as $ipsarr ){
                         $ip = $ipsarr;
-                        amass::var_dump_f($ip);
+                        //amass::var_dump_f($ip);
+                        amass::var_dump_all(vhostscan::ipCheck( $ip["ip"]) );
                         if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) {
                             $NEWips[] = $ip["ip"];
-                            //amass::var_dump_f($NEWips);
                         }
+                    }*/
+
+                    foreach( $amass["addresses"] as $vhostarr ){
+                        //print_r($vhostarr);
+                        $ip = $vhostarr;
+                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $NEWips[] = $ip["ip"];
                     }
-                    amass::var_dump_f($NEWips);
                 }
             }
         }
@@ -151,7 +157,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,8000,8083,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -238,6 +244,7 @@ class Amass extends ActiveRecord
 
     public static function saveToDB($scanid, $NEWsubdomains, $randomid, $NEWips)
     {
+        global $NEWips;
         do{
             try{
                 //amass::var_dump_f($NEWips);

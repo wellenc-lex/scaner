@@ -137,7 +137,7 @@ class Amass extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|sf\d*.m.smailru.net|scf\d*.m.smailru.net|upload-.*.hb.bizmrg.com|url(\d)*/i", $in);
+            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|sf\d*.m.smailru.net|scf\d*.m.smailru.net|upload-.*.hb.bizmrg.com|vb.*\.sberdevices.*|url(\d)*/i", $in);
         }
     }
 

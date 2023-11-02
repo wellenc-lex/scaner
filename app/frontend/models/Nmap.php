@@ -121,11 +121,11 @@ class Nmap extends ActiveRecord
         ." --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h  "
         ." --script pgsql-brute --script-args pgsql-brute.timeout=8h,brute.firstonly=1 --script smb-protocols --script fcrdns -sC";*/
 
-        $scripts = " -A --script default --script dns-zone-transfer --script dns-nsec-enum --script rmi-* --script memcached-info --script docker-*  --script mysql-audit --script-args \"mysql-audit.username='root',mysql-audit.password='root'\" "
-        ." --script http-open-proxy --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse"
-        ." --script amqp-info --script nfs-ls --script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=120h "
-        ." --script smb-protocols --script fcrdns -sC";
-// --net=container:vpn1 --expose=53 -p 53:53
+        $scripts = " -A --script default --script dns-zone-transfer --script dns-nsec-enum --script memcached-info --script docker-*  --script mysql-audit --script-args \"mysql-audit.username='root',mysql-audit.password='root'\" "
+        ."  --script ftp-anon --script rsync-list-modules --script mysql-empty-password --script smb-enum-shares --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse"
+        ."  --script amqp-info --script nfs-ls --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=120h "
+        ."  --script fcrdns -sC";
+// --net=container:vpn1 --expose=53 -p 53:53 я их все равно не смотрю --script http-default-accounts --script http-open-proxy --script smb-protocols
         
 
     //--script http-default-accounts --script-args http-default-accounts.fingerprintfile=/configs/nmap/nmap-fingerprints.lua,http-default-accounts.timeout=24h --script *vnc* --script-args vnc-brute.timeout=8h,brute.firstonly=1 
@@ -134,10 +134,11 @@ class Nmap extends ActiveRecord
 
 // --min-hostgroup 4000
         exec("sudo docker run --cpu-shares 512 --rm --privileged=true -v configs:/configs/ -v dockerresults:/dockerresults instrumentisto/nmap --privileged"
-            ." -g 80 -T3 -v -sV --randomize-hosts -n -sS -sU --min-hostgroup 1024 --max-hostgroup 1024"
-            ." -p T:1-34000,U:11211"
-            ." --script-timeout 10000m --host-timeout 40000m --max-scan-delay 6s --max-retries 3 --open -oX "
+            ." -g 80 -T3 -v -sV --version-all --randomize-hosts -n -sS  "
+            ." -p T:1-34000 --min-hostgroup 1024 --max-hostgroup 1024 "
+            ." --script-timeout 10000m --host-timeout 50000m --max-scan-delay 10s --max-retries 3 --open -oX "
             . $nmapoutputxml . " -oA /dockerresults/" . $randomid . "nmap --stylesheet /configs/nmap/nmap.xsl -R " . $scripts . " -iL " . $scanIPS . " >> /dockerresults/nmapout.txt 2>&1 " );
+        //-sU ,U:11211 слишком много фолзов
 
 
         /*exec("sudo docker run --rm --cpu-shares 512 --privileged=true --ulimit nofile=1048576:1048576 --network host -v configs:/configs/ -v dockerresults:/dockerresults --expose=53 -p 53:53 projectdiscovery/naabu -exclude-cdn -c 35 -rate 1000 -timeout 10000 -p 1-32000 -list " 

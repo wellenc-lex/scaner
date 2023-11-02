@@ -58,8 +58,8 @@ class Amass extends ActiveRecord
         }
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
-//--net=host
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -trf /configs/amass/resolvers.txt -dns-qps 12500  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+//--net=host -trf /configs/amass/resolvers.txt 
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 325000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
 //-max-dns-queries 10000
         exec($command);
 
@@ -137,7 +137,7 @@ class Amass extends ActiveRecord
         if (preg_match("/dev|stage|test|proxy|stg|int|adm|uat|support/i", $in) === 1) {
             return 0; //if its used for internal or develop purposes - scan anyway
         } else { 
-            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|sf\d*.m.smailru.net|scf\d*.m.smailru.net|upload-.*.hb.bizmrg.com|vb.*\.sberdevices.*|url(\d)*/i", $in);
+            return preg_match("/sentry|^ws|wiki|status|socket|cloclo\d*.cldmail.ru|docs|sf\d*.m.smailru.net|spider*.yandex.com|scf\d*.m.smailru.net|upload-.*.hb.bizmrg.com|vb.*\.sberdevices.*|url(\d)*/i", $in);
         }
     }
 

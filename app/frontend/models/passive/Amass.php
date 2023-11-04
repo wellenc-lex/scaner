@@ -58,8 +58,10 @@ class Amass extends ActiveRecord
         }
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
-//--net=host -trf /configs/amass/resolvers.txt 
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistASSETNOTE -dns-qps 325000 -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -timeout 2200 -config ".$amassconfig;
+//--net=host 
+        //--cpu-shares 256
+        //sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum  -w /configs/amass/amasswordlistASSETNOTE -d stage-uchi.ru -passive -alts -timeout 22 -config /configs/amass/amass2.ini
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -min-for-recursive 2 -timeout 2800 -trqps 500 -dns-qps 5000 -trf /configs/amass/resolvers.txt -config ".$amassconfig;
 //-max-dns-queries 10000
         exec($command);
 

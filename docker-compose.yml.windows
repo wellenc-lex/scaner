@@ -1,0 +1,150 @@
+version: '3.7'
+
+services:
+  app:
+    privileged: true
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    build:
+      dockerfile: ./Dockerfile.windows
+    ports:
+      - '443:443'
+    depends_on:
+      - db
+    links:
+     - db
+     - phpmyadmin
+    volumes:
+      - './app:/var/www/app'
+      - './docker/conf/nginx:/etc/nginx/sites-available'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'dockerresults:/dockerresults'
+      - 'ffuf:/ffuf'
+      - 'nuclei:/nuclei'
+      - 'configs:/configs'
+      - 'jsa:/jsa'
+      - 'screenshots:/screenshots'
+      - 'httpxresponses:/httpxresponses'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"  
+    restart: always  
+
+  db:
+    image: 'mysql:5.7'
+    command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=6G --innodb_adaptive_hash_index=0 --innodb_buffer_pool_size=4G --innodb_log_buffer_size=256M --innodb_log_file_size=256M --innodb_buffer_pool_instances=2 --innodb_thread_concurrency=0 --max_connections=5000 --wait_timeout=124000 --interactive_timeout=124000 --innodb_purge_threads=1 --thread_cache_size=4000 --table_open_cache=10000 --net_read_timeout=1000 --net_write_timeout=2000 --connect_timeout=400 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
+    restart: always
+    ports:
+      - '3336:3306'
+    environment:
+      #you need to change it at env.example too!!
+      MYSQL_ROOT_PASSWORD: 1
+      MYSQL_DATABASE: scaner
+    volumes:
+      - './docker/database:/var/lib/mysql'
+      - './docker/conf/db-scripts:/docker-entrypoint-initdb.d'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"  
+
+    #docker exec -i docker_db_1 sh -c 'exec mysql -uroot -p"1"' < /root/project/scaner2.sql
+    #Get-Content .\dbdump1.sql | docker exec -i docker-db-1 sh -c 'exec mysql -uroot -p"1"'
+  
+  cron:
+    image: 5631/cron
+    restart: always
+    depends_on:
+      - app
+    links:
+     - app
+    volumes:
+      - './docker/conf/configs/crontab.txt:/etc/cron.d/crontab'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"    
+  
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      PMA_HOST: db
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: 1
+      PMA_ABSOLUTE_URI: "https://scaner.app/phpmyadmin/"
+      UPLOAD_LIMIT: 3000000000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+  
+  #amass db
+  postgres:
+    container_name: assetdb_postgres
+    image: postgres:latest
+    restart: always
+    env_file: .env
+    ports:
+      - "127.0.0.1:5432:5432"
+  
+  #vpn1:
+  #  network_mode: bridge
+  #  container_name: vpn1
+  #  image: ghcr.io/bubuntux/nordlynx
+  #  cap_add:
+  #    - NET_ADMIN               # Required
+  #    - NET_RAW
+  #    - SYS_ADMIN
+  #    - sys_module                 # Required
+  #  environment:                # Review https://github.com/bubuntux/nordvpn#environment-variables
+  #    - PRIVATE_KEY=
+  #    - NETWORK=192.168.1.0/24  # So it can be accessed within the local network
+  #    - QUERY=filters\[country_id\]=119
+      #- GROUPID=0
+  #  restart: always
+  #  sysctls:
+  #    - net.ipv4.conf.all.src_valid_mark=1
+  #    - net.ipv4.conf.all.rp_filter=2
+  #  devices:
+  #    - /dev/net/tun
+      
+
+volumes:
+  postgres-db:
+    driver: local
+  dockerresults:
+    name: dockerresults
+  configs:
+    name: configs
+  screenshots:
+    name: screenshots
+  ffuf:
+    name: ffuf 
+  jsa:
+    name: jsa
+  nuclei:
+    name: nuclei
+  nmap:
+    name: nmap
+  httpxresponses:
+    name: httpxresponses
+  database:
+    name: database
+
+
+
+
+
+
+
+
+

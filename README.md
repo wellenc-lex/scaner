@@ -34,12 +34,12 @@ CD into the docker directory and run:
 
 WINDOWS USERS SHOULD SET THAT VARIABLE before running the docker-compose file: `set COMPOSE_CONVERT_WINDOWS_PATHS=1`
 
-Initial startup command: cd PROJECTDIR/DOCKER/ && docker-compose -f docker-compose.yml up -d && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chmod -R 777 /configs && docker exec docker_app_1 chmod -R 777 /dockerresults && docker exec docker_app_1 chmod -R 777 /ffuf && docker exec docker_app_1 chmod -R 777 /jsa && docker exec docker_app_1 chmod -R 777 /httpxresponses && docker exec docker_app_1 chmod -R 777 /screenshots && docker exec docker_app_1 chmod -R 777 /nmap && docker exec docker_app_1 chmod -R 777 /nuclei
+Initial powershell startup command: not recommended - poor performance!
+(set COMPOSE_CONVERT_WINDOWS_PATHS=1) ; (docker-compose --project-name docker --compatibility -f docker-compose.yml.windows up -d --no-deps --build --remove-orphans) ; (docker cp env.example docker_app_1:/var/www/app/.env) ; (docker cp docker/conf/configs/ docker_app_1:/) ; (docker exec docker_app_1 chmod -R 777 /configs) ; (docker exec docker_app_1 chmod -R 777 /dockerresults) ; (docker exec docker_app_1 chmod -R 777 /ffuf) ; (docker exec docker_app_1 chmod -R 777 /jsa) ; (docker exec docker_app_1 chmod -R 777 /httpxresponses) ; (docker exec docker_app_1 chmod -R 777 /screenshots) ; (docker exec docker_app_1 chmod -R 777 /nmap) ; (docker exec docker_app_1 chmod -R 777 /nuclei) ; (docker exec assetdb_postgres psql postgres://postgres:postgres@127.0.0.1:5432 -c "CREATE DATABASE assetdb;") ; (docker exec assetdb_postgres psql postgres://postgres:postgres@127.0.0.1:5432 -c "ALTER DATABASE assetdb SET TIMEZONE to 'UTC'; CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;")
+
+Linux: cd PROJECTDIR/DOCKER/ && docker-compose --project-name docker --compatibility -f docker-compose.yml up -d --no-deps --build --remove-orphans && docker cp env.example docker_app_1:/var/www/app/.env && docker cp conf/configs/ docker_app_1:/ && docker exec docker_app_1 chmod -R 777 /configs && docker exec docker_app_1 chmod -R 777 /dockerresults && docker exec docker_app_1 chmod -R 777 /ffuf && docker exec docker_app_1 chmod -R 777 /jsa && docker exec docker_app_1 chmod -R 777 /httpxresponses && docker exec docker_app_1 chmod -R 777 /screenshots && docker exec docker_app_1 chmod -R 777 /nuclei && docker exec docker_app_1 /bin/bash -c "cd /configs/nuclei-templates/ && git fetch origin main && git reset --hard origin/main && git clean -df" && docker exec assetdb_postgres psql postgres://postgres:postgres@127.0.0.1:5432 -c "CREATE DATABASE assetdb;" && docker exec assetdb_postgres psql postgres://postgres:postgres@127.0.0.1:5432 -c "ALTER DATABASE assetdb SET TIMEZONE to 'UTC'; CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;"
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
-
-
-
 
 Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.local/phpmyadmin/
 
@@ -51,5 +51,7 @@ https://github.com/michenriksen/aquatone
 https://github.com/Bo0oM/ and his fuzz.txt 
 https://github.com/honze-net/nmap-bootstrap-xsl
 Nmap and Yii Framework's developers.
+
+
 
 

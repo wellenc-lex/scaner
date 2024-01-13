@@ -1472,7 +1472,7 @@ foreach ($xmls as $xml) {
     {
         exec('find /ffuf/*/*/out.json', $notdone);
 
-        var_dump($notdone);
+        //var_dump($notdone);
 
         foreach ($notdone as $outputdir){
 

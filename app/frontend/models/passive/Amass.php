@@ -59,10 +59,11 @@ class Amass extends ActiveRecord
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
 //--net=host 
-        //--cpu-shares 256
-        //sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum  -w /configs/amass/amasswordlistASSETNOTE -d stage-uchi.ru -passive -alts -timeout 22 -config /configs/amass/amass2.ini
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -min-for-recursive 2 -timeout 2800 -trqps 500 -dns-qps 5000 -trf /configs/amass/resolvers.txt -config ".$amassconfig;
-//-max-dns-queries 10000
+        //sudo docker run -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -d stage-uchi.ru -active -brute -v -alts -timeout 120 -config /configs/amass/amass2.ini -min-for-recursive 2 -src -trqps 500 -dns-qps 500000 -trf /configs/amass/resolvers.txt
+        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -min-for-recursive 2 -timeout 2800 -trf /configs/amass/resolvers.txt -config ".$amassconfig ." && oam_subs -names -d " . escapeshellarg($url) . " ";
+            //oam_subs -show -ipv4 -d example.com parse ipv4 for nmap scans?
+
+        //oam_track -d example.com !!
         exec($command);
 
         if ( file_exists($enumoutput) ) {
@@ -159,7 +160,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,2181,9092,9200 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,5553,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,2181,9092,9200,28080 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 

@@ -259,9 +259,9 @@ class ScanController extends Controller
 
         $secretIN = Yii::$app->request->get('secret');
 
-        if ($secretIN === $secret) {
+        //if ($secretIN === $secret) {
             return $model::RestoreAmass();
-        }
+        //}
 
     }
 

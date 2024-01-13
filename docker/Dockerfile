@@ -34,7 +34,6 @@ net.ipv4.tcp_syn_retries = 5 \n\
 net.ipv4.tcp_synack_retries = 4 \n\
 net.ipv4.tcp_fastopen = 3 \n\
 net.netfilter.nf_conntrack_udp_timeout_stream = 180 \n\
-net.ipv6.conf.all.disable_ipv6 = 1 \n\ 
 net.netfilter.nf_conntrack_tcp_timeout_time_wait = 60' >> /etc/sysctl.conf || echo '127.0.0.1 app' >> /etc/hosts
 
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"

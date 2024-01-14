@@ -24,6 +24,7 @@ services:
      - db
      - phpmyadmin
      - unbound
+     - postgres
     volumes:
       - '../app:/var/www/app'
       - './conf/nginx:/etc/nginx/sites-available'
@@ -35,6 +36,8 @@ services:
       - 'configs:/configs'
       - 'jsa:/jsa'
       - 'screenshots:/screenshots'
+      - 'postgresdb:/postgresdb'
+      - 'mysqldb:/mysqldb'
     logging:
       driver: "json-file"
       options:
@@ -51,7 +54,7 @@ services:
       MYSQL_DATABASE: scaner
     volumes:
       - './conf/db-scripts:/docker-entrypoint-initdb.d'
-      - '/mnt/files/projectdatabase:/var/lib/mysql:rw'
+      - 'mysqldb:/var/lib/mysql:rw'
     user: mysql
     restart: always
     logging:
@@ -68,14 +71,14 @@ services:
     depends_on:
       - app
     links:
-     - app
+      - app
     volumes:
       - './conf/configs/crontab.txt:/etc/cron.d/crontab'
       - '/var/run/docker.sock:/var/run/docker.sock'
   
   phpmyadmin:
     links:
-     - db
+      - db
     depends_on:
       - db
     image: phpmyadmin:5.1-apache
@@ -114,16 +117,17 @@ services:
   
   #amass db
   postgres:
+    hostname: assetdb_postgres
     container_name: assetdb_postgres
     image: postgres:latest
     restart: always
     env_file: .env
     ports:
       - "127.0.0.1:5432:5432"
+    volumes:
+      - 'postgresdb:/var/lib/postgresql/data'
      
 volumes:
-  postgres-db:
-    driver: local
   dockerresults:
     name: dockerresults
   configs:
@@ -140,14 +144,7 @@ volumes:
     name: nmap
   httpxresponses:
     name: httpxresponses
-  database:
-    name: database
-
-
-
-
-
-
-
-
-
+  postgresdb:
+    name: postgresdb
+  mysqldb:
+    name: mysqldb

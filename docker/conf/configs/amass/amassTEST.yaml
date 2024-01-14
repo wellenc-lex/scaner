@@ -1,0 +1,17 @@
+options:
+  resolvers: 
+    - "/configs/amass/resolvers.txt" # array of 1 path or multiple IPs to use as a resolver
+    
+  datasources: "/configs/amass/datasourceTEST.yaml" # the file path that will point to the data source configuration
+  wordlist: # global wordlist(s) to uses 
+    - "/configs/amass/wordlists/deepmagic.com_top50kprefixes.txt"
+    - "/configs/amass/wordlists/deepmagic.com_top500prefixes.txt"
+  database: "postgres://postgres:postgres@assetdb_postgres:5432/postgres?testing=works" # databases URI to be used when adding entries
+  bruteforce: # specific option to use when brute forcing is needed
+    enabled: true
+    wordlists: # wordlist(s) to use that are specific to brute forcing
+      - "/configs/amass/wordlists/subdomains-top1mil-5000.txt"
+  alterations: # specific option to use when brute forcing is needed
+    enabled: true
+    wordlists: # wordlist(s) to use that are specific to alterations
+      - "/configs/amass/wordlists/subdomains-top1mil-110000.txt"

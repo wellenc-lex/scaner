@@ -28,6 +28,17 @@ class Amass extends ActiveRecord
       file_put_contents('/tmp/DUMPALL'.rand(10000, 10000000000).'.txt', $output);
     }
 
+    public static function rFile($filename) {
+        $lines = file($filename);
+        if ($lines !== false) {
+            foreach ($lines as & $line) {
+                $line = explode(' ', trim($line));
+                $line = str_replace(',', ' ', $line);
+            }
+        }
+        return $lines;
+    }
+
     /**
      * 0 == no diffs between subdomains
      * 1 == previous != new information, needs diff.
@@ -49,84 +60,61 @@ class Amass extends ActiveRecord
 
         $randomid = rand(10000, 10000000000);
 
-        $enumoutput = "/dockerresults/" . $randomid . "amass.json";
+        $enumoutput = "/dockerresults/" . $randomid . "amass.txt";
 
-        $amassconfig = "/configs/amass/amass". rand(1,25). ".ini";
+        $amassconfig = "/configs/amass/amass". rand(1,4). ".yaml";
+
+        $amassconfig = "/configs/amass/amass1.yaml";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass/amass1.ini.example";
+            $amassconfig = "/configs/amass/amassTEST.yaml";
         }
 
-	    exec("sudo mkdir -p /dev/shm/amass" . $randomid);
-//--net=host 
-        //sudo docker run -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -d stage-uchi.ru -active -brute -v -alts -timeout 120 -config /configs/amass/amass2.ini -min-for-recursive 2 -src -trqps 500 -dns-qps 500000 -trf /configs/amass/resolvers.txt
-        $command = "sudo docker run --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:v3.23.3 enum -dir /dev/shm/amass" . $randomid . " -w /configs/amass/amasswordlistOLD.txt  -d " . escapeshellarg($url) . " -json " . $enumoutput . " -active -alts -brute -ip -min-for-recursive 2 -timeout 2800 -trf /configs/amass/resolvers.txt -config ".$amassconfig ." && oam_subs -names -d " . escapeshellarg($url) . " ";
-            //oam_subs -show -ipv4 -d example.com parse ipv4 for nmap scans?
+	    exec("sudo mkdir -p /dev/shm/amass" . $randomid); //run in memory
 
-        //oam_track -d example.com !!
+//--net=host 
+
+        $command = "sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlistOLD.txt && oam_subs -config ". $amassconfig ." -names -ipv4 -d " . escapeshellarg($url) . " -o " . $enumoutput . " ";
+
         exec($command);
+        
+        //nmap ipv6 in different thread?
+
+        //sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -d dzen.ru -config /configs/amass/amass1.yaml -active -alts -brute -min-for-recursive 2 -timeout 300
+        
 
         if ( file_exists($enumoutput) ) {
-            $fileamass = file_get_contents($enumoutput);
+            $fileamass = amass::rFile($enumoutput); //file with subdomains line by line
         } else {
-            sleep(1000);
+            sleep(1000); // retry again - IO/network issues?
             exec($command);
 
             if ( file_exists($enumoutput) ) {
-                $fileamass = file_get_contents($enumoutput);
+                $fileamass = amass::rFile($enumoutput);
             }
         }
 
-        $fileamass = str_replace("}
-{\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
+        if ( $fileamass!= "" && !empty($fileamass) ){
 
-        $fileamass = str_replace("} {", "},{", $fileamass);
+        $NEWips = array();
 
-        $fileamass = str_replace("}
-{", "},{", $fileamass);
+            $maindomain = $url;
 
-        $fileamass = str_replace("}
-{\"name\"", "},{\"name\"", $fileamass);
+            //Get vhost names from amass scan & wordlist file + use only unique ones
+            foreach ($fileamass as $line) {
 
-        $amassoutput = '[' . $fileamass . ']';
+                $name = $line[0];
 
-        if($amassoutput!= "" && !empty($amassoutput) ){
+                if (strpos($name, 'https://xn--') === false) {
 
-            $NEWips = array();
+                    $NEWsubdomains[] = $name; // full hostname for Host: header
+                }
 
-            $amassoutput = json_decode($amassoutput, true);
-
-            if ( !empty($amassoutput) && $amassoutput != NULL ){
-
-                //amass::var_dump_all($amassoutput);
-
-                $maindomain = $amassoutput[0]["domain"];
-
-                //Get vhost names from amass scan & wordlist file + use only unique ones
-                foreach ($amassoutput as $amass) {
-
-                    $name = $amass["name"];
-
-                    if (strpos($name, 'https://xn--') === false) {
-
-                        $NEWsubdomains[] = $name; // full hostname for Host: header
-                    }
-
-                    //add all ips observed by amass to the db to scan them later w nmap
-
-                    /*foreach( $amass["addresses"] as $ipsarr ){
-                        $ip = $ipsarr;
-                        //amass::var_dump_f($ip);
-                        amass::var_dump_all(vhostscan::ipCheck( $ip["ip"]) );
-                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) {
-                            $NEWips[] = $ip["ip"];
-                        }
-                    }*/
-
-                    foreach( $amass["addresses"] as $vhostarr ){
-                        //print_r($vhostarr);
-                        $ip = $vhostarr;
-                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $NEWips[] = $ip["ip"];
+                //add all ips observed by amass to the db to scan them later with nmap
+                if ( isset ( $line[1] ) ) {
+                    $ips = explode(' ', trim($line[1]));
+                    foreach ($ips as $ip) {
+                        if ( vhostscan::ipCheck($ip) == 0 ) $NEWips[] = $ip;
                     }
                 }
             }
@@ -277,7 +265,7 @@ class Amass extends ActiveRecord
                         aquatone::aquatonepassive($randomid, $aquatonefile);
                     }
 
-                    return 0; // no changes between scans
+                    // no changes between scans
                     //wrong logic,rewrite
 
                 } elseif ($amass->amass_new != "") { //latest scan info in DB

@@ -74,7 +74,7 @@ class Amass extends ActiveRecord
 
 //--net=host 
 
-        $command = "sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlistOLD.txt && oam_subs -config ". $amassconfig ." -names -ipv4 -d " . escapeshellarg($url) . " -o " . $enumoutput . " ";
+        $command = "sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt && oam_subs -config ". $amassconfig ." -names -ipv4 -d " . escapeshellarg($url) . " -o " . $enumoutput . " ";
 
         exec($command);
         

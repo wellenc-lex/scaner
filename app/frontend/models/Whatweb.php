@@ -122,8 +122,8 @@ class Whatweb extends ActiveRecord
                 $whatweb->favicon = $url["favicon-mmh3"];
                 $whatweb->date = date("Y-m-d");
 
-                if (isset( $url["technologies"] )) {
-                    $whatweb->tech = json_encode( $url["technologies"] );
+                if (isset( $url["tech"] )) {
+                    $whatweb->tech = json_encode( $url["tech"] );
 
                     if (preg_match('/Basic/', $whatweb->tech) === 1) {
                         $queue = new Queue();

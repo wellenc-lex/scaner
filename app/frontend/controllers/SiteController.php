@@ -982,7 +982,7 @@ class SiteController extends Controller
 
             foreach($alive as $url) {
 
-                if($url["input"] != "" ){ //check that domain corresponds to amass domain. (in case gau gave us wrong info)
+                if($url["input"] != "" ){
 
                     $scheme = $url["scheme"]."://";
                     $port = ":".$url["port"]; 
@@ -1015,7 +1015,7 @@ class SiteController extends Controller
                         $whatweb->favicon = $url["favicon-mmh3"];
                         $whatweb->date = date("Y-m-d");
 
-                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+                        if (isset( $url["tech"] )) $whatweb->tech = json_encode( $url["tech"] );
 
                         $whatweb->save();
 
@@ -1148,7 +1148,7 @@ class SiteController extends Controller
                         $whatweb->favicon = $url["favicon-mmh3"];
                         $whatweb->date = date("Y-m-d");
 
-                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+                        if (isset( $url["tech"] )) $whatweb->tech = json_encode( $url["tech"] );
 
                         $whatweb->save();
 
@@ -1278,7 +1278,7 @@ foreach ($xmls as $xml) {
                         $whatweb->favicon = $url["favicon-mmh3"];
                         $whatweb->date = date("Y-m-d");
 
-                        if (isset( $url["technologies"] )) $whatweb->tech = json_encode( $url["technologies"] );
+                        if (isset( $url["tech"] )) $whatweb->tech = json_encode( $url["tech"] );
 
                         $whatweb->save();
 

@@ -271,4 +271,42 @@ class PassiveController extends Controller
         return 0;
     }
 
+    public static function actionScanamass()
+    {
+        $secret = getenv('api_secret') ?: 'secretkeyzzzzcbv55';
+        $auth = getenv('Authorization') ?: 'Basic bmdpbng6QWRtaW4=';
+
+        $secretIN = 'secretkeyzzzzcbv55';//Yii::$app->request->get('secret');
+
+        if ($secret === $secretIN) {
+
+            $allresults = PassiveScan::find()
+                ->where(['is_active' => 1])
+                ->all();
+
+            foreach ($allresults as $result) {    
+
+                if ($result != NULL) {
+
+                    if ($result->amassDomain != "") {
+
+                        $queue = new Queue();
+                        $queue->passivescan = 1;
+                        $queue->taskid = $result->PassiveScanid;
+                        $queue->amassdomain = $result->amassDomain;
+                        $queue->instrument = 2;
+                        $queue->save();
+                    }
+
+                    $result->last_scan_monthday = $result->scanday;
+                    $result->save(false);
+                }
+
+            }
+
+            return 1;    
+        }
+        return 0;
+    }
+
 }

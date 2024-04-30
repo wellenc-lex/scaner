@@ -324,7 +324,7 @@ class Amass extends ActiveRecord
 
                             //All ips ever found with amass
                             $amass->amass_ips = array_unique(
-                                array_merge($NEWips, json_decode($amass->amass_ips) )
+                                array_merge($NEWips, json_decode($amass->amass_ips, true) )
                             );
 
                             $amass->amass_ips = json_encode($amass->amass_ips);

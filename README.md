@@ -41,7 +41,7 @@ Linux: cd PROJECTDIR/DOCKER/ && docker-compose --project-name docker --compatibi
 
 Later you can start your project with docker-compose -f PROJECTDIR/DOCKER/docker-compose.yml up -d
 
-Site will be avaliable at http://localhost and default credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.local/phpmyadmin/
+Site will be avaliable at http://localhost and nginx creds are nginx:Admin, default site credentials are admin@admin.com:admin and phpmyadmin is here: https://scaner.local/phpmyadmin/
 
 Special thanks to these tools developers:
 https://github.com/OWASP/Amass

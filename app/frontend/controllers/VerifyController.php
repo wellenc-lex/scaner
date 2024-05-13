@@ -865,6 +865,10 @@ class VerifyController extends Controller
             $dontscan=1; //scanning cdn is pointless
         }
 
+        if (preg_match("/.*cdn.*dzeninfra.ru/i", $url) === 1) {
+            $dontscan=1; //scanning cdn is pointless
+        }
+
         if (preg_match("/.*wg\d*.ok.ru/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }

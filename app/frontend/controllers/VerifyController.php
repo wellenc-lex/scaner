@@ -917,6 +917,10 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
+        if (preg_match("/.*avt.*imgsmail.ru/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
         if (preg_match("/.*-vm[\d]*vk.com/i", $url) === 1) {
            $dontscan=1; //has huge amount of static files - cant check the results
         }
@@ -937,7 +941,9 @@ class VerifyController extends Controller
            $dontscan=1; //scanning discord is pointless
         }
 
-
+        if (preg_match("/.*jazz.*sber.*/i", $url) === 1) {
+           $dontscan=1; //scanning discord is pointless
+        }
 
         
         

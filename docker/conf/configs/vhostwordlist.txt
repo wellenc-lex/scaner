@@ -14,9 +14,15 @@ bitbucket
 administration
 ads
 adserver
+api_main_01_TerminalEmployeeProxyApi
 alerts
 alpha
 ap
+prod.lan
+dev.lan
+test.lan
+stage.lan
+lan
 backup1
 confluence
 jira

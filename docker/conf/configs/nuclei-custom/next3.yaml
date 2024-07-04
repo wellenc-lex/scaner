@@ -1,0 +1,38 @@
+d: next-js-cache-poisoning
+
+info:
+  name: Next.js Cache Poisoning
+  author: Ice3man543
+  severity: high
+  description: |
+    Next.js is vulnerable to cache poisoning through the x-middleware-prefetch and x-invoke-status headers. This can result in DoS by serving an empty JSON object or error page instead of the intended content, affecting SSR responses.
+  reference:
+    - https://github.com/vercel/next.js/compare/v13.4.20-canary.12...v13.4.20-canary.13
+    - https://github.com/valentin-panov/nextjs-no-cache-issue
+    - https://zhero-web-sec.github.io/research-and-things/nextjs-and-cache-poisoning-a-quest-for-the-black-hole
+  metadata:
+    vendor: vercel
+    product: next.js
+    framework: node.js
+    shodan-query:
+      - http.html:"/_next/static"
+      - cpe:"cpe:2.3:a:zeit:next.js"
+    fofa-query: body="/_next/static"
+  tags: cve,cve2023,next-js,cache
+
+variables:
+  rand: "{{rand_text_numeric(5)}}"
+
+http:
+  - raw:
+      - |
+        GET /?cb={{rand}} HTTP/1.1
+        Host: {{Hostname}}
+        Rsc: 1
+        X-Bug-Bounty: wellenc_lex
+
+    matchers:
+      - type: word
+        words:
+          - "Content-Type: text/x-component"
+        part: header

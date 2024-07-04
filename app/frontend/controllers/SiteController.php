@@ -959,6 +959,15 @@ class SiteController extends Controller
         $output = "/dockerresults/" . $randomid . "nucleihttpx.txt";
 
         $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,10250,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 40 -threads 300 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+
+        //$httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,443,8080 -rate-limit 55 -threads 500 -timeout 30 -retries 3 -o "/dockerresults/outhttpx.txt" -l "/dockerresults/listhttpx.txt";
+
+
+        //custom nuclei template run
+        //docker run --rm --net=host --cpu-shares 2048 -v nuclei:/nuclei -v dockerresults:/dockerresults/ -v configs:/root/ projectdiscovery/nuclei -t /dockerresults/next2.yaml -list /dockerresults/httpslist.txt -o /dockerresults/outnuclei2.json -retries 2 -max-host-error 200 -timeout 70 -rl 20 -bs 500 -page-timeout 70 -ztls -disable-update-check -fr -stats
+
+
+        //docker run --rm --net=host --cpu-shares 2048 -v nuclei:/nuclei -v dockerresults:/dockerresults/ -v configs:/root/ projectdiscovery/nuclei -t /dockerresults/next2.yaml -u "https://www.rustore.ru" -debug -o /dockerresults/outnuclei2.json -retries 2 -max-host-error 200 -timeout 70 -rl 20 -bs 500 -page-timeout 70 -ztls -disable-update-check -fr -stats
             
         exec($httpx);
 

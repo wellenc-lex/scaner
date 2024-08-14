@@ -34,7 +34,7 @@ class PassiveController extends Controller
             $allresults = PassiveScan::find()
                 ->where(['is_active' => 1])
                 ->orWhere(['is_active' => 4])
-                ->andWhere(['!=', 'last_scan_monthday', date("d")])
+                ->andWhere(['!=', 'last_scan_monthday', date("Y-m-d") ])
                 ->andWhere(['scanday' => date("d")])
                 ->all();
 
@@ -81,7 +81,7 @@ class PassiveController extends Controller
                         $queue->save();
                     }
 
-                    $result->last_scan_monthday = date("d");
+                    $result->last_scan_monthday = date("Y-m-d");
                     $result->save(false);
                 }
 
@@ -260,7 +260,7 @@ class PassiveController extends Controller
                         $queue->save();
                     }
 
-                    $result->last_scan_monthday = $result->scanday;
+                    $result->last_scan_monthday = date("Y-m-d");
                     $result->save(false);
                 }
 
@@ -296,10 +296,11 @@ class PassiveController extends Controller
                         $queue->amassdomain = $result->amassDomain;
                         $queue->instrument = 2;
                         $queue->save();
+
+                        $result->last_scan_monthday = date("Y-m-d");
+                        $result->save(false);
                     }
 
-                    $result->last_scan_monthday = $result->scanday;
-                    $result->save(false);
                 }
 
             }

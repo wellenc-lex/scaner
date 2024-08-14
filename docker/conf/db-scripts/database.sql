@@ -272,6 +272,9 @@ ALTER TABLE `amassintel`
 
 INSERT INTO `amassintel` (`id`, `domains`) VALUES ('1', '[]');
 
+ALTER TABLE `passive_scan` ADD `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `viewed`;
+ALTER TABLE `passive_scan` CHANGE `last_scan_monthday` `last_scan_monthday` VARCHAR(55) NOT NULL DEFAULT '0';
+
 CREATE TABLE `scaner`.`whatweb` ( `id` INT NOT NULL AUTO_INCREMENT , `url` VARCHAR(16000) NOT NULL , `ip` VARCHAR(50) NOT NULL , `tech` JSON NULL DEFAULT NULL , `favicon` VARCHAR(100) NOT NULL , `date` DATE NULL DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB; 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

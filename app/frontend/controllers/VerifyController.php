@@ -148,7 +148,7 @@ class VerifyController extends Controller
                     ->andWhere(['instrument' => "3"])
                     ->andWhere(['passivescan' => "0"])
                     ->orderBy(['id' => SORT_DESC])
-                    ->limit(100)
+                    ->limit(50)
                     ->all();
 
                 $counter = 1; 
@@ -412,7 +412,7 @@ class VerifyController extends Controller
 
                         if ($tools_amount_amass < $max_passive_amass ) {
 
-                            $results->working  = 1;
+                            $results->working = 1; $results->todelete = 1;
 
                             $url = $results->amassdomain;
 

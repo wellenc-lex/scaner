@@ -13,6 +13,9 @@ use frontend\models\Aquatone;
 
 class Amass extends ActiveRecord
 {
+    public static function custom_sort($a,$b) {
+      return $a['url']<$b['url'];
+    }
 
     public static function var_dump_f ($val) {
       ob_start();
@@ -26,17 +29,6 @@ class Amass extends ActiveRecord
       var_dump($val);
       $output = ob_get_clean();
       file_put_contents('/tmp/DUMPALL'.rand(10000, 10000000000).'.txt', $output);
-    }
-
-    public static function rFile($filename) {
-        $lines = file($filename);
-        if ($lines !== false) {
-            foreach ($lines as & $line) {
-                $line = explode(' ', trim($line));
-                $line = str_replace(',', ' ', $line);
-            }
-        }
-        return $lines;
     }
 
     /**
@@ -60,61 +52,76 @@ class Amass extends ActiveRecord
 
         $randomid = rand(10000, 10000000000);
 
-        $enumoutput = "/dockerresults/" . $randomid . "amass.txt";
+        $enumoutput = "/dockerresults/" . $randomid . "amass.json";
 
-        $amassconfig = "/configs/amass/amass". rand(1,4). ".yaml";
+        $amassconfig = "/configs/amass/amass". rand(1,25). ".ini";
 
-        $amassconfig = "/configs/amass/amass1.yaml";
+        //$amassconfig = "/configs/amass/amass1.ini";
 
         if( !file_exists($amassconfig) ){
-            $amassconfig = "/configs/amass/amassTEST.yaml";
+            $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
 	    exec("sudo mkdir -p /dev/shm/amass" . $randomid); //run in memory
 
 //--net=host 
 
-        $command = "sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt && oam_subs -config ". $amassconfig ." -names -ipv4 -d " . escapeshellarg($url) . " -o " . $enumoutput . " ";
+        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 5 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
 
         exec($command);
         
-        //nmap ipv6 in different thread?
-
-        //sudo docker run --privileged=true --link assetdb_postgres:assetdb_postgres --net docker_default --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults caffix/amass:latest enum -d dzen.ru -config /configs/amass/amass1.yaml -active -alts -brute -min-for-recursive 2 -timeout 300
+        //docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass1 -d ya.ru -active -alts -brute -min-for-recursive 2 -timeout 5 -w /configs/amass/amasswordlist.txt -config /configs/amass/amass1.ini
         
-
-        if ( file_exists($enumoutput) ) {
-            $fileamass = amass::rFile($enumoutput); //file with subdomains line by line
+         if ( file_exists($enumoutput) ) {
+            $fileamass = file_get_contents($enumoutput);
         } else {
-            sleep(1000); // retry again - IO/network issues?
+            sleep(1000);
             exec($command);
 
             if ( file_exists($enumoutput) ) {
-                $fileamass = amass::rFile($enumoutput);
+                $fileamass = file_get_contents($enumoutput);
             }
         }
 
-        if ( $fileamass!= "" && !empty($fileamass) ){
+        $fileamass = str_replace("}
+{\"Timestamp\"", "},{\"Timestamp\"", $fileamass);
 
-        $NEWips = array();
+        $fileamass = str_replace("} {", "},{", $fileamass);
 
-            $maindomain = $url;
+        $fileamass = str_replace("}
+{", "},{", $fileamass);
 
-            //Get vhost names from amass scan & wordlist file + use only unique ones
-            foreach ($fileamass as $line) {
+        $fileamass = str_replace("}
+{\"name\"", "},{\"name\"", $fileamass);
 
-                $name = $line[0];
+        $amassoutput = '[' . $fileamass . ']';
 
-                if (strpos($name, 'https://xn--') === false) {
+        if($amassoutput!= "" && !empty($amassoutput) ){
 
-                    $NEWsubdomains[] = $name; // full hostname for Host: header
-                }
+            $NEWips = array();
 
-                //add all ips observed by amass to the db to scan them later with nmap
-                if ( isset ( $line[1] ) ) {
-                    $ips = explode(' ', trim($line[1]));
-                    foreach ($ips as $ip) {
-                        if ( vhostscan::ipCheck($ip) == 0 ) $NEWips[] = $ip;
+            $amassoutput = json_decode($amassoutput, true);
+
+            if ( !empty($amassoutput) && $amassoutput != NULL ){
+
+                //amass::var_dump_all($amassoutput);
+
+                $maindomain = $amassoutput[0]["domain"];
+
+                //Get vhost names from amass scan & wordlist file + use only unique ones
+                foreach ($amassoutput as $amass) {
+
+                    $name = $amass["name"];
+
+                    if (strpos($name, 'https://xn--') === false) {
+
+                        $NEWsubdomains[] = $name; // full hostname for Host: header
+                    }
+
+                    foreach( $amass["addresses"] as $vhostarr ){
+                        //print_r($vhostarr);
+                        $ip = $vhostarr;
+                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $NEWips[] = $ip["ip"];
                     }
                 }
             }
@@ -148,7 +155,7 @@ class Amass extends ActiveRecord
         file_put_contents($wordlist, implode( PHP_EOL, $vhostslist) );
 
         //--net=container:vpn1
-        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,5553,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,2181,9092,9200,28080 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -follow-host-redirects -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        $httpx = "sudo docker run --cpu-shares 512 --rm -v dockerresults:/dockerresults projectdiscovery/httpx -ports 1080,1100,80,443,8080,8443,8000,3000,3301,8083,8088,8888,2379,8880,5553,6443,9999,10000,13000,10250,4443,6443,10255,2379,6666,8123,2181,9092,9200,28080 -rate-limit 15 -timeout 35 -threads 50 -retries 3 -fc 301,302 -silent -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
         
         exec($httpx);
 
@@ -168,7 +175,7 @@ class Amass extends ActiveRecord
 
             if ( !empty($alive) ){
 
-                rsort($alive); //rsort so https:// will be at the top and we get less invalid duplicates with http:// below
+                usort($alive, "custom_sort"); //https:// will be at the top and we get less invalid duplicates with http:// below
 
                 Yii::$app->db->open();
 

@@ -13,9 +13,6 @@ use frontend\models\Aquatone;
 
 class Amass extends ActiveRecord
 {
-    public static function custom_sort($a,$b) {
-      return $a['url']<$b['url'];
-    }
 
     public static function var_dump_f ($val) {
       ob_start();
@@ -174,6 +171,10 @@ class Amass extends ActiveRecord
             $alive = json_decode($output, true);
 
             if ( !empty($alive) ){
+
+                function custom_sort($a,$b) {
+                  return $a['url']<$b['url'];
+                }
 
                 usort($alive, "custom_sort"); //https:// will be at the top and we get less invalid duplicates with http:// below
 
@@ -365,6 +366,10 @@ class Amass extends ActiveRecord
                 amass::saveToDB($scanid, $NEWsubdomains, $randomid, $NEWips);
             }
         } while($tryAgain);
+    }
+
+    public static function custom_sort($a,$b) {
+      return $a['url']<$b['url'];
     }
 
 }

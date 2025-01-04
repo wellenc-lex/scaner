@@ -63,7 +63,7 @@ class Amass extends ActiveRecord
 
 //--net=host 
 
-        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 2800 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
+        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 1000 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
 
         exec($command);
         
@@ -136,11 +136,6 @@ class Amass extends ActiveRecord
         }
     }
 
-    public static function tableName()
-    {
-        return 'passive_scan';
-    }
-
     public static function httpxhosts($vhostslist, $taskid, $randomid)
     {
         global $maindomain;
@@ -172,11 +167,8 @@ class Amass extends ActiveRecord
 
             if ( !empty($alive) ){
 
-                function custom_sort($a,$b) {
-                  return $a['url']<$b['url'];
-                }
-
-                usort($alive, "custom_sort"); //https:// will be at the top and we get less invalid duplicates with http:// below
+                usort( $alive, [amass::class, "custom_sort"]);
+                //usort($alive, "custom_sort"); //https:// will be at the top and we get less invalid duplicates with http:// below
 
                 Yii::$app->db->open();
 
@@ -370,6 +362,10 @@ class Amass extends ActiveRecord
 
     public static function custom_sort($a,$b) {
       return $a['url']<$b['url'];
+    }
+
+    public static function tableName() {
+        return 'passive_scan';
     }
 
 }

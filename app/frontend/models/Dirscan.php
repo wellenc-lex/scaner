@@ -233,8 +233,8 @@ class Dirscan extends ActiveRecord
             wait; >> /ffuf/" . $randomid . "/0bash.txt && cat /ffuf/" . $randomid . "/*/gau.txt >> /ffuf/gau.txt");
 
         file_put_contents($shellfile, $runffufs);
-//--net=container:vpn1
-        exec("sudo chmod +x " . $shellfile . " && sudo docker run --net docker_default -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
+//--net=container:vpn1 --link assetdb_postgres:assetdb_postgres --net=container:vpn1 --net docker_default
+        exec("sudo chmod +x " . $shellfile . " && sudo docker run -v ffuf:/ffuf -v configs:/configs --cpu-shares 128 --rm 5631/ffufs " . $shellfile);
 
         while($counter!=0){
 

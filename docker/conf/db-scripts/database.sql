@@ -79,7 +79,7 @@ CREATE TABLE `passive_scan` (
   `user_notified` tinyint(1) NOT NULL DEFAULT '0',
   `needs_to_notify` tinyint(1) NOT NULL DEFAULT '0',
   `notify_instrument` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `last_scan_monthday` int(11) NOT NULL DEFAULT '0',
+  `last_scan_monthday` varchar(11) NOT NULL DEFAULT '0',
   `viewed` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`PassiveScanid`),
   KEY `userid` (`userid`),

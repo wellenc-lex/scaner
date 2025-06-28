@@ -36,6 +36,7 @@ class PassiveController extends Controller
                 ->orWhere(['is_active' => 4])
                 ->andWhere(['!=', 'last_scan_monthday', date("Y-m-d") ])
                 ->andWhere(['scanday' => date("d")])
+                ->orWhere(['last_scan_monthday' => null])
                 ->all();
 
             foreach ($allresults as $result) {    

@@ -909,6 +909,22 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
+        if (preg_match("/.*storage.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*search.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*disk.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
+        if (preg_match("/.*strm.yandex.net/i", $url) === 1) {
+           $dontscan=1; //scanning cdn is pointless
+        }
+
         if (preg_match("/.*radar.*smail.*/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }

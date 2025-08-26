@@ -17,6 +17,7 @@ use frontend\models\Amassintel;
 use frontend\models\Dirscan;
 use frontend\models\Vhostscan;
 use frontend\models\Whatweb;
+use frontend\controllers\VerifyController;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\data\Pagination;
@@ -1524,9 +1525,9 @@ foreach ($xmls as $xml) {
     public function actionScanallpassive()
     {
         $allresults = PassiveScan::find()
-            ->select(['passive_scan.PassiveScanid','passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new'])
+            ->select(['passive_scan.PassiveScanid','passive_scan.userid','passive_scan.amass_previous','passive_scan.amass_new','passive_scan.is_active'])
             ->andWhere(['not', ['passive_scan.userid' => null]])
-            ->andWhere(['>','passive_scan.PassiveScanid','400'])
+            ->andWhere(['not', ['passive_scan.is_active' => "0"]])
             ->all();
 
         Yii::$app->db->close();
@@ -1563,9 +1564,11 @@ foreach ($xmls as $xml) {
         $httpxresponsesdir = "/httpxresponses/" . $randomid. "/";
         $output = "/dockerresults/" . $randomid . "whatwebhttpx.txt";
 
-        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 150 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+        //$httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 80,81,443,8080,8443,8000,3000,8083,8088,8888,8880,9999,10000,4443,6443,10250,8123,2181,2379,9092,9100,9080,9443 -random-agent=false -rate-limit 50 -threads 150 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
 
-        //exec($httpx);
+        $httpx = "sudo docker run --cpu-shares 256 --rm -v dockerresults:/dockerresults -v httpxresponses:/httpxresponses projectdiscovery/httpx -ports 443 -random-agent=false -rate-limit 50 -threads 150 -timeout 40 -retries 3 -o ". $output ." -l ". $wordlist ." -json -tech-detect -title -favicon -ip -sr -srd ". $httpxresponsesdir;
+
+        exec($httpx);
 
         $hostnames = array(); //we dont need duplicates like http://goo.gl and https://goo.gl so we parse everything after scheme and validate that its unique
 
@@ -1602,14 +1605,17 @@ foreach ($xmls as $xml) {
 
                     if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
 
-                        if( sitecontroller::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
 
-                            $queue = new Queue();
-                            $queue->taskid = $taskid;
-                            $queue->dirscanUrl = $scheme.$currenthost;
-                            $queue->instrument = 3; //ffuf
-                            $queue->wordlist = 0;
-                            $queue->save();
+
+                        if( sitecontroller::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
+                            if ( VerifyController::dontscan($results->dirscanUrl) === 1 ) {
+                                $queue = new Queue();
+                                $queue->taskid = $taskid;
+                                $queue->dirscanUrl = $scheme.$currenthost;
+                                $queue->instrument = 3; //ffuf
+                                $queue->wordlist = 0;
+                                $queue->save();
+                            }
                         }
 
                         $queue = new Queue();

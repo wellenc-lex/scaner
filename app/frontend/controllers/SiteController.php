@@ -1605,8 +1605,6 @@ foreach ($xmls as $xml) {
 
                     if( !in_array($currenthost, $hostnames ) ){ //if this exact host:port havent been processed already
 
-
-
                         if( sitecontroller::bannedwords($currenthost) === 0 ){ //we dont need to ffuf hosts like jira,zendesk,etc - low chances of juicy fruits?
                             if ( VerifyController::dontscan($results->dirscanUrl) === 1 ) {
                                 $queue = new Queue();

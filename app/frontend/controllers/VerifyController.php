@@ -402,7 +402,7 @@ class VerifyController extends Controller
                     ->andWhere(['todelete' => "0"])
                     ->andWhere(['instrument' => "2"])
                     ->andWhere(['passivescan' => "1"])
-                    ->orderBy(['id' => SORT_ASC])
+                    ->orderBy(['id' => SORT_DESC])
                     ->limit($max_passive_amass)
                     ->all();
 
@@ -909,11 +909,11 @@ class VerifyController extends Controller
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/.*storage.yandex.net/i", $url) === 1) {
+        if (preg_match("/.*search.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 
-        if (preg_match("/.*search.yandex.net/i", $url) === 1) {
+        if (preg_match("/.*storage.yandex.net/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 
@@ -930,10 +930,6 @@ class VerifyController extends Controller
         }
 
         if (preg_match("/.*img.*imgsmail.ru/i", $url) === 1) {
-           $dontscan=1; //scanning cdn is pointless
-        }
-
-        if (preg_match("/.*avt.*imgsmail.ru/i", $url) === 1) {
            $dontscan=1; //scanning cdn is pointless
         }
 
@@ -961,15 +957,7 @@ class VerifyController extends Controller
            $dontscan=1; //scanning discord is pointless
         }
 
-        
-        
-
-        
-
         return $dontscan;
     }
-
-
-
 
 }

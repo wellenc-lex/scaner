@@ -59,11 +59,11 @@ class Amass extends ActiveRecord
             $amassconfig = "/configs/amass/amass1.ini.example";
         }
 
-	    exec("sudo mkdir -p /dev/shm/amass" . $randomid); //run in memory
+        exec("sudo mkdir -p /dev/shm/amass" . $randomid); //run in memory
 
 //--net=host 
 
-        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 1000 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
+        $command = "sudo docker run --privileged=true --cpu-shares 256 --rm -v configs:/configs/ -v dockerresults:/dockerresults aortmann/amass:v3.23.3-extra-dns-resolvers -dir /dev/shm/amass" . $randomid . " -d " . escapeshellarg($url) . " -active -alts -brute -min-for-recursive 2 -timeout 3000 -config ". $amassconfig ." -w /configs/amass/amasswordlist.txt -trf /configs/amass/resolvers.txt -json " . $enumoutput . " ";
 
         exec($command);
         
@@ -346,7 +346,7 @@ class Amass extends ActiveRecord
                     $amass->save();
                 }
 
-		        exec("sudo rm -rf /dev/shm/amass" . $randomid);
+                exec("sudo rm -rf /dev/shm/amass" . $randomid);
 
                 return $changes;
 

@@ -439,7 +439,7 @@ class Amass extends ActiveRecord
                     foreach( $amass["addresses"] as $vhostarr ){
                         //print_r($vhostarr);
                         $ip = $vhostarr;
-                        if ( vhostscan::ipCheck( $ip["ip"] == 0 ) ) $ips[] = $ip["ip"];
+                        if ( vhostscan::ipCheck( $ip["ip"] ) == 0 ) $ips[] = $ip["ip"];
                     }
                 }
             }
@@ -559,6 +559,12 @@ class Amass extends ActiveRecord
                             $queue->taskid = $taskid;
                             $queue->dirscanUrl = $scheme.$currenthost;
                             $queue->instrument = 8; //nuclei
+                            $queue->save();
+
+                            $queue = new Queue();
+                            $queue->taskid = $taskid;
+                            $queue->dirscanUrl = $scheme.$currenthost;
+                            $queue->instrument = 7; //vhost
                             $queue->save();
 
                             $whatweb = new Whatweb();
